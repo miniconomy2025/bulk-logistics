@@ -8,6 +8,7 @@ The entity that initiates a delivery order is responsible for payment. In short,
 
 
 ## Members
+
 Gregory Maselle
 Keith Hughes
 Lerato Taunyane
@@ -77,5 +78,3 @@ Our API provides access to the functionalities listed above. Endpoints marked as
 ## Database
 
 [Here](https://dbdiagram.io/d/MiniConomy-Bulk-Logistics-6841dcf4ba2a4ac57b0997e1) is the link to our current database design.
-
-### Contact
