@@ -9,8 +9,8 @@ The entity that initiates a delivery order is responsible for payment. In short,
 
 ## Members
 
+- Keith Hughes (TEAM LEAD)
 - Gregory Maselle
-- Keith Hughes
 - Lerato Taunyane
 - Ndzalama Mabasa
 - Vuyo (Joy) Mama
