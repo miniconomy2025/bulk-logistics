@@ -30,49 +30,9 @@ tags:
     description: |
       Manage requests to pick up and transfer goods from one company to another.
 
-  - name: Pickup Request Items
-    description: |
-      Represents the items included in a pickup request.
-
   - name: Shipments
     description: |
       Handle shipment dispatch, tracking, and status management.
-
-  - name: Shipment Items
-    description: |
-      Track and manage the items associated with a shipment.
-
-  - name: Vehicles
-    description: |
-      Manage logistics vehicles and their types.
-
-  - name: Companies
-    description: |
-      Information related to companies participating in the logistics process.
-
-  - name: Item Definitions
-    description: |
-      Define the items that can be transported and their associated capacity types.
-
-  - name: Capacity Types
-    description: |
-      Represent types of capacity units used to measure item and vehicle capacity.
-
-  - name: Transaction Categories
-    description: |
-      Categorize financial transactions related to logistics operations.
-
-  - name: Transaction Ledger
-    description: |
-      Track financial transactions related to pickups, shipments, and logistics costs.
-
-  - name: Transaction Statuses
-    description: |
-      Manage status values for financial transactions.
-
-  - name: Shipment Statuses
-    description: |
-      Define and manage the lifecycle states of shipments.
 
 paths:
   /pickup-requests:
@@ -93,19 +53,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PickupRequestResponse"
-    get:
-      tags:
-        - Pickup Requests
-      summary: List all pickup requests
-      responses:
-        200:
-          description: A list of pickup requests
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/PickupRequestResponse"
 
   /pickup-requests/{id}:
     get:
@@ -127,67 +74,6 @@ paths:
                 $ref: "#/components/schemas/PickupRequestResponse"
         404:
           description: Pickup request not found
-    put:
-      tags:
-        - Pickup Requests
-      summary: Update a pickup request
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PickupRequest"
-      responses:
-        200:
-          description: Pickup request updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PickupRequestResponse"
-        404:
-          description: Pickup request not found
-
-  /pickup-requests/{id}/items:
-    get:
-      tags:
-        - Pickup Request Items
-      summary: List items in a pickup request
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema:
-            type: integer
-      responses:
-        200:
-          description: List of items in the pickup request
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/PickupRequestItemResponse"
-
-  /shipments:
-    get:
-      tags:
-        - Shipments
-      summary: List all shipments
-      responses:
-        200:
-          description: A list of shipments
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ShipmentResponse"
 
   /shipments/{id}:
     get:
@@ -213,15 +99,6 @@ paths:
 components:
   schemas:
     # Shipment Status Schemas
-    ShipmentStatusRequest:
-      type: object
-      required:
-        - name
-      properties:
-        name:
-          type: string
-          maxLength: 50
-          example: "Delivered"
     ShipmentStatusResponse:
       type: object
       properties:
@@ -234,23 +111,6 @@ components:
           example: "Collected"
 
     # Shipment Schemas
-    ShipmentRequest:
-      type: object
-      properties:
-        dispatchDate:
-          type: string
-          format: date
-          example: "2025-06-29"
-        vehicleId:
-          type: integer
-          example: 1
-        shipmentStatusId:
-          type: integer
-          example: 1
-      required:
-        - dispatchDate
-        - vehicleId
-        - shipmentStatusId
     ShipmentResponse:
       type: object
       properties:
@@ -262,65 +122,10 @@ components:
           type: string
           format: date
           example: "2025-06-29"
-        vehicle:
-          $ref: "#/components/schemas/VehicleResponse"
         shipmentStatus:
           $ref: "#/components/schemas/ShipmentStatusResponse"
 
-    # Shipment Item Detail Schemas
-    ShipmentItemDetailRequest: # Do we need this?
-      type: object
-      properties:
-        shipmentId:
-          type: integer
-          example: 1
-        pickupRequestItemId:
-          type: integer
-          example: 1
-        quantityTransported: # I don't think we need this since we can get this from the pickup request item
-          type: integer
-          example: 50
-      required:
-        - shipmentId
-        - pickupRequestItemId
-        - quantityTransported
-    ShipmentItemDetailResponse:
-      type: object
-      properties:
-        shipmentItemDetailId:
-          type: integer
-          readOnly: true
-          example: 1
-        shipmentId:
-          type: integer
-          example: 1
-        pickupRequestItemId:
-          type: integer
-          example: 1
-        quantityTransported:
-          type: integer
-          example: 50
-
     # Company Schemas
-    CompanyRequest:
-      type: object
-      properties:
-        companyName:
-          type: string
-          maxLength: 150
-          example: "Case Supplier"
-        certificateIdentifier:
-          type: string
-          maxLength: 255
-          example: "cert-af32-98b-fe21"
-        bankAccountNumber: # Not sure if we need it. Maybe for refund, should the request gets cancelled?
-          type: string
-          maxLength: 50
-          nullable: true
-          example: "9876543210"
-      required:
-        - companyName
-        - certificateIdentifier
     CompanyResponse:
       type: object
       properties:
@@ -331,29 +136,25 @@ components:
         companyName:
           type: string
           example: "Screen Supplier"
-        certificateIdentifier:
-          type: string
-          example: "cert-af32-98b-fe21"
-        bankAccountNumber:
-          type: string
-          nullable: true
-          example: "9876543210"
 
-    # Item Definition Schemas
-    ItemDefinitionRequest:
+    # # Pickup Request Item Schemas
+    PickupRequestItemRequest:
       type: object
       properties:
-        itemName:
-          type: string
-          maxLength: 100
-          example: "Sand"
+        itemDefinitionId:
+          type: integer
+          example: 1
         capacityTypeId:
           type: integer
           example: 1
+        quantity:
+          type: integer
+          example: 50
       required:
-        - itemName
+        - itemDefinitionId
         - capacityTypeId
-    ItemDefinitionResponse:
+        - quantity
+    PickupRequestItemResponse:
       type: object
       properties:
         itemDefinitionId:
@@ -363,122 +164,13 @@ components:
         itemName:
           type: string
           example: "Sand"
-        capacityType:
-          $ref: "#/components/schemas/CapacityTypeResponse"
-
-    # Capacity Type Schemas
-    CapacityTypeRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          maxLength: 50
-          example: "Kilograms"
-      required:
-        - name
-    CapacityTypeResponse:
-      type: object
-      properties:
         capacityTypeId:
           type: integer
           readOnly: true
-          example: 1
-        name:
-          type: string
-          example: "Kilograms"
-
-    # Vehicle Type Schemas
-    VehicleTypeRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          maxLength: 50
-          example: "Large Truck"
-        dailyOperationalCost:
-          type: number
-          format: double
-          example: 2500.75
-        capacityTypeId:
+          example: 12
+        quantity:
           type: integer
-          example: 1
-        maximumCapacity:
-          type: integer
-          example: 5000
-        maxPickupsPerDay:
-          type: integer
-          example: 10
-        maxDropoffsPerDay:
-          type: integer
-          example: 10
-      required:
-        - name
-        - dailyOperationalCost
-        - capacityTypeId
-        - maximumCapacity
-        - maxPickupsPerDay
-        - maxDropoffsPerDay
-    VehicleTypeResponse:
-      type: object
-      properties:
-        vehicleTypeId:
-          type: integer
-          readOnly: true
-          example: 1
-        name:
-          type: string
-          example: "Small Truck"
-        dailyOperationalCost:
-          type: number
-          format: double
-          example: 2500.75
-        capacityTypeId:
-          type: integer
-          example: 1
-        maximumCapacity:
-          type: integer
-          example: 5000
-        maxPickupsPerDay:
-          type: integer
-          example: 10
-        maxDropoffsPerDay:
-          type: integer
-          example: 10
-
-    # Vehicle Schemas
-    VehicleRequest:
-      type: object
-      properties:
-        isActive:
-          type: boolean
-          example: true
-        vehicleTypeId:
-          type: integer
-          example: 1
-        purchaseDate:
-          type: string
-          format: date
-          example: "2024-01-15"
-      required:
-        - isActive
-        - vehicleTypeId
-        - purchaseDate
-    VehicleResponse:
-      type: object
-      properties:
-        vehicleId:
-          type: integer
-          readOnly: true
-          example: 1
-        isActive:
-          type: boolean
-          example: true
-        vehicleType:
-          $ref: "#/components/schemas/VehicleTypeResponse"
-        purchaseDate:
-          type: string
-          format: date
-          example: "2024-01-15"
+          example: 50
 
     # Pickup Request Schemas
     PickupRequest:
@@ -497,22 +189,16 @@ components:
           type: string
           maxLength: 255
           example: "ORD-998877"
-        requestDate:
-          type: string
-          format: date
-          example: "2025-06-28"
-        completionDate:
-          type: string
-          format: date
-          nullable: true
-          example: "2025-06-30"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PickupRequestItemRequest"
       required:
         - requestingCompanyId
         - originCompanyId
         - destinationCompanyId
         - originalExternalOrderId
-        - requestDate
-
+        - items
     PickupRequestResponse:
       type: object
       properties:
@@ -526,6 +212,10 @@ components:
           $ref: "#/components/schemas/CompanyResponse"
         destinationCompany:
           $ref: "#/components/schemas/CompanyResponse"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PickupRequestItemResponse"
         originalExternalOrderId:
           type: string
           example: "ORD-998877"
@@ -541,163 +231,4 @@ components:
           type: string
           format: date
           nullable: true
-          example: "2025-06-30"
-
-    # Pickup Request Item Schemas
-    PickupRequestItemRequest:
-      type: object
-      properties:
-        itemDefinitionId:
-          type: integer
-          example: 1
-        pickupRequestId:
-          type: integer
-          example: 1
-        quantity:
-          type: integer
-          example: 50
-      required:
-        - itemDefinitionId
-        - pickupRequestId
-        - quantity
-    PickupRequestItemResponse:
-      type: object
-      properties:
-        pickupRequestItemId:
-          type: integer
-          readOnly: true
-          example: 1
-        itemDefinition:
-          $ref: "#/components/schemas/ItemDefinitionResponse"
-        pickupRequestId:
-          type: integer
-          example: 1
-        quantity:
-          type: integer
-          example: 50
-
-    # Bank Transactions Ledger Schemas
-    BankTransactionsLedgerRequest:
-      type: object
-      properties:
-        commercialBankTransactionId:
-          type: string
-          maxLength: 100
-          nullable: true
-          example: "cb-txn-abc-123"
-        paymentReferenceId:
-          type: string
-          format: uuid
-          nullable: true
-          example: "f81d4fae-7dec-11d0-a765-00a0c91e6bf6"
-        transactionCategoryId:
-          type: integer
-          example: 1
-        amount:
-          type: number
-          format: double
-          example: 450.00
-        transactionDate:
-          type: string
-          format: date
-          example: "2025-06-29"
-        transactionStatusId:
-          type: integer
-          example: 1
-        relatedPickupRequestId:
-          type: integer
-          nullable: true
-          example: 1
-        relatedLoanId:
-          type: integer
-          nullable: true
-        relatedThohOrderId:
-          type: string
-          maxLength: 255
-          nullable: true
-      required:
-        - transactionCategoryId
-        - amount
-        - transactionDate
-        - transactionStatusId
-    BankTransactionsLedgerResponse:
-      type: object
-      properties:
-        transactionLedgerId:
-          type: integer
-          readOnly: true
-          example: 1
-        commercialBankTransactionId:
-          type: string
-          nullable: true
-          example: "cb-txn-abc-123"
-        paymentReferenceId:
-          type: string
-          format: uuid
-          nullable: true
-          example: "f81d4fae-7dec-11d0-a765-00a0c91e6bf6"
-        transactionCategory:
-          $ref: "#/components/schemas/TransactionCategoryResponse"
-        amount:
-          type: number
-          format: double
-          example: 450.00
-        transactionDate:
-          type: string
-          format: date
-          example: "2025-06-29"
-        transactionStatusId:
-          type: integer
-          example: 1
-        relatedPickupRequestId:
-          type: integer
-          nullable: true
-          example: 1
-        relatedLoanId:
-          type: integer
-          nullable: true
-        relatedThohOrderId:
-          type: string
-          nullable: true
-
-    # Transaction Category Schemas
-    TransactionCategoryRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          maxLength: 50
-          example: "Supplier Payment"
-      required:
-        - name
-    TransactionCategoryResponse:
-      type: object
-      properties:
-        transactionCategoryId:
-          type: integer
-          readOnly: true
-          example: 1
-        name:
-          type: string
-          example: "Supplier Payment"
-
-    # Transaction Status Schemas
-    TransactionStatusRequest:
-      type: object
-      properties:
-        status:
-          type: string
-          maxLength: 50
-          example: "Failed"
-      required:
-        - status
-    TransactionStatusResponse:
-      type: object
-      properties:
-        transactionStatusId:
-          type: integer
-          readOnly: true
-          example: 1
-        status:
-          type: string
-          example: "Failed"
+          example: null
