@@ -1,6 +1,12 @@
 import { Router, Request, Response } from "express";
 import { RateLimitRequestHandler } from "express-rate-limit";
+
 import { rateLimiter } from "../utils";
+import {
+  findTransactionById,
+  findTransactions,
+  insertIntoTransactionLedger,
+} from "../repositories/transactionsRepository";
 
 class TransactionsController {
   public router: Router;
@@ -16,25 +22,78 @@ class TransactionsController {
     return new TransactionsController().router;
   }
 
-  public getTransactions(request: Request, response: Response): void {
-    response.statusCode == 200;
-    response.json({ transactions: [1, 2, 3, 4, 5, 6] });
+  public async getTransactions(_: Request, response: Response): Promise<void> {
+    const result = await findTransactions();
+
+    if (result.ok) {
+      response.status(200).json({ transactions: result.value });
+    } else {
+      console.error(result.error);
+      response.status(500).json({ message: "Internal server error." });
+    }
   }
 
-  public getTransactionById(request: Request, response: Response): void {
-    response.statusCode == 200;
-    response.json({ transaction: { id: request.params.id, amount: 190 } });
+  public async getTransactionById(
+    request: Request,
+    response: Response
+  ): Promise<void> {
+    const { id } = request.params;
+    const result = await findTransactionById(id);
+
+    if (!result.ok) {
+      console.error(result.error);
+      response.status(500).json({ message: "Internal server error." });
+      return;
+    }
+
+    if (result.value.rowCount === 0) {
+      response.status(404).json({ error: "Transaction not found." });
+      return;
+    }
+
+    response.status(200).json({ transaction: result.value.rows[0] });
   }
 
-  public createTransaction(request: Request, response: Response): void {
-    response.statusCode == 201;
-    response.json({ message: "Created" });
+  public async createTransaction(
+    request: Request,
+    response: Response
+  ): Promise<void> {
+    const {
+      commercial_bank_transaction_id,
+      payment_reference_id,
+      transaction_category_id,
+      amount,
+      transaction_date,
+      transaction_status_id,
+      related_pickup_request_id,
+      related_loan_id,
+      related_thoh_order_id,
+    } = request.body;
+
+    const result = await insertIntoTransactionLedger({
+      commercial_bank_transaction_id,
+      payment_reference_id,
+      transaction_category_id,
+      amount,
+      transaction_date,
+      transaction_status_id,
+      related_pickup_request_id,
+      related_loan_id,
+      related_thoh_order_id,
+    });
+
+    if (result.ok) {
+      response.status(201).json({ transaction: result.value.rows[0] });
+    } else {
+      console.error(result.error);
+      response.status(500).json({ error: "Internal Server Error" });
+    }
   }
 
   private setRoutes(): void {
-    this.router.get("/", this.rateLimit, this.getTransactions);
-    this.router.get("/:id/", this.rateLimit, this.getTransactionById);
-    this.router.post("/", this.rateLimit, this.createTransaction);
+    this.router.get("/", this.rateLimit, this.getTransactions.bind(this));
+    this.router.get("/:id", this.rateLimit, this.getTransactionById.bind(this));
+    this.router.post("/", this.rateLimit, this.createTransaction.bind(this));
   }
 }
 
