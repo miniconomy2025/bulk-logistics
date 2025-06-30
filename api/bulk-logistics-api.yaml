@@ -137,14 +137,11 @@ components:
           type: string
           example: "Screen Supplier"
 
-    # # Pickup Request Item Schemas
+    # Pickup Request Item Schemas
     PickupRequestItemRequest:
       type: object
       properties:
         itemDefinitionId:
-          type: integer
-          example: 1
-        capacityTypeId:
           type: integer
           example: 1
         quantity:
@@ -164,10 +161,6 @@ components:
         itemName:
           type: string
           example: "Sand"
-        capacityTypeId:
-          type: integer
-          readOnly: true
-          example: 12
         quantity:
           type: integer
           example: 50
@@ -199,7 +192,7 @@ components:
         - destinationCompanyId
         - originalExternalOrderId
         - items
-    PickupRequestResponse:
+    PickupRequestResponse: # We might need to include reference for payment (check with the bank)
       type: object
       properties:
         pickupRequestId:
