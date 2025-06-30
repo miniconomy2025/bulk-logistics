@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 import { Request, Response } from 'express';
-import { insertCompany, getApiKeyByCompanyName } from '../repositories/companyRepoitory';
+import { insertCompany, getApiKeyByCompanyName } from '../repositories/companyRepository';
 
 export const generateApiKey = (): string => {
     return crypto.randomBytes(32).toString('hex');
