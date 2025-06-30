@@ -1404,9 +1404,8 @@ components:
           format: uuid
           nullable: true
           example: "f81d4fae-7dec-11d0-a765-00a0c91e6bf6"
-        transactionCategoryId:
-          type: integer
-          example: 1
+        transactionCategory:
+          $ref: "#/components/schemas/TransactionCategoryResponse"
         amount:
           type: number
           format: double
