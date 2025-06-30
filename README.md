@@ -20,7 +20,7 @@ Our current primary routes facilitate the movement of goods between key industry
 
 - **Electronic Suppliers -> Phone Companies:** Transporting components like cases and screens.
 - **THoH -> Electronic Suppliers:** Moving essential raw materials and machinery.
-- **Recycler -> Electronic Suppliers:** Supplying crucial raw materials recovered through recycling.
+- **Recycler -> Electronic Suppliers:** Supplying crucial raw materials recovered through recycling
 
 ---
 
