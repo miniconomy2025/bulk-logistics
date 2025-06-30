@@ -65,7 +65,7 @@ interface InsertIntoTransactionLedgerParams {
 }
 
 export const insertIntoTransactionLedger = async (
-  options: InsertIntoTransactionLedgerParams
+  options: InsertIntoTransactionLedgerParams,
 ): Promise<Result<any>> => {
   const query = `
   INSERT INTO bank_transactions_ledger

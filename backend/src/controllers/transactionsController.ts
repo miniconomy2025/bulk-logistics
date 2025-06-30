@@ -35,7 +35,7 @@ class TransactionsController {
 
   public async getTransactionById(
     request: Request,
-    response: Response
+    response: Response,
   ): Promise<void> {
     const { id } = request.params;
     const result = await findTransactionById(id);
@@ -56,7 +56,7 @@ class TransactionsController {
 
   public async createTransaction(
     request: Request,
-    response: Response
+    response: Response,
   ): Promise<void> {
     const {
       commercial_bank_transaction_id,
