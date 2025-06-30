@@ -1,1 +1,3 @@
-export type Result<T> = { ok: true; value: T } | { ok: false; error: Error };
+import type { Result } from "./db";
+
+export { Result };
