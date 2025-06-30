@@ -53,6 +53,26 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PickupRequestResponse"
+  /pickup-requests/?companyId:
+    get:
+      tags:
+        - Pickup Requests
+      summary: List all pickup requests
+      parameters:
+        - name: companyId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: A list of pickup requests filtered by company Id
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PickupRequestResponse"
 
   /pickup-requests/{id}:
     get:
