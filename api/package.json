@@ -1,0 +1,16 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "serve:python": "python -m http.server 8000",
+    "serve:node": "npx serve -p 8080"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "swagger-ui-dist": "^5.25.3"
+  }
+}

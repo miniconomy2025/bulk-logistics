@@ -1,0 +1,1472 @@
+openapi: 3.0.4
+info:
+  title: Bulk Logistics API
+  version: 1.0.0
+  description: |
+    The Bulk Logistics API enables the transfer of goods and machinery between suppliers and phone manufacturing companies within the simulated cellphone supply chain economy.
+
+    Bulk Logistics plays a critical role in ensuring the continuous flow of manufactured components—such as electronics screens, and cases from suppliers to phone companies (e.g Pear and SumSang). It may also handle delivery of equipment sourced from The Hand of Hḗphaistos, and Recycler to companies within the supply chain.
+
+    Key responsibilities include:
+    - Managing shipment orders between entities
+    - Tracking goods in transit
+    - Supporting logistics analytics and capacity planning
+    - Coordinating with manufacturing schedules and raw material supply
+    description: Production server
+
+servers:
+  - url: http://{environment}/api/v1
+    description: Local development server
+    environment:
+      default: localhost:3000
+      enum:
+        - localhost:5000
+        - localhost:8000
+      description: Localhost environment for development
+  - url: https://api.bulk-logistics.example.com/v1 # To be replaced with the actual url
+
+tags:
+  - name: Pickup Requests
+    description: |
+      Manage requests to pick up and transfer goods from one company to another.
+
+  - name: Pickup Request Items
+    description: |
+      Represents the items included in a pickup request.
+
+  - name: Shipments
+    description: |
+      Handle shipment dispatch, tracking, and status management.
+
+  - name: Shipment Items
+    description: |
+      Track and manage the items associated with a shipment.
+
+  - name: Vehicles
+    description: |
+      Manage logistics vehicles and their types.
+
+  - name: Companies
+    description: |
+      Information related to companies participating in the logistics process.
+
+  - name: Item Definitions
+    description: |
+      Define the items that can be transported and their associated capacity types.
+
+  - name: Capacity Types
+    description: |
+      Represent types of capacity units used to measure item and vehicle capacity.
+
+  - name: Transaction Categories
+    description: |
+      Categorize financial transactions related to logistics operations.
+
+  - name: Transaction Ledger
+    description: |
+      Track financial transactions related to pickups, shipments, and logistics costs.
+
+  - name: Transaction Statuses
+    description: |
+      Manage status values for financial transactions.
+
+  - name: Shipment Statuses
+    description: |
+      Define and manage the lifecycle states of shipments.
+
+paths:
+  /pickup-requests:
+    post:
+      tags:
+        - Pickup Requests
+      summary: Create a new pickup request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PickupRequest"
+      responses:
+        201:
+          description: Pickup request created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PickupRequestResponse"
+    get:
+      tags:
+        - Pickup Requests
+      summary: List all pickup requests
+      responses:
+        200:
+          description: A list of pickup requests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PickupRequestResponse"
+
+  /pickup-requests/{id}:
+    get:
+      tags:
+        - Pickup Requests
+      summary: Get details of a specific pickup request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Pickup request found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PickupRequestResponse"
+        404:
+          description: Pickup request not found
+    put:
+      tags:
+        - Pickup Requests
+      summary: Update a pickup request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PickupRequest"
+      responses:
+        200:
+          description: Pickup request updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PickupRequestResponse"
+        404:
+          description: Pickup request not found
+
+  /pickup-requests/{id}/items:
+    post:
+      tags:
+        - Pickup Request Items
+      summary: Add items to a pickup request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PickupRequestItemRequest"
+      responses:
+        201:
+          description: Pickup request item added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PickupRequestItemResponse"
+
+    get:
+      tags:
+        - Pickup Request Items
+      summary: List items in a pickup request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: List of items in the pickup request
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PickupRequestItemResponse"
+
+  /vehicles:
+    post:
+      tags:
+        - Vehicles
+      summary: Create a new vehicle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VehicleRequest"
+      responses:
+        201:
+          description: Vehicle created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleResponse"
+    get:
+      tags:
+        - Vehicles
+      summary: List all vehicles
+      responses:
+        200:
+          description: A list of vehicles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/VehicleResponse"
+
+  /vehicles/{id}:
+    get:
+      tags:
+        - Vehicles
+      summary: Get details of a specific vehicle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Vehicle found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleResponse"
+        404:
+          description: Vehicle not found
+    put:
+      tags:
+        - Vehicles
+      summary: Update a vehicle
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VehicleRequest"
+      responses:
+        200:
+          description: Vehicle updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VehicleResponse"
+        404:
+          description: Vehicle not found
+
+  /companies:
+    post:
+      tags:
+        - Companies
+      summary: Create a new company
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompanyRequest"
+      responses:
+        201:
+          description: Company created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanyResponse"
+    get:
+      tags:
+        - Companies
+      summary: List all companies
+      responses:
+        200:
+          description: A list of companies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CompanyResponse"
+
+  /companies/{id}:
+    get:
+      tags:
+        - Companies
+      summary: Get details of a specific company
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Company found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanyResponse"
+        404:
+          description: Company not found
+    put:
+      tags:
+        - Companies
+      summary: Update a company
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompanyRequest"
+      responses:
+        200:
+          description: Company updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanyResponse"
+        404:
+          description: Company not found
+
+  /item-definitions:
+    post:
+      tags:
+        - Item Definitions
+      summary: Create a new item definition
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemDefinitionRequest"
+      responses:
+        201:
+          description: Item definition created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemDefinitionResponse"
+    get:
+      tags:
+        - Item Definitions
+      summary: List all item definitions
+      responses:
+        200:
+          description: A list of item definitions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ItemDefinitionResponse"
+
+  /item-definitions/{id}:
+    get:
+      tags:
+        - Item Definitions
+      summary: Get details of a specific item definition
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Item definition found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemDefinitionResponse"
+        404:
+          description: Item definition not found
+    put:
+      tags:
+        - Item Definitions
+      summary: Update an item definition
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItemDefinitionRequest"
+      responses:
+        200:
+          description: Item definition updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ItemDefinitionResponse"
+        404:
+          description: Item definition not found
+
+  /capacity-types:
+    post:
+      tags:
+        - Capacity Types
+      summary: Create a new capacity type
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CapacityTypeRequest"
+      responses:
+        201:
+          description: Capacity type created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CapacityTypeResponse"
+    get:
+      tags:
+        - Capacity Types
+      summary: List all capacity types
+      responses:
+        200:
+          description: A list of capacity types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CapacityTypeResponse"
+
+  /capacity-types/{id}:
+    get:
+      tags:
+        - Capacity Types
+      summary: Get details of a specific capacity type
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Capacity type found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CapacityTypeResponse"
+        404:
+          description: Capacity type not found
+    put:
+      tags:
+        - Capacity Types
+      summary: Update a capacity type
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CapacityTypeRequest"
+      responses:
+        200:
+          description: Capacity type updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CapacityTypeResponse"
+        404:
+          description: Capacity type not found
+
+  /transaction-categories:
+    post:
+      tags:
+        - Transaction Categories
+      summary: Create a new transaction category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionCategoryRequest"
+      responses:
+        201:
+          description: Transaction category created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionCategoryResponse"
+    get:
+      tags:
+        - Transaction Categories
+      summary: List all transaction categories
+      responses:
+        200:
+          description: A list of transaction categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransactionCategoryResponse"
+
+  /transaction-categories/{id}:
+    get:
+      tags:
+        - Transaction Categories
+      summary: Get details of a specific transaction category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Transaction category found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionCategoryResponse"
+        404:
+          description: Transaction category not found
+    put:
+      tags:
+        - Transaction Categories
+      summary: Update a transaction category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionCategoryRequest"
+      responses:
+        200:
+          description: Transaction category updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionCategoryResponse"
+        404:
+          description: Transaction category not found
+
+  /transaction-statuses:
+    post:
+      tags:
+        - Transaction Statuses
+      summary: Create a new transaction status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionStatusRequest"
+      responses:
+        201:
+          description: Transaction status created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionStatusResponse"
+    get:
+      tags:
+        - Transaction Statuses
+      summary: List all transaction statuses
+      responses:
+        200:
+          description: A list of transaction statuses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransactionStatusResponse"
+
+  /transaction-statuses/{id}:
+    get:
+      tags:
+        - Transaction Statuses
+      summary: Get details of a specific transaction status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Transaction status found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionStatusResponse"
+        404:
+          description: Transaction status not found
+    put:
+      tags:
+        - Transaction Statuses
+      summary: Update a transaction status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionStatusRequest"
+      responses:
+        200:
+          description: Transaction status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionStatusResponse"
+        404:
+          description: Transaction status not found
+
+  /shipment-statuses:
+    post:
+      tags:
+        - Shipment Statuses
+      summary: Create a new shipment status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShipmentStatusRequest"
+      responses:
+        201:
+          description: Shipment status created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentStatusResponse"
+    get:
+      tags:
+        - Shipment Statuses
+      summary: List all shipment statuses
+      responses:
+        200:
+          description: A list of shipment statuses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShipmentStatusResponse"
+
+  /shipment-statuses/{id}:
+    get:
+      tags:
+        - Shipment Statuses
+      summary: Get details of a specific shipment status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Shipment status found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentStatusResponse"
+        404:
+          description: Shipment status not found
+    put:
+      tags:
+        - Shipment Statuses
+      summary: Update a shipment status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShipmentStatusRequest"
+      responses:
+        200:
+          description: Shipment status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentStatusResponse"
+        404:
+          description: Shipment status not found
+
+  /shipment-items:
+    post:
+      tags:
+        - Shipment Items
+      summary: Create a new shipment item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShipmentItemDetailRequest"
+      responses:
+        201:
+          description: Shipment item created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentItemDetailResponse"
+    get:
+      tags:
+        - Shipment Items
+      summary: List all shipment items
+      responses:
+        200:
+          description: A list of shipment items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShipmentItemDetailResponse"
+
+  /shipment-items/{id}:
+    get:
+      tags:
+        - Shipment Items
+      summary: Get details of a specific shipment item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Shipment item found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentItemDetailResponse"
+        404:
+          description: Shipment item not found
+    put:
+      tags:
+        - Shipment Items
+      summary: Update a shipment item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShipmentItemDetailRequest"
+      responses:
+        200:
+          description: Shipment item updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentItemDetailResponse"
+        404:
+          description: Shipment item not found
+
+  /shipments:
+    post:
+      tags:
+        - Shipments
+      summary: Create a new shipment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShipmentRequest"
+      responses:
+        201:
+          description: Shipment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentResponse"
+    get:
+      tags:
+        - Shipments
+      summary: List all shipments
+      responses:
+        200:
+          description: A list of shipments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ShipmentResponse"
+
+  /shipments/{id}:
+    get:
+      tags:
+        - Shipments
+      summary: Get details of a specific shipment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Shipment found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentResponse"
+        404:
+          description: Shipment not found
+    put:
+      tags:
+        - Shipments
+      summary: Update a shipment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShipmentRequest"
+      responses:
+        200:
+          description: Shipment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentResponse"
+        404:
+          description: Shipment not found
+
+  /transaction-ledger:
+    post:
+      tags:
+        - Transaction Ledger
+      summary: Create a new transaction ledger entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BankTransactionsLedgerRequest"
+      responses:
+        201:
+          description: Transaction ledger entry created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankTransactionsLedgerResponse"
+    get:
+      tags:
+        - Transaction Ledger
+      summary: List all transaction ledger entries
+      responses:
+        200:
+          description: A list of transaction ledger entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BankTransactionsLedgerResponse"
+
+  /transaction-ledger/{id}:
+    get:
+      tags:
+        - Transaction Ledger
+      summary: Get details of a specific transaction ledger entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Transaction ledger entry found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankTransactionsLedgerResponse"
+        404:
+          description: Transaction ledger entry not found
+    put:
+      tags:
+        - Transaction Ledger
+      summary: Update a transaction ledger entry
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BankTransactionsLedgerRequest"
+      responses:
+        200:
+          description: Transaction ledger entry updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankTransactionsLedgerResponse"
+        404:
+          description: Transaction ledger entry not found
+
+components:
+  schemas:
+    # Shipment Status Schemas
+    ShipmentStatusRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          maxLength: 50
+          example: "Delivered"
+    ShipmentStatusResponse:
+      type: object
+      properties:
+        shipmentStatusId:
+          type: integer
+          readOnly: true
+          example: 1
+        name:
+          type: string
+          example: "Collected"
+
+    # Shipment Schemas
+    ShipmentRequest:
+      type: object
+      properties:
+        dispatchDate:
+          type: string
+          format: date
+          example: "2025-06-29"
+        vehicleId:
+          type: integer
+          example: 1
+        shipmentStatusId:
+          type: integer
+          example: 1
+      required:
+        - dispatchDate
+        - vehicleId
+        - shipmentStatusId
+    ShipmentResponse:
+      type: object
+      properties:
+        shipmentId:
+          type: integer
+          readOnly: true
+          example: 1
+        dispatchDate:
+          type: string
+          format: date
+          example: "2025-06-29"
+        vehicle:
+          $ref: "#/components/schemas/VehicleResponse"
+        shipmentStatus:
+          $ref: "#/components/schemas/ShipmentStatusResponse"
+
+    # Shipment Item Detail Schemas
+    ShipmentItemDetailRequest: # Do we need this?
+      type: object
+      properties:
+        shipmentId:
+          type: integer
+          example: 1
+        pickupRequestItemId:
+          type: integer
+          example: 1
+        quantityTransported: # I don't think we need this since we can get this from the pickup request item
+          type: integer
+          example: 50
+      required:
+        - shipmentId
+        - pickupRequestItemId
+        - quantityTransported
+    ShipmentItemDetailResponse:
+      type: object
+      properties:
+        shipmentItemDetailId:
+          type: integer
+          readOnly: true
+          example: 1
+        shipmentId:
+          type: integer
+          example: 1
+        pickupRequestItemId:
+          type: integer
+          example: 1
+        quantityTransported:
+          type: integer
+          example: 50
+
+    # Company Schemas
+    CompanyRequest:
+      type: object
+      properties:
+        companyName:
+          type: string
+          maxLength: 150
+          example: "Case Supplier"
+        certificateIdentifier:
+          type: string
+          maxLength: 255
+          example: "cert-af32-98b-fe21"
+        bankAccountNumber: # Not sure if we need it. Maybe for refund, should the request gets cancelled?
+          type: string
+          maxLength: 50
+          nullable: true
+          example: "9876543210"
+      required:
+        - companyName
+        - certificateIdentifier
+    CompanyResponse:
+      type: object
+      properties:
+        companyId:
+          type: integer
+          readOnly: true
+          example: 1
+        companyName:
+          type: string
+          example: "Screen Supplier"
+        certificateIdentifier:
+          type: string
+          example: "cert-af32-98b-fe21"
+        bankAccountNumber:
+          type: string
+          nullable: true
+          example: "9876543210"
+
+    # Item Definition Schemas
+    ItemDefinitionRequest:
+      type: object
+      properties:
+        itemName:
+          type: string
+          maxLength: 100
+          example: "Sand"
+        capacityTypeId:
+          type: integer
+          example: 1
+      required:
+        - itemName
+        - capacityTypeId
+    ItemDefinitionResponse:
+      type: object
+      properties:
+        itemDefinitionId:
+          type: integer
+          readOnly: true
+          example: 1
+        itemName:
+          type: string
+          example: "Sand"
+        capacityType:
+          $ref: "#/components/schemas/CapacityTypeResponse"
+
+    # Capacity Type Schemas
+    CapacityTypeRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 50
+          example: "Kilograms"
+      required:
+        - name
+    CapacityTypeResponse:
+      type: object
+      properties:
+        capacityTypeId:
+          type: integer
+          readOnly: true
+          example: 1
+        name:
+          type: string
+          example: "Kilograms"
+
+    # Vehicle Type Schemas
+    VehicleTypeRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 50
+          example: "Large Truck"
+        dailyOperationalCost:
+          type: number
+          format: double
+          example: 2500.75
+        capacityTypeId:
+          type: integer
+          example: 1
+        maximumCapacity:
+          type: integer
+          example: 5000
+        maxPickupsPerDay:
+          type: integer
+          example: 10
+        maxDropoffsPerDay:
+          type: integer
+          example: 10
+      required:
+        - name
+        - dailyOperationalCost
+        - capacityTypeId
+        - maximumCapacity
+        - maxPickupsPerDay
+        - maxDropoffsPerDay
+    VehicleTypeResponse:
+      type: object
+      properties:
+        vehicleTypeId:
+          type: integer
+          readOnly: true
+          example: 1
+        name:
+          type: string
+          example: "Small Truck"
+        dailyOperationalCost:
+          type: number
+          format: double
+          example: 2500.75
+        capacityTypeId:
+          type: integer
+          example: 1
+        maximumCapacity:
+          type: integer
+          example: 5000
+        maxPickupsPerDay:
+          type: integer
+          example: 10
+        maxDropoffsPerDay:
+          type: integer
+          example: 10
+
+    # Vehicle Schemas
+    VehicleRequest:
+      type: object
+      properties:
+        isActive:
+          type: boolean
+          example: true
+        vehicleTypeId:
+          type: integer
+          example: 1
+        purchaseDate:
+          type: string
+          format: date
+          example: "2024-01-15"
+      required:
+        - isActive
+        - vehicleTypeId
+        - purchaseDate
+    VehicleResponse:
+      type: object
+      properties:
+        vehicleId:
+          type: integer
+          readOnly: true
+          example: 1
+        isActive:
+          type: boolean
+          example: true
+        vehicleType:
+          $ref: "#/components/schemas/VehicleTypeResponse"
+        purchaseDate:
+          type: string
+          format: date
+          example: "2024-01-15"
+
+    # Pickup Request Schemas
+    PickupRequest:
+      type: object
+      properties:
+        requestingCompanyId:
+          type: integer
+          example: 1
+        originCompanyId:
+          type: integer
+          example: 2
+        destinationCompanyId:
+          type: integer
+          example: 3
+        originalExternalOrderId:
+          type: string
+          maxLength: 255
+          example: "ORD-998877"
+        requestDate:
+          type: string
+          format: date
+          example: "2025-06-28"
+        completionDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-06-30"
+      required:
+        - requestingCompanyId
+        - originCompanyId
+        - destinationCompanyId
+        - originalExternalOrderId
+        - requestDate
+
+    PickupRequestResponse:
+      type: object
+      properties:
+        pickupRequestId:
+          type: integer
+          readOnly: true
+          example: 1
+        requestingCompany:
+          $ref: "#/components/schemas/CompanyResponse"
+        originCompany:
+          $ref: "#/components/schemas/CompanyResponse"
+        destinationCompany:
+          $ref: "#/components/schemas/CompanyResponse"
+        originalExternalOrderId:
+          type: string
+          example: "ORD-998877"
+        cost:
+          type: number
+          format: double
+          example: 450.00
+        requestDate:
+          type: string
+          format: date
+          example: "2025-06-28"
+        completionDate:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-06-30"
+
+    # Pickup Request Item Schemas
+    PickupRequestItemRequest:
+      type: object
+      properties:
+        itemDefinitionId:
+          type: integer
+          example: 1
+        pickupRequestId:
+          type: integer
+          example: 1
+        quantity:
+          type: integer
+          example: 50
+      required:
+        - itemDefinitionId
+        - pickupRequestId
+        - quantity
+    PickupRequestItemResponse:
+      type: object
+      properties:
+        pickupRequestItemId:
+          type: integer
+          readOnly: true
+          example: 1
+        itemDefinition:
+          $ref: "#/components/schemas/ItemDefinitionResponse"
+        pickupRequestId:
+          type: integer
+          example: 1
+        quantity:
+          type: integer
+          example: 50
+
+    # Bank Transactions Ledger Schemas
+    BankTransactionsLedgerRequest:
+      type: object
+      properties:
+        commercialBankTransactionId:
+          type: string
+          maxLength: 100
+          nullable: true
+          example: "cb-txn-abc-123"
+        paymentReferenceId:
+          type: string
+          format: uuid
+          nullable: true
+          example: "f81d4fae-7dec-11d0-a765-00a0c91e6bf6"
+        transactionCategoryId:
+          type: integer
+          example: 1
+        amount:
+          type: number
+          format: double
+          example: 450.00
+        transactionDate:
+          type: string
+          format: date
+          example: "2025-06-29"
+        transactionStatusId:
+          type: integer
+          example: 1
+        relatedPickupRequestId:
+          type: integer
+          nullable: true
+          example: 1
+        relatedLoanId:
+          type: integer
+          nullable: true
+        relatedThohOrderId:
+          type: string
+          maxLength: 255
+          nullable: true
+      required:
+        - transactionCategoryId
+        - amount
+        - transactionDate
+        - transactionStatusId
+    BankTransactionsLedgerResponse:
+      type: object
+      properties:
+        transactionLedgerId:
+          type: integer
+          readOnly: true
+          example: 1
+        commercialBankTransactionId:
+          type: string
+          nullable: true
+          example: "cb-txn-abc-123"
+        paymentReferenceId:
+          type: string
+          format: uuid
+          nullable: true
+          example: "f81d4fae-7dec-11d0-a765-00a0c91e6bf6"
+        transactionCategoryId:
+          type: integer
+          example: 1
+        amount:
+          type: number
+          format: double
+          example: 450.00
+        transactionDate:
+          type: string
+          format: date
+          example: "2025-06-29"
+        transactionStatusId:
+          type: integer
+          example: 1
+        relatedPickupRequestId:
+          type: integer
+          nullable: true
+          example: 1
+        relatedLoanId:
+          type: integer
+          nullable: true
+        relatedThohOrderId:
+          type: string
+          nullable: true
+
+    # Transaction Category Schemas
+    TransactionCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 50
+          example: "Supplier Payment"
+      required:
+        - name
+    TransactionCategoryResponse:
+      type: object
+      properties:
+        transactionCategoryId:
+          type: integer
+          readOnly: true
+          example: 1
+        name:
+          type: string
+          example: "Supplier Payment"
+
+    # Transaction Status Schemas
+    TransactionStatusRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          maxLength: 50
+          example: "Failed"
+      required:
+        - status
+    TransactionStatusResponse:
+      type: object
+      properties:
+        transactionStatusId:
+          type: integer
+          readOnly: true
+          example: 1
+        status:
+          type: string
+          example: "Failed"
