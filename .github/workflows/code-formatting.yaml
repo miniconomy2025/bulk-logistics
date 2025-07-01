@@ -4,8 +4,8 @@ on:
   pull_request:
 
 jobs:
-  prettier:
-    name: Prettier check
+  backend_code_formatting:
+    name: Prettier backend check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -17,8 +17,31 @@ jobs:
           node-version: "latest"
 
       - name: Install dependencies
-        run: | 
+        run: |
           cd backend
+          npm ci
+
+      - name: Run Prettier formatter check
+        id: prettier
+        run: |
+          npx prettier --check "**/*.{js,jsx,ts,tsx,css,md,json}" \
+            || (echo "::error ::Some files are not formatted properly. Please run 'npx prettier --write .' locally." && exit 1)
+
+  frontend_code_formatting:
+    name: Prettier frontend check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "latest"
+
+      - name: Install dependencies
+        run: |
+          cd frontend
           npm ci
 
       - name: Run Prettier formatter check

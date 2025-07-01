@@ -5,6 +5,9 @@ import { rateLimiter } from "../utils";
 import {
   findTransactionById,
   findTransactions,
+  getActiveShipmentsCount,
+  getTotals,
+  getTransactionBreakdown,
   insertIntoTransactionLedger,
 } from "../repositories/transactionsRepository";
 
@@ -90,10 +93,86 @@ class TransactionsController {
     }
   }
 
+  public async getTransactionTotals(
+    _: Request,
+    response: Response,
+  ): Promise<void> {
+    const result = await getTotals();
+
+    if (result.ok) {
+      response.status(200).json({ transaction: result.value.rows });
+    } else {
+      console.error(result.error);
+      response.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+
+  public async getActiveShipments(
+    _: Request,
+    response: Response,
+  ): Promise<void> {
+    const result = await getActiveShipmentsCount();
+
+    if (result.ok) {
+      response.status(200).json({ transaction: result.value.rows });
+    } else {
+      console.error(result.error);
+      response.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+
+  public async getMonthlyTransactions(
+    _: Request,
+    response: Response,
+  ): Promise<void> {
+    const result = await getTransactionBreakdown();
+
+    if (result.ok) {
+      response.status(200).json({ transaction: result.value.rows });
+    } else {
+      console.error(result.error);
+      response.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+
+  public async getDashboard(_: Request, response: Response): Promise<void> {
+    const result = await getTransactionBreakdown();
+
+    if (result.ok) {
+      response.status(200).json({ transaction: result.value.rows });
+    } else {
+      console.error(result.error);
+      response.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+
+  public async getTopRevenueSources(
+    _: Request,
+    response: Response,
+  ): Promise<void> {
+    const result = await getTransactionBreakdown();
+
+    if (result.ok) {
+      response.status(200).json({ transaction: result.value.rows });
+    } else {
+      console.error(result.error);
+      response.status(500).json({ error: "Internal Server Error" });
+    }
+  }
+
   private setRoutes(): void {
-    this.router.get("/", this.rateLimit, this.getTransactions.bind(this));
-    this.router.get("/:id", this.rateLimit, this.getTransactionById.bind(this));
-    this.router.post("/", this.rateLimit, this.createTransaction.bind(this));
+    this.router.get("/dashboard/", function (_, response) {
+      response.status(404).json({ error: "Not found" });
+    });
+    this.router.get("/dashboard/totals", this.getTransactionTotals);
+    this.router.get("/dashboard/active-shipments", this.getActiveShipments);
+    this.router.get("/dashboard/monthly", this.getMonthlyTransactions);
+    this.router.get("/dashboard/breakdown", this.getDashboard);
+    this.router.get("/dashboard/top-sources", this.getTopRevenueSources);
+
+    this.router.get("/", this.rateLimit, this.getTransactions);
+    this.router.get("/:id/", this.rateLimit, this.getTransactionById);
+    this.router.post("/", this.rateLimit, this.createTransaction);
   }
 }
 
