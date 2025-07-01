@@ -33,20 +33,31 @@ jobs:
           cd backend
           npx prettier --write "**/*.{js,jsx,ts,tsx,css,md,json}"
 
-      - name: Commit and push changes
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add .
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: format backend code with Prettier"
-            git config pull.ff only
-            git merge --no-ff
-            git pull origin HEAD:${{ github.head_ref }}
-            git push origin HEAD:${{ github.head_ref }}
-          else
-            echo "No formatting changes to commit."
-          fi
+          - name: Commit, push to new branch, and merge back to PR branch
+          run: |
+            git config --global user.name 'github-actions[bot]'
+            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+            
+            git add .
+            if ! git diff --cached --quiet; then
+              git commit -m "chore: format backend code with Prettier"
+  
+              # Create a new formatting branch name with a timestamp to avoid collisions
+              FORMAT_BRANCH="formatting/backend-$(date +%s)"
+              git branch $FORMAT_BRANCH
+              git push origin $FORMAT_BRANCH
+  
+              # Checkout the PR branch again
+              git checkout ${{ github.head_ref }}
+  
+              # Merge the formatting branch into the PR branch
+              git pull origin $FORMAT_BRANCH --no-ff
+  
+              # Push the merge
+              git push origin HEAD:${{ github.head_ref }}
+            else
+              echo "No formatting changes to commit."
+            fi
 
   frontend_code_formatting:
     name: Prettier frontend auto format
@@ -74,17 +85,28 @@ jobs:
           cd frontend
           npx prettier --write "**/*.{js,jsx,ts,tsx,css,md,json}"
 
-      - name: Commit and push changes
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add .
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: format frontend code with Prettier"
-            git config pull.ff only
-            git merge --no-ff
-            git pull origin HEAD:${{ github.head_ref }}
-            git push origin HEAD:${{ github.head_ref }}
-          else
-            echo "No formatting changes to commit."
-          fi
+          - name: Commit, push to new branch, and merge back to PR branch
+          run: |
+            git config --global user.name 'github-actions[bot]'
+            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+            
+            git add .
+            if ! git diff --cached --quiet; then
+              git commit -m "chore: format backend code with Prettier"
+  
+              # Create a new formatting branch name with a timestamp to avoid collisions
+              FORMAT_BRANCH="formatting/backend-$(date +%s)"
+              git branch $FORMAT_BRANCH
+              git push origin $FORMAT_BRANCH
+  
+              # Checkout the PR branch again
+              git checkout ${{ github.head_ref }}
+  
+              # Merge the formatting branch into the PR branch
+              git pull origin $FORMAT_BRANCH --no-ff
+  
+              # Push the merge
+              git push origin HEAD:${{ github.head_ref }}
+            else
+              echo "No formatting changes to commit."
+            fi
