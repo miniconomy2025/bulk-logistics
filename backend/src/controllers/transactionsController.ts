@@ -38,7 +38,7 @@ class TransactionsController {
 
   public async getTransactionById(
     request: Request,
-    response: Response
+    response: Response,
   ): Promise<void> {
     const { id } = request.params;
     const result = await findTransactionById(id);
@@ -59,7 +59,7 @@ class TransactionsController {
 
   public async createTransaction(
     request: Request,
-    response: Response
+    response: Response,
   ): Promise<void> {
     const {
       commercial_bank_transaction_id,
@@ -95,7 +95,7 @@ class TransactionsController {
 
   public async getTransactionTotals(
     _: Request,
-    response: Response
+    response: Response,
   ): Promise<void> {
     const result = await getTotals();
 
@@ -109,7 +109,7 @@ class TransactionsController {
 
   public async getActiveShipments(
     _: Request,
-    response: Response
+    response: Response,
   ): Promise<void> {
     const result = await getActiveShipmentsCount();
 
@@ -123,7 +123,7 @@ class TransactionsController {
 
   public async getMonthlyTransactions(
     _: Request,
-    response: Response
+    response: Response,
   ): Promise<void> {
     const result = await getTransactionBreakdown();
 
@@ -148,7 +148,7 @@ class TransactionsController {
 
   public async getTopRevenueSources(
     _: Request,
-    response: Response
+    response: Response,
   ): Promise<void> {
     const result = await getTransactionBreakdown();
 
@@ -161,7 +161,7 @@ class TransactionsController {
   }
 
   private setRoutes(): void {
-    this.router.get("/dashboard/", function(_, response) {
+    this.router.get("/dashboard/", function (_, response) {
       response.status(404).json({ error: "Not found" });
     });
     this.router.get("/dashboard/totals", this.getTransactionTotals);
