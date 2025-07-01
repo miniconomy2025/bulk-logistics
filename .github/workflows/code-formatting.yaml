@@ -30,6 +30,8 @@ jobs:
   frontend_code_formatting:
     name: Prettier frontend check
     runs-on: ubuntu-latest
+    needs: 
+      - backend_code_formatting
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
