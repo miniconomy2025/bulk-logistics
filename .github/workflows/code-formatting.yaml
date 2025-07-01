@@ -1,4 +1,4 @@
-name: 🍂 Prettier Check
+name: Prettier Check
 
 on:
   pull_request:
