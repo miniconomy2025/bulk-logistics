@@ -1,0 +1,247 @@
+openapi: 3.0.4
+info:
+  title: Bulk Logistics API
+  version: 1.0.0
+  description: |
+    The Bulk Logistics API enables the transfer of goods and machinery between suppliers and phone manufacturing companies within the simulated cellphone supply chain economy.
+
+    Bulk Logistics plays a critical role in ensuring the continuous flow of manufactured components—such as electronics screens, and cases from suppliers to phone companies (e.g Pear and SumSang). It may also handle delivery of equipment sourced from The Hand of Hḗphaistos, and Recycler to companies within the supply chain.
+
+    Key responsibilities include:
+    - Managing shipment orders between entities
+    - Tracking goods in transit
+    - Supporting logistics analytics and capacity planning
+    - Coordinating with manufacturing schedules and raw material supply
+    description: Production server
+
+servers:
+  - url: http://{environment}/api/v1
+    description: Local development server
+    environment:
+      default: localhost:3000
+      enum:
+        - localhost:5000
+        - localhost:8000
+      description: Localhost environment for development
+  - url: https://api.bulk-logistics.example.com/v1 # To be replaced with the actual url
+
+tags:
+  - name: Pickup Requests
+    description: |
+      Manage requests to pick up and transfer goods from one company to another.
+
+  - name: Shipments
+    description: |
+      Handle shipment dispatch, tracking, and status management.
+
+paths:
+  /pickup-requests:
+    post:
+      tags:
+        - Pickup Requests
+      summary: Create a new pickup request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PickupRequest"
+      responses:
+        201:
+          description: Pickup request created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PickupRequestResponse"
+  /pickup-requests/?companyId:
+    get:
+      tags:
+        - Pickup Requests
+      summary: List all pickup requests
+      parameters:
+        - name: companyId
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: A list of pickup requests filtered by company Id
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PickupRequestResponse"
+
+  /pickup-requests/{id}:
+    get:
+      tags:
+        - Pickup Requests
+      summary: Get details of a specific pickup request
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Pickup request found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PickupRequestResponse"
+        404:
+          description: Pickup request not found
+
+  /shipments/{id}:
+    get:
+      tags:
+        - Shipments
+      summary: Get details of a specific shipment
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Shipment found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ShipmentResponse"
+        404:
+          description: Shipment not found
+
+components:
+  schemas:
+    # Shipment Status Schemas
+    ShipmentStatusResponse:
+      type: object
+      properties:
+        shipmentStatusId:
+          type: integer
+          readOnly: true
+          example: 1
+        name:
+          type: string
+          example: "Collected"
+
+    # Shipment Schemas
+    ShipmentResponse:
+      type: object
+      properties:
+        shipmentId:
+          type: integer
+          readOnly: true
+          example: 1
+        dispatchDate:
+          type: string
+          format: date
+          example: "2025-06-29"
+        shipmentStatus:
+          $ref: "#/components/schemas/ShipmentStatusResponse"
+
+    # Company Schemas
+    CompanyResponse:
+      type: object
+      properties:
+        companyId:
+          type: integer
+          readOnly: true
+          example: 1
+        companyName:
+          type: string
+          example: "Screen Supplier"
+
+    # Pickup Request Item Schemas
+    PickupRequestItemRequest:
+      type: object
+      properties:
+        itemDefinitionId:
+          type: integer
+          example: 1
+        quantity:
+          type: integer
+          example: 50
+      required:
+        - itemDefinitionId
+        - capacityTypeId
+        - quantity
+    PickupRequestItemResponse:
+      type: object
+      properties:
+        itemDefinitionId:
+          type: integer
+          readOnly: true
+          example: 1
+        itemName:
+          type: string
+          example: "Sand"
+        quantity:
+          type: integer
+          example: 50
+
+    # Pickup Request Schemas
+    PickupRequest:
+      type: object
+      properties:
+        requestingCompanyId:
+          type: integer
+          example: 1
+        originCompanyId:
+          type: integer
+          example: 2
+        destinationCompanyId:
+          type: integer
+          example: 3
+        originalExternalOrderId:
+          type: string
+          maxLength: 255
+          example: "ORD-998877"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PickupRequestItemRequest"
+      required:
+        - requestingCompanyId
+        - originCompanyId
+        - destinationCompanyId
+        - originalExternalOrderId
+        - items
+    PickupRequestResponse: # We might need to include reference for payment (check with the bank)
+      type: object
+      properties:
+        pickupRequestId:
+          type: integer
+          readOnly: true
+          example: 1
+        requestingCompany:
+          $ref: "#/components/schemas/CompanyResponse"
+        originCompany:
+          $ref: "#/components/schemas/CompanyResponse"
+        destinationCompany:
+          $ref: "#/components/schemas/CompanyResponse"
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/PickupRequestItemResponse"
+        originalExternalOrderId:
+          type: string
+          example: "ORD-998877"
+        cost:
+          type: number
+          format: double
+          example: 450.00
+        requestDate:
+          type: string
+          format: date
+          example: "2025-06-28"
+        completionDate:
+          type: string
+          format: date
+          nullable: true
+          example: null
