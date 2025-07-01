@@ -31,6 +31,11 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.2.0",
     "typescript": "~5.8.3",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-react": "^7.37.3",
+    "prettier": "^3.4.2",
+    "prettier-plugin-organize-imports": "^4.1.0",
+    "prettier-plugin-tailwindcss": "^0.6.11",
     "typescript-eslint": "^8.34.1",
     "vite": "^7.0.0"
   }

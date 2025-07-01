@@ -1,9 +1,7 @@
+import Welcome from "./pages/marketing/landing-page";
+
 function App() {
-  return (
-    <>
-      <h1>Hello World</h1>
-    </>
-  );
+  return <Welcome />;
 }
 
 export default App;
