@@ -1,7 +1,7 @@
 import Dashboard from "./pages/app/dashboard";
 
 function App() {
-  return <Dashboard />;
+    return <Dashboard />;
 }
 
 export default App;
