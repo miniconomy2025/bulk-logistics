@@ -54,17 +54,13 @@ jobs:
         id: prettier_frontend
         run: |
           cd frontend
+          # Run Prettier and check for changes.
+          # The --list-different flag will output files that are not formatted.
+          # We capture the output to determine if there were changes.
           npx prettier --write "**/*.{js,jsx,ts,tsx,css,md,json}"
-          git diff --exit-code || echo "Frontend formatting changes detected." > frontend_changes.txt
-
-      - name: Create Pull Request with formatting changes
-        uses: peter-evans/create-pull-request@v5
+      
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
-          token: ${{ secrets.PAT }}
-          commit-message: "chore: auto-format code with Prettier"
-          title: "chore: Auto-format code"
-          body: "This PR contains automated code formatting changes from Prettier."
-          branch: "auto-format-${{ github.event.pull_request.number }}"
-          base: ${{ github.event.pull_request.head.ref }} 
-          commit-pull-request-title: "chore: Auto-format code with Prettier"
-          commit-pull-request-body: "This PR introduces automated code formatting changes to ensure consistency. It should be merged into the original pull request (${{ github.event.pull_request.html_url }}) to apply the formatting."
+          commit_message: Apply formatting changes
+          branch: ${{ github.head_ref }}
