@@ -2,20 +2,22 @@ name: Prettier Auto Format
 
 on:
   pull_request:
-
+    
 permissions:
   contents: write
   pull-requests: write
 
 jobs:
-  backend_code_formatting:
-    name: Prettier backend auto format
+  auto_format:
+    name: Prettier Auto Format Code
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
           token: ${{ secrets.PAT }}
 
       - name: Setup Node.js
@@ -23,90 +25,46 @@ jobs:
         with:
           node-version: "latest"
 
-      - name: Install dependencies
+      - name: Install backend dependencies
         run: |
           cd backend
           npm ci
 
-      - name: Run Prettier and format code
+      - name: Run Prettier for backend
+        id: prettier_backend
         run: |
           cd backend
+          # Run Prettier and check for changes.
+          # The --list-different flag will output files that are not formatted.
+          # We capture the output to determine if there were changes.
           npx prettier --write "**/*.{js,jsx,ts,tsx,css,md,json}"
+      
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: Apply formatting changes
+          branch: ${{ github.head_ref }}
 
-          - name: Commit, push to new branch, and merge back to PR branch
-          run: |
-            git config --global user.name 'github-actions[bot]'
-            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-            
-            git add .
-            if ! git diff --cached --quiet; then
-              git commit -m "chore: format backend code with Prettier"
-  
-              # Create a new formatting branch name with a timestamp to avoid collisions
-              FORMAT_BRANCH="formatting/backend-$(date +%s)"
-              git branch $FORMAT_BRANCH
-              git push origin $FORMAT_BRANCH
-  
-              # Checkout the PR branch again
-              git checkout ${{ github.head_ref }}
-  
-              # Merge the formatting branch into the PR branch
-              git pull origin $FORMAT_BRANCH --no-ff
-  
-              # Push the merge
-              git push origin HEAD:${{ github.head_ref }}
-            else
-              echo "No formatting changes to commit."
-            fi
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
 
-  frontend_code_formatting:
-    name: Prettier frontend auto format
-    runs-on: ubuntu-latest
-    needs: backend_code_formatting
+      - name: Run Prettier for frontend
+        id: prettier_frontend
+        run: |
+          cd frontend
+          npx prettier --write "**/*.{js,jsx,ts,tsx,css,md,json}"
+          git diff --exit-code || echo "Frontend formatting changes detected." > frontend_changes.txt
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Create Pull Request with formatting changes
+        uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.PAT }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: "latest"
-
-      - name: Install dependencies
-        run: |
-          cd frontend
-          npm ci
-
-      - name: Run Prettier and format code
-        run: |
-          cd frontend
-          npx prettier --write "**/*.{js,jsx,ts,tsx,css,md,json}"
-
-          - name: Commit, push to new branch, and merge back to PR branch
-          run: |
-            git config --global user.name 'github-actions[bot]'
-            git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-            
-            git add .
-            if ! git diff --cached --quiet; then
-              git commit -m "chore: format backend code with Prettier"
-  
-              # Create a new formatting branch name with a timestamp to avoid collisions
-              FORMAT_BRANCH="formatting/backend-$(date +%s)"
-              git branch $FORMAT_BRANCH
-              git push origin $FORMAT_BRANCH
-  
-              # Checkout the PR branch again
-              git checkout ${{ github.head_ref }}
-  
-              # Merge the formatting branch into the PR branch
-              git pull origin $FORMAT_BRANCH --no-ff
-  
-              # Push the merge
-              git push origin HEAD:${{ github.head_ref }}
-            else
-              echo "No formatting changes to commit."
-            fi
+          commit-message: "chore: auto-format code with Prettier"
+          title: "chore: Auto-format code"
+          body: "This PR contains automated code formatting changes from Prettier."
+          branch: "auto-format-${{ github.event.pull_request.number }}"
+          base: ${{ github.event.pull_request.head.ref }} 
+          commit-pull-request-title: "chore: Auto-format code with Prettier"
+          commit-pull-request-body: "This PR introduces automated code formatting changes to ensure consistency. It should be merged into the original pull request (${{ github.event.pull_request.html_url }}) to apply the formatting."
