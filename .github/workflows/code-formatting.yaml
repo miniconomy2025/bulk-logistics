@@ -3,6 +3,10 @@ name: Prettier Auto Format
 on:
   pull_request:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   backend_code_formatting:
     name: Prettier backend auto format
