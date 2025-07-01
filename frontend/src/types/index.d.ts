@@ -3,8 +3,8 @@ export interface Auth {
 }
 
 export interface NavItem {
-  title: string;
-  href: string;
-  icon?: React.JSX.IntrinsicElements.span | null;
-  isActive?: boolean;
+    title: string;
+    href: string;
+    icon?: React.JSX.IntrinsicElements.span | null;
+    isActive?: boolean;
 }
