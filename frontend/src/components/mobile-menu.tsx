@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { QuickActions } from "./quick-actions";
-import { NavItems } from "./nav-items";
+import { NavItems } from './nav-items';
 
 export const MobileMenu: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

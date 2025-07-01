@@ -1,15 +1,19 @@
-name: Prettier Check
+name: Prettier Auto Format
 
 on:
   pull_request:
 
 jobs:
   backend_code_formatting:
-    name: Prettier backend check
+    name: Prettier backend auto format
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          # This lets you push back to the PR branch
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -21,20 +25,33 @@ jobs:
           cd backend
           npm ci
 
-      - name: Run Prettier formatter check
-        id: prettier
+      - name: Run Prettier and format code
         run: |
-          npx prettier --check "**/*.{js,jsx,ts,tsx,css,md,json}" \
-            || (echo "::error ::Some files are not formatted properly. Please run 'npx prettier --write .' locally." && exit 1)
+          cd backend
+          npx prettier --write "**/*.{js,jsx,ts,tsx,css,md,json}"
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: format backend code with Prettier"
+            git push
+          else
+            echo "No formatting changes to commit."
+          fi
 
   frontend_code_formatting:
-    name: Prettier frontend check
+    name: Prettier frontend auto format
     runs-on: ubuntu-latest
-    needs: 
-      - backend_code_formatting
+    needs: backend_code_formatting
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -46,8 +63,19 @@ jobs:
           cd frontend
           npm ci
 
-      - name: Run Prettier formatter check
-        id: prettier
+      - name: Run Prettier and format code
         run: |
-          npx prettier --check "**/*.{js,jsx,ts,tsx,css,md,json}" \
-            || (echo "::error ::Some files are not formatted properly. Please run 'npx prettier --write .' locally." && exit 1)
+          cd frontend
+          npx prettier --write "**/*.{js,jsx,ts,tsx,css,md,json}"
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: format frontend code with Prettier"
+            git push
+          else
+            echo "No formatting changes to commit."
+          fi
