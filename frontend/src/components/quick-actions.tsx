@@ -1,13 +1,11 @@
 export const QuickActions = () => {
-  return (
-    <div className="mt-auto pt-6 border-t border-gray-200">
-      <p className="text-xs font-semibold text-gray-500 uppercase mb-3">
-        Quick Actions
-      </p>
-      <button className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg shadow hover:bg-blue-700 mb-2">
-        <span className="material-symbols-outlined">add</span>
-        New Shipment
-      </button>
-    </div>
-  );
+    return (
+        <div className="mt-auto border-t border-gray-200 pt-6">
+            <p className="mb-3 text-xs font-semibold text-gray-500 uppercase">Quick Actions</p>
+            <button className="mb-2 flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-700">
+                <span className="material-symbols-outlined">add</span>
+                New Shipment
+            </button>
+        </div>
+    );
 };

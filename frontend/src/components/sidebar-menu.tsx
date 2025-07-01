@@ -2,13 +2,13 @@ import { NavItems } from "./nav-items";
 import { QuickActions } from "./quick-actions";
 
 export const SidebarMenu = () => {
-  return (
-    <aside className="w-64 bg-white shadow-lg p-6 flex-col rounded-r-xl fixed h-full top-0 left-0 hidden lg:flex z-20">
-      <div className="flex items-center mb-10">BULK LOGISTICS</div>
+    return (
+        <aside className="fixed top-0 left-0 z-20 hidden h-full w-64 flex-col rounded-r-xl bg-white p-6 shadow-lg lg:flex">
+            <div className="mb-10 flex items-center">BULK LOGISTICS</div>
 
-      <NavItems />
+            <NavItems />
 
-      <QuickActions />
-    </aside>
-  );
+            <QuickActions />
+        </aside>
+    );
 };
