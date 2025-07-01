@@ -1,5 +1,5 @@
 export interface User {
-  id: number;
-  companyName: string;
-  apiKey: string;
+    id: number;
+    companyName: string;
+    apiKey: string;
 }
