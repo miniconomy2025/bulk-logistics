@@ -36,7 +36,7 @@ jobs:
           git add .
           if ! git diff --cached --quiet; then
             git commit -m "chore: format backend code with Prettier"
-            git push
+            git push origin HEAD:${{ github.head_ref }}
           else
             echo "No formatting changes to commit."
           fi
@@ -74,7 +74,7 @@ jobs:
           git add .
           if ! git diff --cached --quiet; then
             git commit -m "chore: format frontend code with Prettier"
-            git push
+            git push origin HEAD:${{ github.head_ref }}
           else
             echo "No formatting changes to commit."
           fi
