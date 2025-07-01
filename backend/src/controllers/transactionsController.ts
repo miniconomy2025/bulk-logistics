@@ -3,98 +3,131 @@ import { RateLimitRequestHandler } from "express-rate-limit";
 
 import { rateLimiter } from "../utils";
 import {
-  findTransactionById,
-  findTransactions,
-  insertIntoTransactionLedger,
+    findTransactionById,
+    findTransactions,
+    getActiveShipmentsCount,
+    getTotals,
+    getTransactionBreakdown,
+    insertIntoTransactionLedger,
 } from "../repositories/transactionsRepository";
 
 class TransactionsController {
-  public router: Router;
-  private rateLimit: RateLimitRequestHandler;
+    public static async getTransactions(_: Request, response: Response): Promise<void> {
+        const result = await findTransactions();
 
-  constructor() {
-    this.router = Router();
-    this.rateLimit = rateLimiter({ message: "Too many requests." });
-    this.setRoutes();
-  }
-
-  public static routes(): Router {
-    return new TransactionsController().router;
-  }
-
-  public async getTransactions(_: Request, response: Response): Promise<void> {
-    const result = await findTransactions();
-
-    if (result.ok) {
-      response.status(200).json({ transactions: result.value });
-    } else {
-      console.error(result.error);
-      response.status(500).json({ message: "Internal server error." });
-    }
-  }
-
-  public async getTransactionById(
-    request: Request,
-    response: Response,
-  ): Promise<void> {
-    const { id } = request.params;
-    const result = await findTransactionById(id);
-
-    if (!result.ok) {
-      console.error(result.error);
-      response.status(500).json({ message: "Internal server error." });
-      return;
+        if (result.ok) {
+            response.status(200).json({ transactions: result.value });
+        } else {
+            console.error(result.error);
+            response.status(500).json({ message: "Internal server error." });
+        }
     }
 
-    if (result.value.rowCount === 0) {
-      response.status(404).json({ error: "Transaction not found." });
-      return;
+    public static async getTransactionById(request: Request, response: Response): Promise<void> {
+        const { id } = request.params;
+        const result = await findTransactionById(id);
+
+        if (!result.ok) {
+            console.error(result.error);
+            response.status(500).json({ message: "Internal server error." });
+            return;
+        }
+
+        if (result.value.rowCount === 0) {
+            response.status(404).json({ error: "Transaction not found." });
+            return;
+        }
+
+        response.status(200).json({ transaction: result.value.rows[0] });
     }
 
-    response.status(200).json({ transaction: result.value.rows[0] });
-  }
+    public static async createTransaction(request: Request, response: Response): Promise<void> {
+        const {
+            commercial_bank_transaction_id,
+            payment_reference_id,
+            transaction_category_id,
+            amount,
+            transaction_date,
+            transaction_status_id,
+            related_pickup_request_id,
+            related_loan_id,
+            related_thoh_order_id,
+        } = request.body;
 
-  public async createTransaction(
-    request: Request,
-    response: Response,
-  ): Promise<void> {
-    const {
-      commercial_bank_transaction_id,
-      payment_reference_id,
-      transaction_category_id,
-      amount,
-      transaction_date,
-      transaction_status_id,
-      related_pickup_request_id,
-      related_loan_id,
-      related_thoh_order_id,
-    } = request.body;
+        const result = await insertIntoTransactionLedger({
+            commercial_bank_transaction_id,
+            payment_reference_id,
+            transaction_category_id,
+            amount,
+            transaction_date,
+            transaction_status_id,
+            related_pickup_request_id,
+            related_loan_id,
+            related_thoh_order_id,
+        });
 
-    const result = await insertIntoTransactionLedger({
-      commercial_bank_transaction_id,
-      payment_reference_id,
-      transaction_category_id,
-      amount,
-      transaction_date,
-      transaction_status_id,
-      related_pickup_request_id,
-      related_loan_id,
-      related_thoh_order_id,
-    });
-
-    if (result.ok) {
-      response.status(201).json({ transaction: result.value.rows[0] });
-    } else {
-      console.error(result.error);
-      response.status(500).json({ error: "Internal Server Error" });
+        if (result.ok) {
+            response.status(201).json({ transaction: result.value.rows[0] });
+        } else {
+            console.error(result.error);
+            response.status(500).json({ error: "Internal Server Error" });
+        }
     }
-  }
 
-  private setRoutes(): void {
-    this.router.get("/", this.rateLimit, this.getTransactions.bind(this));
-    this.router.get("/:id", this.rateLimit, this.getTransactionById.bind(this));
-    this.router.post("/", this.rateLimit, this.createTransaction.bind(this));
-  }
+    public static async getTransactionTotals(_: Request, response: Response): Promise<void> {
+        const result = await getTotals();
+
+        if (result.ok) {
+            response.status(200).json({ transaction: result.value.rows });
+        } else {
+            console.error(result.error);
+            response.status(500).json({ error: "Internal Server Error" });
+        }
+    }
+
+    public static async getActiveShipments(_: Request, response: Response): Promise<void> {
+        const result = await getActiveShipmentsCount();
+
+        if (result.ok) {
+            response.status(200).json({ transaction: result.value.rows });
+        } else {
+            console.error(result.error);
+            response.status(500).json({ error: "Internal Server Error" });
+        }
+    }
+
+    public static async getMonthlyTransactions(_: Request, response: Response): Promise<void> {
+        const result = await getTransactionBreakdown();
+
+        if (result.ok) {
+            response.status(200).json({ transaction: result.value.rows });
+        } else {
+            console.error(result.error);
+            response.status(500).json({ error: "Internal Server Error" });
+        }
+    }
+
+    public static async getDashboard(_: Request, response: Response): Promise<void> {
+        const result = await getTransactionBreakdown();
+
+        if (result.ok) {
+            response.status(200).json({ transaction: result.value.rows });
+        } else {
+            console.error(result.error);
+            response.status(500).json({ error: "Internal Server Error" });
+        }
+    }
+
+    public static async getTopRevenueSources(_: Request, response: Response): Promise<void> {
+        const result = await getTransactionBreakdown();
+
+        if (result.ok) {
+            response.status(200).json({ transaction: result.value.rows });
+        } else {
+            console.error(result.error);
+            response.status(500).json({ error: "Internal Server Error" });
+        }
+    }
 }
 
 export default TransactionsController;

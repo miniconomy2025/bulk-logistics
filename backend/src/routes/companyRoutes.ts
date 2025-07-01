@@ -1,8 +1,5 @@
 import express from "express";
-import {
-  createCompany,
-  getApiKeyForCompany,
-} from "../controllers/companyController";
+import { createCompany, getApiKeyForCompany } from "../controllers/companyController";
 import { rateLimiter } from "../utils";
 
 const authLimiter = rateLimiter();
