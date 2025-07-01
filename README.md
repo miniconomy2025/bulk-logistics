@@ -6,7 +6,6 @@ Welcome to the **Bulk Logistics** repository! We specialize in the **business-to
 
 The entity that initiates a delivery order is responsible for payment. In short, **if you tell us what to do, you'll be the one paying.**
 
-
 ## Members
 
 - Keith Hughes (TEAM LEAD)
@@ -19,9 +18,9 @@ The entity that initiates a delivery order is responsible for payment. In short,
 
 Our current primary routes facilitate the movement of goods between key industry players:
 
-* **Electronic Suppliers -> Phone Companies:** Transporting components like cases and screens.
-* **THoH -> Electronic Suppliers:** Moving essential raw materials and machinery.
-* **Recycler -> Electronic Suppliers:** Supplying crucial raw materials recovered through recycling.
+- **Electronic Suppliers -> Phone Companies:** Transporting components like cases and screens.
+- **THoH -> Electronic Suppliers:** Moving essential raw materials and machinery.
+- **Recycler -> Electronic Suppliers:** Supplying crucial raw materials recovered through recycling
 
 ---
 
@@ -30,17 +29,20 @@ Our current primary routes facilitate the movement of goods between key industry
 Our platform provides the following core services:
 
 ### 1. Payment Service
-* **Functionality:** Retrieve payment information.
+
+- **Functionality:** Retrieve payment information.
 
 ### 2. Order Service
-* **Functionality:**
-    * Create new delivery orders.
-    * Cancel existing delivery orders.
-    * Track the status of deliveries.
+
+- **Functionality:**
+  - Create new delivery orders.
+  - Cancel existing delivery orders.
+  - Track the status of deliveries.
 
 ### 3. User Service
-* **Functionality:**
-    * Create a company account to access our services.
+
+- **Functionality:**
+  - Create a company account to access our services.
 
 ---
 
@@ -50,23 +52,23 @@ Our API provides access to the functionalities listed above. Endpoints marked as
 
 ### Payment (Authed)
 
-| Method | Endpoint         | Description           |
-| :----- | :--------------- | :-------------------- |
+| Method | Endpoint           | Description              |
+| :----- | :----------------- | :----------------------- |
 | `GET`  | `/payment/details` | Get payment details/info |
 
 ### Order (Authed)
 
-| Method   | Endpoint          | Description            |
-| :------- | :---------------- | :--------------------- |
-| `POST`   | `/order`          | Create a delivery order |
-| `GET`    | `/order`          | Get all delivery orders |
-| `DELETE` | `/order/:id`      | Cancel a delivery order |
-| `GET`    | `/order/:id/status` | Get delivery status    |
+| Method   | Endpoint            | Description             |
+| :------- | :------------------ | :---------------------- |
+| `POST`   | `/order`            | Create a delivery order |
+| `GET`    | `/order`            | Get all delivery orders |
+| `DELETE` | `/order/:id`        | Cancel a delivery order |
+| `GET`    | `/order/:id/status` | Get delivery status     |
 
 ### User
 
-| Method | Endpoint         | Description           |
-| :----- | :--------------- | :-------------------- |
+| Method | Endpoint         | Description              |
+| :----- | :--------------- | :----------------------- |
 | `POST` | `/user/register` | Create a company account |
 
 ---
