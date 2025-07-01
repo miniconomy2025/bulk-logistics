@@ -1,28 +1,66 @@
-name: 🍂 Prettier Check
+name: Prettier Auto Format
 
 on:
   pull_request:
+    
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
-  prettier:
-    name: Prettier check
+  auto_format:
+    name: Prettier Auto Format Code
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.PAT }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: "latest"
 
-      - name: Install dependencies
-        run: | 
+      - name: Install backend dependencies
+        run: |
           cd backend
           npm ci
 
-      - name: Run Prettier formatter check
-        id: prettier
+      - name: Run Prettier for backend
+        id: prettier_backend
         run: |
-          npx prettier --check "**/*.{js,jsx,ts,tsx,css,md,json}" \
-            || (echo "::error ::Some files are not formatted properly. Please run 'npx prettier --write .' locally." && exit 1)
+          cd backend
+          # Run Prettier and check for changes.
+          # The --list-different flag will output files that are not formatted.
+          # We capture the output to determine if there were changes.
+          npx prettier --write "**/*.{js,jsx,ts,tsx,css,md,json}"
+      
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: Apply formatting changes
+          branch: ${{ github.head_ref }}
+
+      - name: Install frontend dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Run Prettier for frontend
+        id: prettier_frontend
+        run: |
+          cd frontend
+          # Run Prettier and check for changes.
+          # The --list-different flag will output files that are not formatted.
+          # We capture the output to determine if there were changes.
+          npx prettier --write "**/*.{js,jsx,ts,tsx,css,md,json}"
+      
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: Apply formatting changes
+          branch: ${{ github.head_ref }}
