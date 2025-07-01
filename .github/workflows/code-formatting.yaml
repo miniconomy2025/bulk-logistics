@@ -27,40 +27,52 @@ jobs:
 
       - name: Install backend dependencies
         run: |
-          cd backend
-          npm ci
+          if [ -d "backend" ]; then
+            cd backend
+            npm ci
+          else
+            echo "No backend directory, skipping."
+          fi
 
       - name: Run Prettier for backend
         id: prettier_backend
         run: |
-          cd backend
-          # Run Prettier and check for changes.
-          # The --list-different flag will output files that are not formatted.
-          # We capture the output to determine if there were changes.
-          npx prettier --write "**/*.{js,jsx,ts,tsx,css,md,json}"
-      
-      - name: Commit changes
+          if [ -d "backend" ]; then
+            cd backend
+            npx prettier --write "**/*.{js,jsx,ts,tsx,css,md,json}"
+          else
+            echo "No backend directory, skipping."
+          fi
+
+      - name: Commit backend changes
+        if: steps.prettier_backend.outcome == 'success'
         uses: stefanzweifel/git-auto-commit-action@v6
         with:
-          commit_message: Apply formatting changes
+          commit_message: Apply backend formatting changes
           branch: ${{ github.head_ref }}
 
       - name: Install frontend dependencies
         run: |
-          cd frontend
-          npm ci
+          if [ -d "frontend" ]; then
+            cd frontend
+            npm ci
+          else
+            echo "No frontend directory, skipping."
+          fi
 
       - name: Run Prettier for frontend
         id: prettier_frontend
         run: |
-          cd frontend
-          # Run Prettier and check for changes.
-          # The --list-different flag will output files that are not formatted.
-          # We capture the output to determine if there were changes.
-          npx prettier --write "**/*.{js,jsx,ts,tsx,css,md,json}"
-      
-      - name: Commit changes
+          if [ -d "frontend" ]; then
+            cd frontend
+            npx prettier --write "**/*.{js,jsx,ts,tsx,css,md,json}"
+          else
+            echo "No frontend directory, skipping."
+          fi
+
+      - name: Commit frontend changes
+        if: steps.prettier_frontend.outcome == 'success'
         uses: stefanzweifel/git-auto-commit-action@v6
         with:
-          commit_message: Apply formatting changes
+          commit_message: Apply frontend formatting changes
           branch: ${{ github.head_ref }}
