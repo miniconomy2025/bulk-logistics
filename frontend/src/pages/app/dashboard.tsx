@@ -2,7 +2,7 @@ import { RecentTransaction } from "../../components/recent-transactions";
 import { TopRevenueSource } from "../../components/top-revenue";
 import { MetricCard } from "../../components/ui/metric-card";
 import { TransactionItem } from "../../components/ui/transaction-item";
-import { DashboardLayout } from "../../layouts/app/dashboard-layout";
+import { DashboardLayout } from "../../layouts/app-layout";
 
 const Dashboard: React.FC = () => {
     return (

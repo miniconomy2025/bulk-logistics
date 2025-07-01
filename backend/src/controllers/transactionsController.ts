@@ -12,20 +12,7 @@ import {
 } from "../repositories/transactionsRepository";
 
 class TransactionsController {
-    public router: Router;
-    private rateLimit: RateLimitRequestHandler;
-
-    constructor() {
-        this.router = Router();
-        this.rateLimit = rateLimiter({ message: "Too many requests." });
-        this.setRoutes();
-    }
-
-    public static routes(): Router {
-        return new TransactionsController().router;
-    }
-
-    public async getTransactions(_: Request, response: Response): Promise<void> {
+    public static async getTransactions(_: Request, response: Response): Promise<void> {
         const result = await findTransactions();
 
         if (result.ok) {
@@ -36,7 +23,7 @@ class TransactionsController {
         }
     }
 
-    public async getTransactionById(request: Request, response: Response): Promise<void> {
+    public static async getTransactionById(request: Request, response: Response): Promise<void> {
         const { id } = request.params;
         const result = await findTransactionById(id);
 
@@ -54,7 +41,7 @@ class TransactionsController {
         response.status(200).json({ transaction: result.value.rows[0] });
     }
 
-    public async createTransaction(request: Request, response: Response): Promise<void> {
+    public static async createTransaction(request: Request, response: Response): Promise<void> {
         const {
             commercial_bank_transaction_id,
             payment_reference_id,
@@ -87,7 +74,7 @@ class TransactionsController {
         }
     }
 
-    public async getTransactionTotals(_: Request, response: Response): Promise<void> {
+    public static async getTransactionTotals(_: Request, response: Response): Promise<void> {
         const result = await getTotals();
 
         if (result.ok) {
@@ -98,7 +85,7 @@ class TransactionsController {
         }
     }
 
-    public async getActiveShipments(_: Request, response: Response): Promise<void> {
+    public static async getActiveShipments(_: Request, response: Response): Promise<void> {
         const result = await getActiveShipmentsCount();
 
         if (result.ok) {
@@ -109,7 +96,7 @@ class TransactionsController {
         }
     }
 
-    public async getMonthlyTransactions(_: Request, response: Response): Promise<void> {
+    public static async getMonthlyTransactions(_: Request, response: Response): Promise<void> {
         const result = await getTransactionBreakdown();
 
         if (result.ok) {
@@ -120,7 +107,7 @@ class TransactionsController {
         }
     }
 
-    public async getDashboard(_: Request, response: Response): Promise<void> {
+    public static async getDashboard(_: Request, response: Response): Promise<void> {
         const result = await getTransactionBreakdown();
 
         if (result.ok) {
@@ -131,7 +118,7 @@ class TransactionsController {
         }
     }
 
-    public async getTopRevenueSources(_: Request, response: Response): Promise<void> {
+    public static async getTopRevenueSources(_: Request, response: Response): Promise<void> {
         const result = await getTransactionBreakdown();
 
         if (result.ok) {
@@ -140,21 +127,6 @@ class TransactionsController {
             console.error(result.error);
             response.status(500).json({ error: "Internal Server Error" });
         }
-    }
-
-    private setRoutes(): void {
-        this.router.get("/dashboard/", function (_, response) {
-            response.status(404).json({ error: "Not found" });
-        });
-        this.router.get("/dashboard/totals", this.getTransactionTotals);
-        this.router.get("/dashboard/active-shipments", this.getActiveShipments);
-        this.router.get("/dashboard/monthly", this.getMonthlyTransactions);
-        this.router.get("/dashboard/breakdown", this.getDashboard);
-        this.router.get("/dashboard/top-sources", this.getTopRevenueSources);
-
-        this.router.get("/", this.rateLimit, this.getTransactions);
-        this.router.get("/:id/", this.rateLimit, this.getTransactionById);
-        this.router.post("/", this.rateLimit, this.createTransaction);
     }
 }
 
