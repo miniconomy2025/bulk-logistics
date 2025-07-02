@@ -22,7 +22,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
         ...pickupRequestDetails,
         requestingCompanyId: pickupRequestDetails.destinationCompanyId,
         cost: cost,
-        requestDate: SimulatedClock.getSimulatedTime(new Date("2025-07-02"))
+        requestDate: SimulatedClock.getSimulatedTime(new Date("2025-07-02")),
     });
 
     res.status(201).json({
@@ -42,7 +42,7 @@ export const getPickupRequest = catchAsync(async (req: Request, res: Response, n
     const pickupRequest = await findPickupRequestById(id);
 
     if (!pickupRequest) {
-        return next(new AppError('No pickup request found with that ID', 404));
+        return next(new AppError("No pickup request found with that ID", 404));
     }
 
     let status: string;
@@ -51,7 +51,7 @@ export const getPickupRequest = catchAsync(async (req: Request, res: Response, n
     } else if (pickupRequest.paymentStatus === 'CONFIRMED') {
         status = 'PENDING_DELIVERY';
     } else {
-        status = 'PENDING_PAYMENT';
+        status = "PENDING_PAYMENT";
     }
 
     res.status(200).json({

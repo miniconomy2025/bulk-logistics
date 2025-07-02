@@ -2,18 +2,15 @@ import database from "../config/database";
 import { PickupRequestEntity, PickupRequestCreationResult, PickupRequestGetEntity } from "../models/PickupRequest";
 
 export const savePickupRequest = async (pickupRequest: PickupRequestEntity): Promise<PickupRequestCreationResult> => {
-    const result = await database.query<PickupRequestCreationResult>(
-        "SELECT * FROM create_pickup_request($1, $2, $3, $4, $5, $6, $7::jsonb)",
-        [
-            pickupRequest.requestingCompanyId,
-            pickupRequest.originCompanyId,
-            pickupRequest.destinationCompanyId,
-            pickupRequest.originalExternalOrderId,
-            pickupRequest.cost,
-            pickupRequest.requestDate,
-            JSON.stringify(pickupRequest.items),
-        ]
-    );
+    const result = await database.query<PickupRequestCreationResult>("SELECT * FROM create_pickup_request($1, $2, $3, $4, $5, $6, $7::jsonb)", [
+        pickupRequest.requestingCompanyId,
+        pickupRequest.originCompanyId,
+        pickupRequest.destinationCompanyId,
+        pickupRequest.originalExternalOrderId,
+        pickupRequest.cost,
+        pickupRequest.requestDate,
+        JSON.stringify(pickupRequest.items),
+    ]);
 
     // The result from a function call will be in result.rows[0]
     if (result.rows.length === 0) {

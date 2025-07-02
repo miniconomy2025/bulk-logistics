@@ -1,14 +1,14 @@
 export interface PickupRequestRequest {
     originalExternalOrderId: string; //
     originCompanyId: string; //
-    destinationCompanyId: string; // 
-    items: [ItemRequest]; // 
+    destinationCompanyId: string; //
+    items: [ItemRequest]; //
 }
 
 export interface ItemRequest {
     itemName: number;
     quantity: number;
-    measurementType: 'KG' | 'UNIT';
+    measurementType: "KG" | "UNIT";
 }
 
 export interface PickupRequestEntity {
@@ -28,6 +28,7 @@ export interface PickupRequestCreationResult {
     cost: number;
     bulkLogisticsBankAccountNumber: string;
 }
+
 
 export interface PickupRequestCreateResponse {
     pickupRequestId: number;
@@ -51,4 +52,3 @@ export interface PickupRequestGetEntity {
     paymentStatus: string;
     items: ItemRequest[];
 }
-
