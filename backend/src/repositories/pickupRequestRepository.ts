@@ -90,9 +90,9 @@ export const findPickupRequestsByCompanyId = async (companyId: string): Promise<
         LEFT JOIN transaction_status ts ON btl.transaction_status_id = ts.transaction_status_id
         WHERE
             pr.destination_company_id = $1;
-    `
+    `;
 
     const result = await database.query<PickupRequestGetEntity>(query, [companyId]);
 
     return result.rows;
-}
+};

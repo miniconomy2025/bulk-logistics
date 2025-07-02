@@ -3,8 +3,8 @@ import { validatePickupRequest } from "../validation/pickupRequestValidator";
 import { PickupRequestCreationResult, PickupRequestRequest, PickupRequestCreateResponse, PickupRequestGetEntity } from "../models/PickupRequest";
 import { calculateDeliveryCost } from "../services/DeliveryCostCalculatorService";
 import { findPickupRequestById, findPickupRequestsByCompanyId, savePickupRequest } from "../repositories/pickupRequestRepository";
-import catchAsync from '../utils/catchAsync';
-import AppError from '../utils/appError';
+import catchAsync from "../utils/catchAsync";
+import AppError from "../utils/appError";
 import { SimulatedClock } from "../utils";
 
 export const createPickupRequest = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -31,9 +31,8 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
         paymentReferenceId: result.paymentReferenceId,
         bulkLogisticsBankAccountNumber: result.bulkLogisticsBankAccountNumber,
         status: "PENDING_PAYMENT",
-        statusCheckUrl: `/pickup-requests/${result.pickupRequestId}`
-    } as PickupRequestCreateResponse
-    );
+        statusCheckUrl: `/pickup-requests/${result.pickupRequestId}`,
+    } as PickupRequestCreateResponse);
 });
 
 export const getPickupRequest = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -47,9 +46,9 @@ export const getPickupRequest = catchAsync(async (req: Request, res: Response, n
 
     let status: string;
     if (pickupRequest.completionDate) {
-        status = 'DELIVERED';
-    } else if (pickupRequest.paymentStatus === 'CONFIRMED') {
-        status = 'PENDING_DELIVERY';
+        status = "DELIVERED";
+    } else if (pickupRequest.paymentStatus === "CONFIRMED") {
+        status = "PENDING_DELIVERY";
     } else {
         status = "PENDING_PAYMENT";
     }
@@ -72,15 +71,14 @@ export const getPickupRequestsByCompany = catchAsync(async (req: Request, res: R
 
     let pickupRequestsResponse: PickupRequestGetEntity[] = [];
     console.log(pickupRequests);
-    pickupRequests?.forEach(pickupRequest => {
-
+    pickupRequests?.forEach((pickupRequest) => {
         let status: string;
         if (pickupRequest.completionDate) {
-            status = 'DELIVERED';
-        } else if (pickupRequest.paymentStatus === 'CONFIRMED') {
-            status = 'PENDING_DELIVERY';
+            status = "DELIVERED";
+        } else if (pickupRequest.paymentStatus === "CONFIRMED") {
+            status = "PENDING_DELIVERY";
         } else {
-            status = 'PENDING_PAYMENT';
+            status = "PENDING_PAYMENT";
         }
         pickupRequestsResponse.push({
             pickupRequestId: pickupRequest.pickupRequestId,
@@ -90,9 +88,8 @@ export const getPickupRequestsByCompany = catchAsync(async (req: Request, res: R
             originalExternalOrderId: pickupRequest.originalExternalOrderId,
             requestDate: pickupRequest.requestDate,
             items: pickupRequest.items,
-        } as PickupRequestGetEntity)
-    })
+        } as PickupRequestGetEntity);
+    });
 
     res.status(200).json(pickupRequestsResponse);
-
-})
+});
