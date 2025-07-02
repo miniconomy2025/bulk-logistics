@@ -11,7 +11,7 @@ export function rateLimiter(params: RateLimiterParams = {}): RateLimitRequestHan
         windowMs: params.windowMs ?? 15 * 60 * 1000,
         max: params.max ?? 10,
         message: {
-            error: params.message ?? "Too many login/sign-up attempts. Please try again later.",
+            error: params.message ?? "Too many requests. Please try again later.",
         },
     });
 }
