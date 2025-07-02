@@ -49,7 +49,6 @@ CREATE TABLE item_definitions (
 CREATE TABLE vehicle_type (
   vehicle_type_id      SERIAL PRIMARY KEY,
   name                 VARCHAR(50)  NOT NULL UNIQUE,
-  daily_operational_cost NUMERIC(10,2) NOT NULL,
   capacity_type_id     INTEGER     NOT NULL
     REFERENCES capacity_type (capacity_type_id)
       ON UPDATE CASCADE
@@ -62,6 +61,7 @@ CREATE TABLE vehicle_type (
 CREATE TABLE vehicle (
   vehicle_id      SERIAL PRIMARY KEY,
   is_active       BOOLEAN NOT NULL,
+  daily_operational_cost NUMERIC(10,2) NOT NULL,
   vehicle_type_id INTEGER NOT NULL
     REFERENCES vehicle_type (vehicle_type_id)
       ON UPDATE CASCADE
