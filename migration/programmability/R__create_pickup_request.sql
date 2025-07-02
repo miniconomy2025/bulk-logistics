@@ -1,26 +1,39 @@
 -- Function to get a dummy bank account number for Bulk Logistics
--- This should probably come from a configuration or a dedicated table.
+-- REPLACE LATER WHEN WE HAVE CONFIG SET UP
 CREATE OR REPLACE FUNCTION get_bulk_logistics_bank_account()
 RETURNS VARCHAR(50) AS $$
 BEGIN
-    RETURN 'BL1234567890'; -- Replace with your actual bank account number
+    RETURN 'BL1234567890'; -- Replace with our actual bank account number. How else are we gonna get this? Can pass it in query from config perhaps.
 END;
 $$ LANGUAGE plpgsql;
 
--- This proc will make the pickup request, populate the pickup_request_items table and create a ledger entry for the request.
-CREATE OR REPLACE PROCEDURE create_pickup_request(
+-- Define a composite type for the return value of our creation function
+-- This will contain the key identifiers and cost needed for the API response.
+DROP TYPE IF EXISTS pickup_request_creation_result CASCADE;
+CREATE TYPE pickup_request_creation_result AS (
+    pickup_request_id INTEGER,
+    payment_reference_id UUID,
+    cost NUMERIC(10,2),
+    bulk_logistics_bank_account_number VARCHAR(50)
+);
+
+-- Function to create a new pickup request and its items,
+-- and to atomically create an associated bank transaction ledger entry,
+-- returning key details for the application.
+CREATE OR REPLACE FUNCTION create_pickup_request(
     p_requesting_company_id INTEGER,
     p_origin_company_id INTEGER,
     p_destination_company_id INTEGER,
     p_original_external_order_id VARCHAR,
     p_cost NUMERIC(10,2), -- Cost of the logistics service
     p_request_date DATE, -- Simulation date of the request
-    p_items_json JSONB -- Array of items with 'itemName' and 'quantity'
+    p_items_json JSONB -- Array of items with 'itemName' and 'quantity' at LEAST.
 )
+RETURNS pickup_request_creation_result -- returns our custom composite type
 LANGUAGE plpgsql AS $$
 DECLARE
     v_pickup_request_id INTEGER;
-    v_payment_reference_id UUID; -- Generated for the bank transaction
+    v_payment_reference_id UUID;
     v_item_data JSONB;
     v_bulk_logistics_bank_account VARCHAR(50);
     v_item_definition_id INTEGER;
@@ -28,6 +41,7 @@ DECLARE
     v_quantity INTEGER;
     v_transaction_category_id INTEGER;
     v_transaction_status_id INTEGER;
+    v_result pickup_request_creation_result; -- Variable to hold the return value
 BEGIN
     -- 1. Generate Payment Reference ID for the bank transaction
     v_payment_reference_id := gen_random_uuid();
@@ -85,15 +99,15 @@ BEGIN
     -- Get the IDs for the transaction category and initial status
     SELECT transaction_category_id INTO v_transaction_category_id
     FROM transaction_category
-    WHERE name = 'INBOUND_LOGISTICS_FEE'; -- Still need to insert this into the DB.
+    WHERE name = 'INBOUND_LOGISTICS_FEE'; -- Still need to create insert script for this.
 
     SELECT transaction_status_id INTO v_transaction_status_id
     FROM transaction_status
-    WHERE status = 'PENDING'; -- Still need to insert this into the DB
+    WHERE status = 'PENDING'; -- Still need to create insert script for this.
 
     INSERT INTO bank_transactions_ledger (
         commercial_bank_transaction_id, -- This will be NULL initially, filled when bank confirms
-        payment_reference_id, -- Your generated UUID for this transaction
+        payment_reference_id, -- our generated UUID for this transaction
         transaction_category_id,
         amount,
         transaction_date,
@@ -113,9 +127,12 @@ BEGIN
         NULL
     );
 
-    -- -- 6. Raise a notice for logging/debugging (optional, for direct procedure calls)                          OPTIONAL
-    -- RAISE NOTICE 'Pickup Request Created: ID=%, Cost=%, PaymentRef=%, BankAccount=%',
-    --              v_pickup_request_id, p_cost, v_payment_reference_id, v_bulk_logistics_bank_account;
+    -- 6. Prepare the return value
+    v_result.pickup_request_id := v_pickup_request_id;
+    v_result.payment_reference_id := v_payment_reference_id;
+    v_result.cost := p_cost;
+    v_result.bulk_logistics_bank_account_number := v_bulk_logistics_bank_account;
 
+    RETURN v_result; --Return the composite type
 END;
 $$;

@@ -1,5 +1,6 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
+import {createPickupRequest, getPickupRequest} from "../controllers/pickupRequestController";
 
 const router = express.Router();
 
@@ -11,7 +12,7 @@ const pickupRequestsLimiter = rateLimit({
     },
 });
 
-router.post("/pickup-request", pickupRequestsLimiter /*the controller method */);
-router.get("/pikcup-request/:pickupRequestId", pickupRequestsLimiter /*the controller method */);
+router.post("", /*pickupRequestsLimiter,*/ createPickupRequest);
+router.get("/:id", /*pickupRequestsLimiter*/ getPickupRequest);
 
 export default router;
