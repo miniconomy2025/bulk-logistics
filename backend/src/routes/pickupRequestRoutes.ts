@@ -1,6 +1,6 @@
 import express from "express";
 import rateLimit from "express-rate-limit";
-import {createPickupRequest, getPickupRequest} from "../controllers/pickupRequestController";
+import { createPickupRequest, getPickupRequest } from "../controllers/pickupRequestController";
 
 const router = express.Router();
 

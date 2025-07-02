@@ -1,5 +1,5 @@
-import { Request, Response, NextFunction } from 'express';
-import AppError from '../utils/appError';
+import { Request, Response, NextFunction } from "express";
+import AppError from "../utils/appError";
 
 // Handles sending a detailed error response during development
 const sendErrorDev = (err: any, res: Response) => {
@@ -19,16 +19,16 @@ const sendErrorProd = (err: AppError, res: Response) => {
             status: err.status,
             message: err.message,
         });
-    } 
+    }
     // B) Programming or other unknown error: don't leak error details
     else {
         // 1) Log error to the console for the developer
-        console.error('ERROR: ', err);
+        console.error("ERROR: ", err);
 
         // 2) Send generic message
         res.status(500).json({
-            status: 'error',
-            message: 'Something went very wrong!',
+            status: "error",
+            message: "Something went very wrong!",
         });
     }
 };
@@ -36,12 +36,13 @@ const sendErrorProd = (err: AppError, res: Response) => {
 const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
     // Set default status code and status if not already defined
     err.statusCode = err.statusCode || 500;
-    err.status = err.status || 'error';
+    err.status = err.status || "error";
 
     // NOTE: You can switch between 'development' and 'production'
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
         sendErrorDev(err, res);
-    } else { // 'production'
+    } else {
+        // 'production'
         let error = Object.assign(err, {});
         sendErrorProd(error, res);
     }

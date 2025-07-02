@@ -2,7 +2,7 @@ import express from "express";
 import companyRoutes from "./routes/companyRoutes";
 import TransactionsController from "./controllers/transactionsController";
 import transactionRoutes from "./routes/transactionRoutes";
-import pickupRequestRoutes from "./routes/pickupRequestRoutes"
+import pickupRequestRoutes from "./routes/pickupRequestRoutes";
 import AppError from "./utils/appError";
 import globalErrorHandler from "./controllers/errorController";
 
@@ -13,8 +13,8 @@ app.use(express.json());
 
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/company", companyRoutes);
-app.use("/api/pickup-request", pickupRequestRoutes)
-app.all('*', (req, res, next) => {
+app.use("/api/pickup-request", pickupRequestRoutes);
+app.all("*", (req, res, next) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 

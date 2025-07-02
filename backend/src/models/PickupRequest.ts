@@ -1,14 +1,14 @@
 export interface PickupRequestRequest {
     originalExternalOrderId: string; //
     originCompanyId: string; //
-    destinationCompanyId: string; // 
-    items: [ItemRequest]; // 
+    destinationCompanyId: string; //
+    items: [ItemRequest]; //
 }
 
 export interface ItemRequest {
     itemName: number;
     quantity: number;
-    measurementType: 'KG' | 'UNIT';
+    measurementType: "KG" | "UNIT";
 }
 
 export interface PickupRequestEntity {
@@ -30,17 +30,17 @@ export interface PickupRequestCreationResult {
 }
 
 export interface PickupRequestResponse {
-    pickupRequestId: number,
-    cost: number,
-    paymentReferenceId: string,
-    bulkLogisticsBankAccountNumber: string | number,
-    status: string,
-    statusCheckUrl: string
+    pickupRequestId: number;
+    cost: number;
+    paymentReferenceId: string;
+    bulkLogisticsBankAccountNumber: string | number;
+    status: string;
+    statusCheckUrl: string;
 }
 
-export interface PickupRequestWithItems extends PickupRequestEntity{
+export interface PickupRequestWithItems extends PickupRequestEntity {
     pickupRequestId: number;
     completionDate?: Date;
     items: ItemRequest[];
-    payment_status: 'PENDING' | 'CONFIRMED' | 'FAILED' | null; // <-- ADDED
+    payment_status: "PENDING" | "CONFIRMED" | "FAILED" | null; // <-- ADDED
 }
