@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { validatePickupRequest } from "../validation/pickupRequestValidator";
-import { PickupRequestCreationResult, PickupRequestRequest, PickupRequestResponse } from "../models/PickupRequest";
+import { PickupRequestCreationResult, PickupRequestRequest, PickupRequestCreateResponse, PickupRequestGetEntity } from "../models/PickupRequest";
 import { calculateDeliveryCost } from "../services/DeliveryCostCalculatorService";
-import { findPickupRequestById, savePickupRequest } from "../repositories/pickupRequestRepository";
-import catchAsync from '../utils/catchAsync'; 
-import AppError from '../utils/appError';   
+import { findPickupRequestById, findPickupRequestsByCompanyId, savePickupRequest } from "../repositories/pickupRequestRepository";
+import catchAsync from '../utils/catchAsync';
+import AppError from '../utils/appError';
 import { SimulatedClock } from "../utils";
 
 export const createPickupRequest = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -32,7 +32,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
         bulkLogisticsBankAccountNumber: result.bulkLogisticsBankAccountNumber,
         status: "PENDING_PAYMENT",
         statusCheckUrl: `/pickup-requests/${result.pickupRequestId}`
-    } as PickupRequestResponse
+    } as PickupRequestCreateResponse
     );
 });
 
@@ -48,7 +48,7 @@ export const getPickupRequest = catchAsync(async (req: Request, res: Response, n
     let status: string;
     if (pickupRequest.completionDate) {
         status = 'DELIVERED';
-    } else if (pickupRequest.payment_status === 'CONFIRMED') {
+    } else if (pickupRequest.paymentStatus === 'CONFIRMED') {
         status = 'PENDING_DELIVERY';
     } else {
         status = 'PENDING_PAYMENT';
@@ -58,8 +58,41 @@ export const getPickupRequest = catchAsync(async (req: Request, res: Response, n
         pickupRequestId: pickupRequest.pickupRequestId,
         cost: pickupRequest.cost,
         status: status,
+        originCompanyName: pickupRequest.originCompanyName,
+        originalExternalOrderId: pickupRequest.originalExternalOrderId,
         requestDate: pickupRequest.requestDate,
-        completionDate: pickupRequest.completionDate,
         items: pickupRequest.items,
     });
 });
+
+export const getPickupRequestsByCompany = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { companyId } = req.params;
+
+    const pickupRequests: PickupRequestGetEntity[] | null = await findPickupRequestsByCompanyId(companyId);
+
+    let pickupRequestsResponse: PickupRequestGetEntity[] = [];
+    console.log(pickupRequests);
+    pickupRequests?.forEach(pickupRequest => {
+
+        let status: string;
+        if (pickupRequest.completionDate) {
+            status = 'DELIVERED';
+        } else if (pickupRequest.paymentStatus === 'CONFIRMED') {
+            status = 'PENDING_DELIVERY';
+        } else {
+            status = 'PENDING_PAYMENT';
+        }
+        pickupRequestsResponse.push({
+            pickupRequestId: pickupRequest.pickupRequestId,
+            cost: pickupRequest.cost,
+            status: status,
+            originCompanyName: pickupRequest.originCompanyName,
+            originalExternalOrderId: pickupRequest.originalExternalOrderId,
+            requestDate: pickupRequest.requestDate,
+            items: pickupRequest.items,
+        } as PickupRequestGetEntity)
+    })
+
+    res.status(200).json(pickupRequestsResponse);
+
+})

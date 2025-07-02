@@ -29,18 +29,26 @@ export interface PickupRequestCreationResult {
     bulkLogisticsBankAccountNumber: string;
 }
 
-export interface PickupRequestResponse {
-    pickupRequestId: number,
-    cost: number,
-    paymentReferenceId: string,
-    bulkLogisticsBankAccountNumber: string | number,
-    status: string,
-    statusCheckUrl: string
+export interface PickupRequestCreateResponse {
+    pickupRequestId: number;
+    cost: number;
+    paymentReferenceId: string;
+    bulkLogisticsBankAccountNumber: string | number;
+    status: string;
+    statusCheckUrl: string;
 }
 
-export interface PickupRequestWithItems extends PickupRequestEntity{
-    pickupRequestId: number;
-    completionDate?: Date;
+export interface PickupRequestGetEntity {
+    pickupRequestId:number;
+    requestingCompanyName:number;
+    originCompanyName:number;
+    destinationCompanyName:number;
+    originalExternalOrderId:number;
+    cost:number;
+    requestDate: Date;
+    completionDate: Date;
+    status?: string;
+    paymentStatus: string;
     items: ItemRequest[];
-    payment_status: 'PENDING' | 'CONFIRMED' | 'FAILED' | null; // <-- ADDED
 }
+
