@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import { validatePickupRequest } from "../validation/pickupRequestValidator";
-import { PickupRequestCreationResult, PickupRequestEntity, PickupRequestRequest, PickupRequestResponse } from "../models/PickupRequest";
+import { PickupRequestCreationResult, PickupRequestRequest, PickupRequestResponse } from "../models/PickupRequest";
 import { calculateDeliveryCost } from "../services/DeliveryCostCalculatorService";
 import { findPickupRequestById, savePickupRequest } from "../repositories/pickupRequestRepository";
 import catchAsync from '../utils/catchAsync'; 
 import AppError from '../utils/appError';   
+import { SimulatedClock } from "../utils";
 
 export const createPickupRequest = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const pickupRequestDetails: PickupRequestRequest = req.body;
@@ -21,7 +22,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
         ...pickupRequestDetails,
         requestingCompanyId: pickupRequestDetails.destinationCompanyId,
         cost: cost,
-        requestDate: /*timeService.getTime(new Date())*/ new Date("2025-07-02")
+        requestDate: SimulatedClock.getSimulatedTime(new Date("2025-07-02"))
     });
 
     res.status(201).json({
