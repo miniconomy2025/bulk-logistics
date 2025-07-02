@@ -15,5 +15,5 @@ export interface Vehicle {
     purchase_date: string;
 }
 export interface VehicleWithType extends Vehicle {
-  vehicle_type: VehicleType;
+    vehicle_type: VehicleType;
 }
