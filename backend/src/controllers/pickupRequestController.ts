@@ -3,8 +3,8 @@ import { validatePickupRequest } from "../validation/pickupRequestValidator";
 import { PickupRequestCreationResult, PickupRequestRequest, PickupRequestCreateResponse, PickupRequestGetEntity } from "../types/PickupRequest";
 import { calculateDeliveryCost } from "../services/DeliveryCostCalculatorService";
 import { findPickupRequestById, findPickupRequestsByCompanyId, savePickupRequest } from "../models/pickupRequestRepository";
-import catchAsync from '../utils/errorHandlingMiddleware/catchAsync';
-import AppError from '../utils/errorHandlingMiddleware/appError';
+import catchAsync from "../utils/errorHandlingMiddleware/catchAsync";
+import AppError from "../utils/errorHandlingMiddleware/appError";
 import { SimulatedClock } from "../utils";
 
 export const createPickupRequest = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
