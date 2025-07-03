@@ -7,16 +7,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Define a composite type for the return value of our creation function
--- This will contain the key identifiers and cost needed for the API response.
+-- ** UPDATED TYPE DEFINITION **
+-- Define a composite type for the return value of our creation function.
+-- The field names are now quoted and in camelCase to match the desired output.
 DROP TYPE IF EXISTS pickup_request_creation_result CASCADE;
 CREATE TYPE pickup_request_creation_result AS (
-    pickup_request_id INTEGER,
-    payment_reference_id UUID,
-    cost NUMERIC(10,2),
-    bulk_logistics_bank_account_number VARCHAR(50)
+    "pickupRequestId" INTEGER,
+    "paymentReferenceId" UUID,
+    "cost" NUMERIC(10,2),
+    "bulkLogisticsBankAccountNumber" VARCHAR(50)
 );
 
+-- ** UPDATED FUNCTION **
 -- Function to create a new pickup request and its items,
 -- and to atomically create an associated bank transaction ledger entry,
 -- returning key details for the application.
@@ -50,7 +52,6 @@ BEGIN
     v_bulk_logistics_bank_account := get_bulk_logistics_bank_account();
 
     -- 3. Insert into pickup_requests table
-    -- 'completion_date' is nullable and left NULL on creation.
     INSERT INTO pickup_requests (
         requesting_company_id,
         origin_company_id,
@@ -58,7 +59,6 @@ BEGIN
         original_external_order_id,
         cost,
         request_date
-        -- completion_date is implicitly NULL here
     ) VALUES (
         p_requesting_company_id,
         p_origin_company_id,
@@ -66,16 +66,13 @@ BEGIN
         p_original_external_order_id,
         p_cost,
         p_request_date
-    ) RETURNING pickup_request_id INTO v_pickup_request_id; -- Store the resulting id in the variable here.
+    ) RETURNING pickup_request_id INTO v_pickup_request_id;
 
     -- 4. Insert into pickup_request_item table for each item in the JSONB array
-    -- for each item in the items array, set the item name and quantity. Then get the item definition id from the name. If the name is wrong, throw error.
-    -- If all is well, we insert the pickup request item into the table.
     FOR v_item_data IN SELECT * FROM jsonb_array_elements(p_items_json) LOOP
         v_item_name := v_item_data->>'itemName';
         v_quantity := (v_item_data->>'quantity')::INTEGER;
 
-        -- Look up item_definition_id from item_definitions table using the item_name
         SELECT item_definition_id INTO v_item_definition_id
         FROM item_definitions
         WHERE item_name = v_item_name;
@@ -96,42 +93,42 @@ BEGIN
     END LOOP;
 
     -- 5. Create an associated entry in bank_transactions_ledger
-    -- Get the IDs for the transaction category and initial status
     SELECT transaction_category_id INTO v_transaction_category_id
     FROM transaction_category
-    WHERE name = 'INBOUND_LOGISTICS_FEE'; -- Still need to create insert script for this.
+    WHERE name = 'INBOUND_LOGISTICS_FEE';
 
     SELECT transaction_status_id INTO v_transaction_status_id
     FROM transaction_status
-    WHERE status = 'PENDING'; -- Still need to create insert script for this.
+    WHERE status = 'PENDING';
 
     INSERT INTO bank_transactions_ledger (
-        commercial_bank_transaction_id, -- This will be NULL initially, filled when bank confirms
-        payment_reference_id, -- our generated UUID for this transaction
+        commercial_bank_transaction_id,
+        payment_reference_id,
         transaction_category_id,
         amount,
         transaction_date,
         transaction_status_id,
-        related_pickup_request_id, -- Link back to the pickup request
-        related_loan_id, -- NULL for this type of transaction
-        related_thoh_order_id -- NULL for this type of transaction
+        related_pickup_request_id,
+        related_loan_id,
+        related_thoh_order_id
     ) VALUES (
-        NULL, -- commercial_bank_transaction_id is set by the bank later
+        NULL,
         v_payment_reference_id,
         v_transaction_category_id,
-        p_cost, -- The cost of the pickup request
-        p_request_date, -- The date the transaction was initiated
-        v_transaction_status_id, -- Initial status is PENDING
+        p_cost,
+        p_request_date,
+        v_transaction_status_id,
         v_pickup_request_id,
         NULL,
         NULL
     );
 
-    -- 6. Prepare the return value
-    v_result.pickup_request_id := v_pickup_request_id;
-    v_result.payment_reference_id := v_payment_reference_id;
-    v_result.cost := p_cost;
-    v_result.bulk_logistics_bank_account_number := v_bulk_logistics_bank_account;
+    -- 6. ** UPDATED ASSIGNMENTS **
+    -- Prepare the return value using the camelCase field names.
+    v_result."pickupRequestId" := v_pickup_request_id;
+    v_result."paymentReferenceId" := v_payment_reference_id;
+    v_result."cost" := p_cost;
+    v_result."bulkLogisticsBankAccountNumber" := v_bulk_logistics_bank_account;
 
     RETURN v_result; --Return the composite type
 END;
