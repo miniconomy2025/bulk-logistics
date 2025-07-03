@@ -29,7 +29,6 @@ export interface PickupRequestCreationResult {
     bulkLogisticsBankAccountNumber: string;
 }
 
-
 export interface PickupRequestCreateResponse {
     pickupRequestId: number;
     cost: number;
@@ -40,12 +39,12 @@ export interface PickupRequestCreateResponse {
 }
 
 export interface PickupRequestGetEntity {
-    pickupRequestId:number;
-    requestingCompanyName:number;
-    originCompanyName:number;
-    destinationCompanyName:number;
-    originalExternalOrderId:number;
-    cost:number;
+    pickupRequestId: number;
+    requestingCompanyName: number;
+    originCompanyName: number;
+    destinationCompanyName: number;
+    originalExternalOrderId: number;
+    cost: number;
     requestDate: Date;
     completionDate: Date;
     status?: string;
