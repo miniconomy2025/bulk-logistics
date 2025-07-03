@@ -2,7 +2,12 @@ import express from "express";
 import companyRoutes from "./routes/companyRoutes";
 import transactionRoutes from "./routes/transactionRoutes";
 
+import { init } from "express-oas-generator";
+
 const app = express();
+
+init(app, {})
+
 const PORT = 3000;
 
 app.use(express.json());
