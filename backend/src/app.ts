@@ -1,10 +1,9 @@
 import express from "express";
 import companyRoutes from "./routes/companyRoutes";
-import TransactionsController from "./controllers/transactionsController";
 import transactionRoutes from "./routes/transactionRoutes";
 import pickupRequestRoutes from "./routes/pickupRequestRoutes";
-import AppError from "./utils/appError";
-import globalErrorHandler from "./controllers/errorController";
+import AppError from "./utils/errorHandlingMiddleware/appError";
+import globalErrorHandler from "./utils/errorHandlingMiddleware/errorController";
 
 const app = express();
 const PORT = 3000;

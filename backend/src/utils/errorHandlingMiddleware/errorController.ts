@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import AppError from "../utils/appError";
+import AppError from "./appError";
 
 // Handles sending a detailed error response during development
 const sendErrorDev = (err: any, res: Response) => {
