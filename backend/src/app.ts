@@ -1,10 +1,26 @@
 import express from "express";
+import cors from "cors";
 import { init } from "express-oas-generator";
 
 import companyRoutes from "./routes/companyRoutes";
 import transactionRoutes from "./routes/transactionRoutes";
 
 const app = express();
+
+const allowedOrigins = ["http://localhost:3000", "http://localhost:5173"];
+const corsOptions: cors.CorsOptions = {
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 init(app, {
     info: {
