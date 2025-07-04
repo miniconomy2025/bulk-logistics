@@ -21,16 +21,6 @@ init(app, {
     - Coordinating with manufacturing schedules and raw material supply
     description: Production server`,
     },
-    tags: [
-        {
-            name: "Pickup Requests",
-            description: "Manage requests to pick up and transfer goods from one company to another.",
-        },
-        {
-            name: "Shipments",
-            description: "Handle shipment dispatch, tracking, and status management.",
-        },
-    ],
 });
 
 const PORT = 3000;

@@ -182,8 +182,7 @@ export const getTopRevenueSources = async (): Promise<Result<any>> => {
     JOIN company c ON pr.requesting_company_id = c.company_id
     WHERE tc.name = 'Revenue'
     GROUP BY c.company_name
-    ORDER BY total DESC
-    LIMIT 5;
+    ORDER BY total DESC;
   `;
 
     try {
