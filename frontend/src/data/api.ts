@@ -13,7 +13,7 @@ export default class API {
         const response = await fetch(apiRoot, { method: "GET" });
         const { status } = response;
 
-        if (status === 200) {
+        if (status >= 200 || status <= 600) {
             const isDev = import.meta.env.VITE_DEV === "dev";
             API.apiRoot = isDev ? apiRoot : "http://localhost:3000";
         } else {
