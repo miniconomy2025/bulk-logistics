@@ -1,4 +1,4 @@
-import { PickupRequestRequest } from "../types/PickupRequest";
+import { PickupRequestRequest } from "../types/pickupRequest";
 
 export const validatePickupRequest = (pickupRequest: PickupRequestRequest) => {
     // here we get the list of possible companies
