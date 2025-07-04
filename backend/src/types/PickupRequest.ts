@@ -1,8 +1,8 @@
 export interface PickupRequestRequest {
-    originalExternalOrderId: string; 
-    originCompanyId: string; 
-    destinationCompanyId: string; 
-    items: [ItemRequest]; 
+    originalExternalOrderId: string;
+    originCompanyId: string;
+    destinationCompanyId: string;
+    items: [ItemRequest];
 }
 
 export interface ItemRequest {
@@ -24,7 +24,7 @@ export interface PickupRequestEntity {
 
 export interface PickupRequestCreationResult {
     pickupRequestId: number;
-    paymentReferenceId: string; 
+    paymentReferenceId: string;
     cost: number;
     bulkLogisticsBankAccountNumber: string;
 }

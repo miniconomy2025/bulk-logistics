@@ -16,8 +16,7 @@ const sendErrorProd = (err: AppError, res: Response) => {
             status: err.status,
             message: err.message,
         });
-    }
-    else {
+    } else {
         console.error("ERROR: ", err);
 
         res.status(500).json({
