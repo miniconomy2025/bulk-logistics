@@ -4,6 +4,7 @@ import { init } from "express-oas-generator";
 
 import companyRoutes from "./routes/companyRoutes";
 import transactionRoutes from "./routes/transactionRoutes";
+import health from "./routes/health";
 
 const app = express();
 
@@ -43,6 +44,7 @@ const PORT = 3000;
 
 app.use(express.json());
 
+app.use("/api/health", health);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/company", companyRoutes);
 
