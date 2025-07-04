@@ -91,7 +91,6 @@ const Dashboard: React.FC = () => {
                 setIncomeBreakdown(result);
             })
             .catch((error) => console.error(error));
-
     }, []);
 
     return (
@@ -221,7 +220,7 @@ const Dashboard: React.FC = () => {
                             {incomeBreakdowm.transaction.map((item, key) => {
                                 const percent = (Number(item.total) / Number(totals.transaction[0].total_revenue)) * 100;
                                 const displayPercent = !isFinite(percent) || isNaN(percent) ? 0 : percent;
-                                
+
                                 return (
                                     <TransactionItem
                                         key={key}
