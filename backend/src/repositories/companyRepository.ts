@@ -2,7 +2,7 @@ import database from "../config/database";
 
 export const insertCompany = async (companyName: string, certificate_identifier: string, bank_account_number: string) => {
     const query = "INSERT INTO company (company_name, certificate_identifier, bank_account_number) VALUES ($1, $2, $3) RETURNING *";
-    const values = [companyName, certificate_identifier];
+    const values = [companyName, certificate_identifier, bank_account_number];
     const result = await database.query(query, values);
     return result.rows[0];
 };
