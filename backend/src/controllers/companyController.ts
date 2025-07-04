@@ -2,7 +2,6 @@ import crypto from "crypto";
 import { Request, Response } from "express";
 import { insertCompany, getCertificateByCompanyName } from "../repositories/companyRepository";
 
- 
 const computeCertificateFingerprint = (certificatePem: string): string => {
     const pem = certificatePem
         .replace(/-----BEGIN CERTIFICATE-----/, "")
