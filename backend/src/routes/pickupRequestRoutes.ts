@@ -12,8 +12,8 @@ const pickupRequestsLimiter = rateLimit({
     },
 });
 
-router.post("", /*pickupRequestsLimiter,*/ createPickupRequest);
-router.get("/:id", /*pickupRequestsLimiter*/ getPickupRequest);
+router.post("", createPickupRequest);
+router.get("/:id", getPickupRequest);
 router.get("/company/:companyId", getPickupRequestsByCompany);
 
 export default router;

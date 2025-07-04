@@ -71,7 +71,6 @@ export const getPickupRequestsByCompany = catchAsync(async (req: Request, res: R
     const pickupRequests: PickupRequestGetEntity[] | null = await findPickupRequestsByCompanyId(companyId);
 
     let pickupRequestsResponse: PickupRequestGetEntity[] = [];
-    console.log(pickupRequests);
     pickupRequests?.forEach((pickupRequest) => {
         let status: string;
         if (pickupRequest.completionDate) {
