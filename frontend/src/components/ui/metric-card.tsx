@@ -16,7 +16,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, ch
             <div className="mt-1 flex items-baseline">
                 <p className="text-xl font-semibold text-gray-900">{value}</p>
                 <span className={`ml-2 text-xs font-medium ${changeType === "increase" ? "text-green-600" : "text-red-600"}`}>
-                    {change} vs last period
+                    {change}
                 </span>
             </div>
         </div>

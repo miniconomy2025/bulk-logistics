@@ -1,10 +1,99 @@
+import { useEffect, useState } from "react";
 import { RecentTransaction } from "../../components/recent-transactions";
 import { TopRevenueSource } from "../../components/top-revenue";
 import { MetricCard } from "../../components/ui/metric-card";
 import { TransactionItem } from "../../components/ui/transaction-item";
 import { DashboardLayout } from "../../layouts/app-layout";
+import Transactions from "../../data/transactions";
+
+interface TransactionItem {
+    total_revenue: string;
+    total_expenses: string;
+}
+
+interface TransactionResponse {
+    transaction: TransactionItem[];
+}
+
+interface ActiveShipmentsItem {
+    count: string;
+}
+
+interface ActiveShipmentsResponse {
+    transaction: ActiveShipmentsItem[];
+}
+
+interface IncomeBreakdownItem {
+    category: string;
+    total: string;
+}
+
+interface IncomeBreakdownResponse {
+    transaction: IncomeBreakdownItem[];
+}
 
 const Dashboard: React.FC = () => {
+    const [totals, setTotals] = useState<TransactionResponse>({
+        transaction: [
+            {
+                total_revenue: "0",
+                total_expenses: "0",
+            },
+        ],
+    });
+    const [activeShipments, setActiveShipments] = useState<ActiveShipmentsResponse>({
+        transaction: [
+            {
+                count: "0",
+            },
+        ],
+    });
+    const [incomeBreakdowm, setIncomeBreakdown] = useState<IncomeBreakdownResponse>({
+        transaction: [
+            {
+                category: "",
+                total: "",
+            },
+        ],
+    });
+
+    const fetchDashboardData = async (): Promise<TransactionResponse> => {
+        const response = await Transactions.totals();
+        const data: TransactionResponse = await response.json();
+        return data;
+    };
+
+    const fetchIncomeBreakdownData = async (): Promise<IncomeBreakdownResponse> => {
+        const response = await Transactions.topSources();
+        const data: IncomeBreakdownResponse = await response.json();
+        return data;
+    };
+
+    const fetchActiveShipmentsData = async (): Promise<ActiveShipmentsResponse> => {
+        const response = await Transactions.activeShipments();
+        const data: ActiveShipmentsResponse = await response.json();
+        return data;
+    };
+
+    useEffect(() => {
+        fetchDashboardData()
+            .then((result) => {
+                setTotals(result);
+            })
+            .catch((error) => console.error(error));
+        fetchActiveShipmentsData()
+            .then((result) => {
+                setActiveShipments(result);
+            })
+            .catch((error) => console.error(error));
+        fetchIncomeBreakdownData()
+            .then((result) => {
+                setIncomeBreakdown(result);
+            })
+            .catch((error) => console.error(error));
+
+    }, []);
+
     return (
         <DashboardLayout>
             <main className="w-full flex-1 overflow-y-auto p-8 pt-[4.5rem] lg:ml-64 lg:pt-8">
@@ -19,8 +108,8 @@ const Dashboard: React.FC = () => {
                 <section className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     <MetricCard
                         title="Total Revenues"
-                        value="R847,293"
-                        change="+12.9% "
+                        value={`R${totals.transaction[0].total_revenue}`}
+                        change=""
                         changeType="increase"
                         bgColor="bg-green-100"
                         textColor="text-green-600"
@@ -43,8 +132,8 @@ const Dashboard: React.FC = () => {
                     />
                     <MetricCard
                         title="Total Expenses"
-                        value="R324,891"
-                        change="+8.2% "
+                        value={`R${totals.transaction[0].total_expenses}`}
+                        change=""
                         changeType="decrease"
                         bgColor="bg-red-100"
                         textColor="text-red-600"
@@ -67,8 +156,8 @@ const Dashboard: React.FC = () => {
                     />
                     <MetricCard
                         title="Net Profit"
-                        value="R522,402"
-                        change="+12.9% "
+                        value={`R${Number(totals.transaction[0].total_revenue) - Number(totals.transaction[0].total_revenue)}`}
+                        change=""
                         changeType="increase"
                         bgColor="bg-blue-100"
                         textColor="text-blue-600"
@@ -91,8 +180,8 @@ const Dashboard: React.FC = () => {
                     />
                     <MetricCard
                         title="Active Shipments"
-                        value="1,247"
-                        change="+25 new today"
+                        value={`R${activeShipments.transaction[0].count}`}
+                        change=""
                         changeType="increase"
                         bgColor="bg-orange-100"
                         textColor="text-orange-600"
@@ -129,26 +218,19 @@ const Dashboard: React.FC = () => {
                         <h2 className="mb-4 text-lg font-semibold text-gray-900">Transaction Breakdown</h2>
                         <p className="mb-6 text-sm text-gray-500">Distribution of income sources</p>
                         <div className="space-y-2">
-                            <TransactionItem
-                                label="Freight Services"
-                                percentage="72%"
-                                colorClass="bg-blue-500"
-                            />
-                            <TransactionItem
-                                label="Storage Fees"
-                                percentage="18%"
-                                colorClass="bg-green-500"
-                            />
-                            <TransactionItem
-                                label="Insurance"
-                                percentage="7%"
-                                colorClass="bg-orange-500"
-                            />
-                            <TransactionItem
-                                label="Other Services"
-                                percentage="3%"
-                                colorClass="bg-purple-500"
-                            />
+                            {incomeBreakdowm.transaction.map((item, key) => {
+                                const percent = (Number(item.total) / Number(totals.transaction[0].total_revenue)) * 100;
+                                const displayPercent = !isFinite(percent) || isNaN(percent) ? 0 : percent;
+                                
+                                return (
+                                    <TransactionItem
+                                        key={key}
+                                        label={item.category}
+                                        percentage={`${displayPercent}%`}
+                                        colorClass="bg-blue-500"
+                                    />
+                                );
+                            })}
                         </div>
                     </div>
                 </section>
