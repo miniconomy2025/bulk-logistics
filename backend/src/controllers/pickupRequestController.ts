@@ -6,6 +6,7 @@ import { findPickupRequestById, findPickupRequestsByCompanyId, savePickupRequest
 import catchAsync from '../utils/errorHandlingMiddleware/catchAsync';
 import AppError from '../utils/errorHandlingMiddleware/appError';
 import { SimulatedClock } from "../utils";
+import { PickupRequestCompletionStatus } from "../enums";
 
 export const createPickupRequest = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const pickupRequestDetails: PickupRequestRequest = req.body;
@@ -30,7 +31,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
         cost: result.cost,
         paymentReferenceId: result.paymentReferenceId,
         bulkLogisticsBankAccountNumber: result.bulkLogisticsBankAccountNumber,
-        status: "PENDING_PAYMENT",
+        status: PickupRequestCompletionStatus.PendingPayment,
         statusCheckUrl: `/pickup-requests/${result.pickupRequestId}`,
     } as PickupRequestCreateResponse);
 });
@@ -46,11 +47,11 @@ export const getPickupRequest = catchAsync(async (req: Request, res: Response, n
 
     let status: string;
     if (pickupRequest.completionDate) {
-        status = "DELIVERED";
+        status = PickupRequestCompletionStatus.Delivered;
     } else if (pickupRequest.paymentStatus === "CONFIRMED") {
-        status = "PENDING_DELIVERY";
+        status = PickupRequestCompletionStatus.PendingDelivery;
     } else {
-        status = "PENDING_PAYMENT";
+        status = PickupRequestCompletionStatus.PendingPayment;
     }
 
     res.status(200).json({
@@ -74,11 +75,11 @@ export const getPickupRequestsByCompany = catchAsync(async (req: Request, res: R
     pickupRequests?.forEach((pickupRequest) => {
         let status: string;
         if (pickupRequest.completionDate) {
-            status = "DELIVERED";
+            status = PickupRequestCompletionStatus.Delivered;
         } else if (pickupRequest.paymentStatus === "CONFIRMED") {
-            status = "PENDING_DELIVERY";
+            status = PickupRequestCompletionStatus.PendingDelivery;
         } else {
-            status = "PENDING_PAYMENT";
+            status = PickupRequestCompletionStatus.PendingPayment;
         }
         pickupRequestsResponse.push({
             pickupRequestId: pickupRequest.pickupRequestId,
