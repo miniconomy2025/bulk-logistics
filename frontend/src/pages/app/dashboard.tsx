@@ -238,7 +238,7 @@ const Dashboard: React.FC = () => {
                                         key={key}
                                         label={item.category}
                                         percentage={`${displayPercent}%`}
-                                        colorClass={randomColor}
+                                        colorClass="bg-blue-500"
                                     />
                                 );
                             })}
