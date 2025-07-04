@@ -91,7 +91,6 @@ const Dashboard: React.FC = () => {
                 setIncomeBreakdown(result);
             })
             .catch((error) => console.error(error));
-
     }, []);
 
     return (
@@ -221,13 +220,25 @@ const Dashboard: React.FC = () => {
                             {incomeBreakdowm.transaction.map((item, key) => {
                                 const percent = (Number(item.total) / Number(totals.transaction[0].total_revenue)) * 100;
                                 const displayPercent = !isFinite(percent) || isNaN(percent) ? 0 : percent;
-                                
+                                const colors = [
+                                    "bg-blue-500",
+                                    "bg-green-500",
+                                    "bg-red-500",
+                                    "bg-yellow-500",
+                                    "bg-purple-500",
+                                    "bg-pink-500",
+                                    "bg-indigo-500",
+                                    "bg-teal-500",
+                                    "bg-orange-500",
+                                ];
+                                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
                                 return (
                                     <TransactionItem
                                         key={key}
                                         label={item.category}
                                         percentage={`${displayPercent}%`}
-                                        colorClass="bg-blue-500"
+                                        colorClass={randomColor}
                                     />
                                 );
                             })}
