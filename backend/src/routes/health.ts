@@ -11,8 +11,8 @@ const pickupRequestsLimiter = rateLimit({
     },
 });
 
-router.get("", pickupRequestsLimiter, (_,response)=>{
-    response.status(200).json({"message": "API is up"})
+router.get("", pickupRequestsLimiter, (_, response) => {
+    response.status(200).json({ message: "API is up" });
 });
 
 export default router;
