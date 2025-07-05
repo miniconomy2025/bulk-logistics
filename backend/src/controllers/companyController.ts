@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { Request, Response } from "express";
-import { insertCompany, getCertificateByCompanyName } from "../repositories/companyRepository";
+import { insertCompany, getCertificateByCompanyName } from "../models/companyRepository";
+
 
 const computeCertificateFingerprint = (certificatePem: string): string => {
     const pem = certificatePem

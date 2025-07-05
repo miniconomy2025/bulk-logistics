@@ -9,7 +9,7 @@ import {
     getTotals,
     getTransactionBreakdown,
     insertIntoTransactionLedger,
-} from "../repositories/transactionsRepository";
+} from "../models/transactionsRepository";
 
 class TransactionsController {
     public static async getTransactions(_: Request, response: Response): Promise<void> {
