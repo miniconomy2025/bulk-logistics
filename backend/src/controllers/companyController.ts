@@ -4,7 +4,6 @@ import { Request, Response } from "express";
 
 import { insertCompany, getApiKeyByCompanyName } from "../models/companyRepository";
 
-
 export const generateApiKey = (): string => {
     return crypto.randomBytes(32).toString("hex");
 };
