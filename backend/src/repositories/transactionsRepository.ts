@@ -171,7 +171,7 @@ export const getTransactionBreakdown = async (): Promise<Result<any>> => {
     }
 };
 
-export const getTopRevenueSources = async (): Promise<Result<any>> => {
+export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
     const query = `
     SELECT c.company_name AS company,
            SUM(t.amount) AS total,

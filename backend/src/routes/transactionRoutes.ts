@@ -6,7 +6,6 @@ import {
     getTransactionTotals,
     getActiveShipments,
     getMonthlyTransactions,
-    getDashboard,
     getTopRevenueSources,
 } from "../controllers/transactionsController";
 
@@ -19,7 +18,6 @@ router.post("/", createTransaction);
 router.get("/totals", getTransactionTotals);
 router.get("/active-shipments", getActiveShipments);
 router.get("/monthly", getMonthlyTransactions);
-router.get("/dashboard", getDashboard);
 router.get("/top-sources", getTopRevenueSources);
 router.get("/:id", getTransactionById);
 
