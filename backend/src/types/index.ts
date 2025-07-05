@@ -1,3 +1,3 @@
-import type { Result } from "./repostitoryResponses";
+import type { Result } from "./repositoryResponses";
 
 export { Result };

@@ -20,3 +20,9 @@ export const TransactionCategory = {
     Purchase: "PURCHASE",
     PaymentReceived: "PAYMENT_RECEIVED",
 };
+
+export const PickupRequestCompletionStatus = {
+    PendingDelivery: "PENDING_DELIVERY",
+    PendingPayment: "PENDING_PAYMENT",
+    Delivered: "DELIVERED",
+};
