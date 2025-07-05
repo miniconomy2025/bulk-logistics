@@ -5,7 +5,6 @@ import pickupRequestRoutes from "./routes/pickupRequestRoutes";
 import AppError from "./utils/errorHandlingMiddleware/appError";
 import globalErrorHandler from "./utils/errorHandlingMiddleware/errorController";
 
-
 const app = express();
 const PORT = 3000;
 
