@@ -7,6 +7,11 @@ export const findTransactions = async (): Promise<Result<any>> => {
           t.transaction_ledger_id,
           t.commercial_bank_transaction_id,
           t.amount,
+          tc.money_direction,
+          CASE 
+            WHEN tc.money_direction = 'in' THEN t.amount 
+            ELSE -t.amount 
+          END AS signed_amount,
           t.transaction_date,
           ts.status AS transaction_status,
           tc.name AS category,
