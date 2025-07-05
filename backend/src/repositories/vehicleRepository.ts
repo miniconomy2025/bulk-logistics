@@ -1,11 +1,8 @@
-import database from '../config/database';
-import { 
-  VehicleWithDeliveryCount,
-  VehicleWithType,
-} from '../types';
+import database from "../config/database";
+import { VehicleWithDeliveryCount, VehicleWithType } from "../types";
 
-export const getTotalVehicleDeliveryCounts = async () : Promise<VehicleWithDeliveryCount[]> => {
-  const query = `
+export const getTotalVehicleDeliveryCounts = async (): Promise<VehicleWithDeliveryCount[]> => {
+    const query = `
     SELECT 
       v.vehicle_id,
       vt.name AS vehicle_type,
@@ -21,12 +18,12 @@ export const getTotalVehicleDeliveryCounts = async () : Promise<VehicleWithDeliv
     ORDER BY deliveries_completed DESC;
   `;
 
-  const result = await database.query(query);
-  return result.rows;
+    const result = await database.query(query);
+    return result.rows;
 };
 
 export const getAllVehiclesWithType = async (): Promise<VehicleWithType[]> => {
-  const query = `
+    const query = `
     SELECT 
       v.vehicle_id,
       v.is_active,
@@ -51,32 +48,29 @@ export const getAllVehiclesWithType = async (): Promise<VehicleWithType[]> => {
     FROM vehicle v
     JOIN vehicle_type vt ON vt.vehicle_type_id = v.vehicle_type_id;
   `;
-  
-  const result = await database.query(query);
 
-  return result.rows.map(row => ({
-    vehicle_id: row.vehicle_id,
-    is_active: row.is_active,
-    vehicle_type_id: row.vehicle_type_id,
-    purchase_date: row.purchase_date,
-    daily_operational_cost: parseFloat(row.daily_operational_cost),
-    is_in_active_shipment: row.is_in_active_shipment,
-    vehicle_type: {
-      vehicle_type_id: row.vt_id,
-      name: row.vt_name,
-      capacity_type_id: row.vt_capacity_type_id,
-      maximum_capacity: row.vt_max_capacity,
-      max_pickups_per_day: row.vt_max_pickups,
-      max_dropoffs_per_day: row.vt_max_dropoffs,
-    }
-  }));
+    const result = await database.query(query);
+
+    return result.rows.map((row) => ({
+        vehicle_id: row.vehicle_id,
+        is_active: row.is_active,
+        vehicle_type_id: row.vehicle_type_id,
+        purchase_date: row.purchase_date,
+        daily_operational_cost: parseFloat(row.daily_operational_cost),
+        is_in_active_shipment: row.is_in_active_shipment,
+        vehicle_type: {
+            vehicle_type_id: row.vt_id,
+            name: row.vt_name,
+            capacity_type_id: row.vt_capacity_type_id,
+            maximum_capacity: row.vt_max_capacity,
+            max_pickups_per_day: row.vt_max_pickups,
+            max_dropoffs_per_day: row.vt_max_dropoffs,
+        },
+    }));
 };
 
-export const getVehicleDeliveriesByDateRange = async (
-  startDate: Date, 
-  endDate: Date
-) : Promise<VehicleWithDeliveryCount[]> => {
-  const query = `
+export const getVehicleDeliveriesByDateRange = async (startDate: Date, endDate: Date): Promise<VehicleWithDeliveryCount[]> => {
+    const query = `
     SELECT 
       v.vehicle_id,
       vt.name AS vehicle_type,
@@ -91,15 +85,13 @@ export const getVehicleDeliveriesByDateRange = async (
     GROUP BY v.vehicle_id, vt.name
     ORDER BY deliveries_completed DESC;
   `;
-  const values = [startDate.toISOString(), endDate.toISOString()];
-  const result = await database.query(query, values);
-  return result.rows;
+    const values = [startDate.toISOString(), endDate.toISOString()];
+    const result = await database.query(query, values);
+    return result.rows;
 };
 
-export const getVehicleForShipmentId = async (
-  shipmentId: number
-): Promise<VehicleWithType | null> => {
-  const query = `
+export const getVehicleForShipmentId = async (shipmentId: number): Promise<VehicleWithType | null> => {
+    const query = `
     SELECT 
       v.vehicle_id,
       v.is_active,
@@ -118,33 +110,33 @@ export const getVehicleForShipmentId = async (
     WHERE s.shipment_id = $1
   `;
 
-  const result = await database.query(query, [shipmentId]);
+    const result = await database.query(query, [shipmentId]);
 
-  if (!result.rows[0]) return null;
+    if (!result.rows[0]) return null;
 
-  const row = result.rows[0];
+    const row = result.rows[0];
 
-  const vehicle: VehicleWithType = {
-    vehicle_id: row.vehicle_id,
-    is_active: row.is_active,
-    vehicle_type_id: row.vehicle_type_id,
-    purchase_date: row.purchase_date,
-    daily_operational_cost: row.vt_cost,
-    vehicle_type: {
-      vehicle_type_id: row.vt_id,
-      name: row.vt_name,
-      capacity_type_id: row.vt_capacity_type_id,
-      maximum_capacity: row.vt_max_capacity,
-      max_pickups_per_day: row.vt_max_pickups,
-      max_dropoffs_per_day: row.vt_max_dropoffs,
-    },
-  };
+    const vehicle: VehicleWithType = {
+        vehicle_id: row.vehicle_id,
+        is_active: row.is_active,
+        vehicle_type_id: row.vehicle_type_id,
+        purchase_date: row.purchase_date,
+        daily_operational_cost: row.vt_cost,
+        vehicle_type: {
+            vehicle_type_id: row.vt_id,
+            name: row.vt_name,
+            capacity_type_id: row.vt_capacity_type_id,
+            maximum_capacity: row.vt_max_capacity,
+            max_pickups_per_day: row.vt_max_pickups,
+            max_dropoffs_per_day: row.vt_max_dropoffs,
+        },
+    };
 
-  return vehicle;
+    return vehicle;
 };
 
 export const getAvailableVehiclesWithType = async (): Promise<VehicleWithType[]> => {
-  const query = `
+    const query = `
     SELECT 
       v.vehicle_id,
       v.is_active,
@@ -164,22 +156,21 @@ export const getAvailableVehiclesWithType = async (): Promise<VehicleWithType[]>
     WHERE s.shipment_id IS NULL OR ss.name = 'DELIVERED' OR ss.name = 'PENDING';
   `;
 
-  const result = await database.query(query);
+    const result = await database.query(query);
 
-  return result.rows.map(row => ({
-    vehicle_id: row.vehicle_id,
-    is_active: row.is_active,
-    vehicle_type_id: row.vehicle_type_id,
-    daily_operational_cost: row.daily_operational_cost,
-    purchase_date: row.purchase_date,
-    vehicle_type: {
-      vehicle_type_id: row.vt_id,
-      name: row.vt_name,
-      capacity_type_id: row.vt_capacity_type_id,
-      maximum_capacity: row.vt_max_capacity,
-      max_pickups_per_day: row.vt_max_pickups,
-      max_dropoffs_per_day: row.vt_max_dropoffs,
-    }
-  }));
+    return result.rows.map((row) => ({
+        vehicle_id: row.vehicle_id,
+        is_active: row.is_active,
+        vehicle_type_id: row.vehicle_type_id,
+        daily_operational_cost: row.daily_operational_cost,
+        purchase_date: row.purchase_date,
+        vehicle_type: {
+            vehicle_type_id: row.vt_id,
+            name: row.vt_name,
+            capacity_type_id: row.vt_capacity_type_id,
+            maximum_capacity: row.vt_max_capacity,
+            max_pickups_per_day: row.vt_max_pickups,
+            max_dropoffs_per_day: row.vt_max_dropoffs,
+        },
+    }));
 };
-
