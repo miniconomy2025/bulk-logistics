@@ -6,7 +6,7 @@ import {
     getTotals,
     getTransactionBreakdown,
     insertIntoTransactionLedger,
-} from "../repositories/transactionsRepository";
+} from "../models/transactionsRepository";
 
 export async function getTransactions(_: Request, res: Response): Promise<void> {
     const result = await findTransactions();
