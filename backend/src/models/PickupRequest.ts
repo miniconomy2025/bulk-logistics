@@ -1,15 +1,15 @@
 export interface PickupRequestRequest {
     originalExternalOrderId: string;
-    requestingCompanyId: string;
     originCompanyId: string;
     destinationCompanyId: string;
     items: [ItemRequest];
-    requestSimulationDate: Date;
+    requestSimulationDate?: Date;
 }
 
 export interface ItemRequest {
     itemName: number;
     quantity: number;
+    measurementType: string;
 }
 
 export interface PickupRequestEntity {
