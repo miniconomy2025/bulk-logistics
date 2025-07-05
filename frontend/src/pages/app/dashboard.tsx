@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { RecentTransaction } from "../../components/recent-transactions";
-import { TopRevenueSource } from "../../components/top-revenue";
 import { MetricCard } from "../../components/ui/metric-card";
 import { TransactionItem } from "../../components/ui/transaction-item";
 import { DashboardLayout } from "../../layouts/app-layout";
@@ -207,89 +206,50 @@ const Dashboard: React.FC = () => {
                 </section>
 
                 {/* Recent Transactions & Top Revenue Sources */}
-                <section className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                        <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-gray-900">Recent Transactions</h2>
-                            <button className="text-sm font-medium text-blue-600 hover:underline">View all</button>
-                        </div>
-                        <p className="mb-6 text-sm text-gray-500">Added financial activity</p>
-                        <div className="space-y-2">
-                            <RecentTransaction
-                                title="Payment from CasualCorp"
-                                description="New equipment purchase"
-                                amount="+R24,500"
-                                date="May 1, 10:00 AM"
-                                type="credit"
-                            />
-                            <RecentTransaction
-                                title="Fuel Payment"
-                                description="Fleet maintenance"
-                                amount="-R3,420"
-                                date="Today, 11:30 AM"
-                                type="debit"
-                            />
-                            <RecentTransaction
-                                title="Storage Fee - TechCorp"
-                                description="Warehouse storage"
-                                amount="+R8,750"
-                                date="Yesterday, 4:40 PM"
-                                type="credit"
-                            />
-                            <RecentTransaction
-                                title="Insurance Premium"
-                                description="Monthly coverage"
-                                amount="-R12,000"
-                                date="Yesterday, 9:15 AM"
-                                type="debit"
-                            />
-                            <RecentTransaction
-                                title="Payment from MegaHaul"
-                                description="Logistics Dashboard subscription"
-                                amount="+R45,000"
-                                date="3 days ago"
-                                type="credit"
-                            />
-                        </div>
+                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+                    <div className="mb-4 flex items-center justify-between">
+                        <h2 className="text-lg font-semibold text-gray-900">Recent Transactions</h2>
+                        <button className="text-sm font-medium text-blue-600 hover:underline">View all</button>
                     </div>
-
-                    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-                        <h2 className="mb-4 text-lg font-semibold text-gray-900">Top Revenue Sources</h2>
-                        <p className="mb-6 text-sm text-gray-500">Highest paying clients this month</p>
-                        <div className="space-y-2">
-                            <TopRevenueSource
-                                name="GlobalCorp Industries"
-                                description="10+ active shipments"
-                                amount="R142,830"
-                                status="Platinum"
-                            />
-                            <TopRevenueSource
-                                name="MegaFleet Co."
-                                description="8 active shipments"
-                                amount="R95,420"
-                                status="Premium"
-                            />
-                            <TopRevenueSource
-                                name="ExecTrans Solutions"
-                                description="6 active shipments"
-                                amount="R76,190"
-                                status="Standard"
-                            />
-                            <TopRevenueSource
-                                name="AutoPack Inc."
-                                description="4 active shipments"
-                                amount="R52,300"
-                                status="Standard"
-                            />
-                            <TopRevenueSource
-                                name="FastFleet Chain"
-                                description="3 active shipments"
-                                amount="R41,290"
-                                status="Basic"
-                            />
-                        </div>
+                    <p className="mb-6 text-sm text-gray-500">Added financial activity</p>
+                    <div className="space-y-2">
+                        <RecentTransaction
+                            title="Payment from CasualCorp"
+                            description="New equipment purchase"
+                            amount="+R24,500"
+                            date="May 1, 10:00 AM"
+                            type="credit"
+                        />
+                        <RecentTransaction
+                            title="Fuel Payment"
+                            description="Fleet maintenance"
+                            amount="-R3,420"
+                            date="Today, 11:30 AM"
+                            type="debit"
+                        />
+                        <RecentTransaction
+                            title="Storage Fee - TechCorp"
+                            description="Warehouse storage"
+                            amount="+R8,750"
+                            date="Yesterday, 4:40 PM"
+                            type="credit"
+                        />
+                        <RecentTransaction
+                            title="Insurance Premium"
+                            description="Monthly coverage"
+                            amount="-R12,000"
+                            date="Yesterday, 9:15 AM"
+                            type="debit"
+                        />
+                        <RecentTransaction
+                            title="Payment from MegaHaul"
+                            description="Logistics Dashboard subscription"
+                            amount="+R45,000"
+                            date="3 days ago"
+                            type="credit"
+                        />
                     </div>
-                </section>
+                </div>
             </main>
         </DashboardLayout>
     );
