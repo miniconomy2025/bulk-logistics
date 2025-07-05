@@ -22,12 +22,19 @@ export default class Transactions {
     public static async getAll() {
         return await API.get(Transactions.baseEndpoint);
     }
+
+    public static async breakdown() {
+        return await API.get(Transactions.baseEndpoint + "breakdown");
+    }
+
     public static async create(options: CreateTransctionProps) {
         return await API.post(Transactions.baseEndpoint + "transactions", { payload: options });
     }
+
     public static async totals() {
         return await API.get(Transactions.baseEndpoint + "totals");
     }
+    
     public static async activeShipments() {
         return await API.get(Transactions.baseEndpoint + "active-shipments");
     }

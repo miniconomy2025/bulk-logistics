@@ -5,6 +5,8 @@ import { MetricCard } from "../../components/ui/metric-card";
 import { TransactionItem } from "../../components/ui/transaction-item";
 import { DashboardLayout } from "../../layouts/app-layout";
 import Transactions from "../../data/transactions";
+import IncomeExpensesChart from "../../components/income-expense-chart";
+import type { IncomeExpensesChartProps } from "../../types";
 
 interface TransactionItem {
     total_revenue: string;
@@ -23,13 +25,13 @@ interface ActiveShipmentsResponse {
     transaction: ActiveShipmentsItem[];
 }
 
-interface IncomeBreakdownItem {
+interface TopRevenueSourceItem {
     category: string;
     total: string;
 }
 
-interface IncomeBreakdownResponse {
-    transaction: IncomeBreakdownItem[];
+interface TopRevenueSourcesResponse {
+    transaction: TopRevenueSourceItem[];
 }
 
 const Dashboard: React.FC = () => {
@@ -48,12 +50,19 @@ const Dashboard: React.FC = () => {
             },
         ],
     });
-    const [incomeBreakdowm, setIncomeBreakdown] = useState<IncomeBreakdownResponse>({
+    const [topRevenueSources, setTopRevenueSources] = useState<TopRevenueSourcesResponse>({
         transaction: [
             {
                 category: "",
                 total: "",
             },
+        ],
+    });
+    const [incomeBreakdown, setIncomeBreakdown] = useState<IncomeExpensesChartProps>({
+        transaction: [
+            { year: "2025", month: "6", revenue: 32912, expenses: 8934 },
+            { year: "2025", month: "5", revenue: 3482, expenses: 121123 },
+            { year: "2025", month: "4", revenue: 234435, expenses: 7382 },
         ],
     });
 
@@ -63,15 +72,21 @@ const Dashboard: React.FC = () => {
         return data;
     };
 
-    const fetchIncomeBreakdownData = async (): Promise<IncomeBreakdownResponse> => {
+    const fetchTopRevenueSourceData = async (): Promise<TopRevenueSourcesResponse> => {
         const response = await Transactions.topSources();
-        const data: IncomeBreakdownResponse = await response.json();
+        const data: TopRevenueSourcesResponse = await response.json();
         return data;
     };
 
     const fetchActiveShipmentsData = async (): Promise<ActiveShipmentsResponse> => {
         const response = await Transactions.activeShipments();
         const data: ActiveShipmentsResponse = await response.json();
+        return data;
+    };
+
+    const fetchCostsBreakdown = async (): Promise<IncomeExpensesChartProps> => {
+        const response = await Transactions.monthly();
+        const data: IncomeExpensesChartProps = await response.json();
         return data;
     };
 
@@ -86,7 +101,12 @@ const Dashboard: React.FC = () => {
                 setActiveShipments(result);
             })
             .catch((error) => console.error(error));
-        fetchIncomeBreakdownData()
+        fetchTopRevenueSourceData()
+            .then((result) => {
+                setTopRevenueSources(result);
+            })
+            .catch((error) => console.error(error));
+        fetchCostsBreakdown()
             .then((result) => {
                 setIncomeBreakdown(result);
             })
@@ -207,9 +227,9 @@ const Dashboard: React.FC = () => {
                 <section className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
                     <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm lg:col-span-2">
                         <h2 className="mb-4 text-lg font-semibold text-gray-900">Revenue vs Expenses</h2>
-                        <p className="mb-6 text-sm text-gray-500">Monthly comparison over the last 12 months</p>
+                        <p className="mb-6 text-sm text-gray-500">Monthly comparison over the months</p>
                         <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 text-gray-400">
-                            Chart visualization would be here
+                            <IncomeExpensesChart transaction={incomeBreakdown.transaction} />
                         </div>
                     </div>
 
@@ -217,7 +237,7 @@ const Dashboard: React.FC = () => {
                         <h2 className="mb-4 text-lg font-semibold text-gray-900">Transaction Breakdown</h2>
                         <p className="mb-6 text-sm text-gray-500">Distribution of income sources</p>
                         <div className="space-y-2">
-                            {incomeBreakdowm.transaction.map((item, key) => {
+                            {topRevenueSources.transaction.map((item, key) => {
                                 const percent = (Number(item.total) / Number(totals.transaction[0].total_revenue)) * 100;
                                 const displayPercent = !isFinite(percent) || isNaN(percent) ? 0 : percent;
                                 const colors = [
@@ -238,7 +258,7 @@ const Dashboard: React.FC = () => {
                                         key={key}
                                         label={item.category}
                                         percentage={`${displayPercent}%`}
-                                        colorClass="bg-blue-500"
+                                        colorClass={randomColor}
                                     />
                                 );
                             })}
