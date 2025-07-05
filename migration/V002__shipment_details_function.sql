@@ -47,38 +47,31 @@ BEGIN
                             json_build_object(
                                 'itemId', id.item_definition_id,
                                 'name', id.item_name,
-                                'quantity', pri_item.quantity,
+                                'quantity', pri.quantity,
                                 'capacityType', ct.name
                             )
                         )
-                        FROM pickup_request_item pri_item
-                        INNER JOIN item_definitions id ON pri_item.item_definition_id = id.item_definition_id
+                        FROM pickup_request_item pri
+                        INNER JOIN item_definitions id ON pri.item_definition_id = id.item_definition_id
                         INNER JOIN capacity_type ct ON id.capacity_type_id = ct.capacity_type_id
-                        WHERE pri_item.pickup_request_id = pr.pickup_request_id
+                        WHERE pri.pickup_request_id = pr.pickup_request_id
                     ) AS items
                 FROM
-                    shipment_item_details sid_main
+                    pickup_requests pr
                 INNER JOIN
-                    pickup_request_item pri_main ON sid_main.pickup_request_item_id = pri_main.pickup_request_item_id
-                INNER JOIN
-                    pickup_requests pr ON pri_main.pickup_request_id = pr.pickup_request_id
+                    pickup_request_item pri ON sid.pickup_request_id = pri.pickup_request_id
                 INNER JOIN
                     company oc ON pr.origin_company_id = oc.company_id
                 INNER JOIN
                     company dc ON pr.destination_company_id = dc.company_id
                 WHERE
-                    sid_main.shipment_id = s.shipment_id
+                    pri.shipment_id = s.shipment_id
                 GROUP BY
                     pr.pickup_request_id, pr.cost, pr.request_date, pr.completion_date,
                     oc.company_id, oc.company_name,
                     dc.company_id, dc.company_name
             ) AS pickup_request_data
-        ) AS "shipmentItems",
-        (
-            SELECT SUM(sid.quantity_transported)
-            FROM shipment_item_details sid
-            WHERE s.shipment_id = sid.shipment_id
-        ) AS "totalTransportedItems"
+        ) AS "shipmentItems"
     FROM
         shipments s
     INNER JOIN
