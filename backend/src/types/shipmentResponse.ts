@@ -4,5 +4,5 @@ export interface ShipmentResponse {
     vehicleId: number;
     vehicleName: string;
     shipmentStatusId: number;
-    shipmentStatusName: string
+    shipmentStatusName: string;
 }
