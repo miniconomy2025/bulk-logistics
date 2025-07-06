@@ -1,23 +1,28 @@
 import crypto from "crypto";
-
 import { Request, Response } from "express";
+import { insertCompany, getCertificateByCompanyName } from "../models/companyRepository";
 
-import { insertCompany, getApiKeyByCompanyName } from "../models/companyRepository";
-
-export const generateApiKey = (): string => {
-    return crypto.randomBytes(32).toString("hex");
+const computeCertificateFingerprint = (certificatePem: string): string => {
+    const pem = certificatePem
+        .replace(/-----BEGIN CERTIFICATE-----/, "")
+        .replace(/-----END CERTIFICATE-----/, "")
+        .replace(/\s+/g, "");
+    const der = Buffer.from(pem, "base64");
+    return crypto.createHash("sha256").update(der).digest("hex");
 };
 
 export const createCompany = async (req: Request, res: Response) => {
     try {
-        let { companyName, apiKey } = req.body;
+        const { companyName, certificatePem, bankAccountNumber } = req.body;
         if (!companyName) {
             return res.status(400).json({ error: "Company name is required." });
         }
-        if (!apiKey) {
-            apiKey = generateApiKey();
+        if (!certificatePem) {
+            return res.status(400).json({ error: "certificatePem is required." });
         }
-        const newCompany = await insertCompany(companyName, apiKey);
+        const certificateIdentifier = computeCertificateFingerprint(certificatePem);
+
+        const newCompany = await insertCompany(companyName, certificateIdentifier, bankAccountNumber);
         return res.status(201).json(newCompany);
     } catch (error) {
         console.error("Error creating company:", error);
@@ -25,21 +30,21 @@ export const createCompany = async (req: Request, res: Response) => {
     }
 };
 
-export const getApiKeyForCompany = async (req: Request, res: Response) => {
+export const getCertificateIdentifierForCompany = async (req: Request, res: Response) => {
     try {
         const { companyName } = req.body;
         if (!companyName) {
             return res.status(400).json({ error: "Company name is required." });
         }
 
-        const apiKey = await getApiKeyByCompanyName(companyName);
-        if (!apiKey) {
+        const certificateIdentifier = await getCertificateByCompanyName(companyName);
+        if (!certificateIdentifier) {
             return res.status(404).json({ error: "Company not found." });
         }
 
-        return res.status(200).json({ apiKey });
+        return res.status(200).json({ certificateIdentifier });
     } catch (error) {
-        console.error("Error fetching API key:", error);
+        console.error("Error fetching certificate identifier:", error);
         return res.status(500).json({ error: "Internal server error." });
     }
 };
