@@ -2,6 +2,7 @@ name: Prettier Auto Format
 
 on:
   pull_request:
+    types: [opened, edited, synchronize]
     
 permissions:
   contents: write
