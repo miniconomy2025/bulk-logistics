@@ -1,17 +1,21 @@
 resource "aws_s3_bucket" "frontend" {
-  provider = aws.af_south
   bucket   = var.frontend_bucket_name
-
-  website {
-    index_document = "index.html"
-    error_document = "index.html"
-  }
-
   force_destroy = true
 }
 
+resource "aws_s3_bucket_website_configuration" "frontend" {
+  bucket   = aws_s3_bucket.frontend.id
+
+  index_document {
+    suffix = "index.html"
+  }
+
+  error_document {
+    key = "index.html"
+  }
+}
+
 resource "aws_s3_bucket_public_access_block" "frontend" {
-  provider = aws.af_south
   bucket   = aws_s3_bucket.frontend.id
 
   block_public_acls   = false
@@ -21,7 +25,6 @@ resource "aws_s3_bucket_public_access_block" "frontend" {
 }
 
 resource "aws_s3_bucket_policy" "frontend" {
-  provider = aws.af_south
   bucket   = aws_s3_bucket.frontend.id
   policy   = jsonencode({
     Version = "2012-10-17",
@@ -34,4 +37,5 @@ resource "aws_s3_bucket_policy" "frontend" {
       }
     ]
   })
+  depends_on = [aws_s3_bucket_public_access_block.frontend]
 }

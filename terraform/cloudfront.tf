@@ -1,20 +1,17 @@
 resource "aws_cloudfront_origin_access_identity" "frontend_oai" {
-  provider = aws.af_south
   comment  = "OAI for frontend"
 }
 
 resource "aws_acm_certificate" "frontend_cert" {
   provider          = aws.us_east
-  domain_name       = "example.com"
+  domain_name       = "bulk-logistics.projects.bbdgrad.com"
   validation_method = "DNS"
-
   lifecycle {
     create_before_destroy = true
   }
 }
 
 resource "aws_cloudfront_distribution" "frontend_cdn" {
-  provider = aws.af_south
 
   origin {
     domain_name = aws_s3_bucket.frontend.bucket_regional_domain_name
@@ -53,9 +50,5 @@ resource "aws_cloudfront_distribution" "frontend_cdn" {
     geo_restriction {
       restriction_type = "none"
     }
-  }
-
-  tags = {
-    Name = "FrontendCDN"
   }
 }

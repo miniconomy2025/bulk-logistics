@@ -3,7 +3,7 @@ output "api_public_ip" {
 }
 
 output "s3_frontend_url" {
-  value = aws_s3_bucket.frontend.website_endpoint
+  value = aws_s3_bucket_website_configuration.frontend.website_endpoint
 }
 
 output "cloudfront_url" {
@@ -17,4 +17,12 @@ output "private_key_pem" {
 
 output "key_pair_name" {
   value = aws_key_pair.generated_key.key_name
+}
+
+output "cert_validation_fqdns" {
+  value = [for dvo in aws_acm_certificate.frontend_cert.domain_validation_options : {
+    name  = dvo.resource_record_name
+    type  = dvo.resource_record_type
+    value = dvo.resource_record_value
+  }]
 }

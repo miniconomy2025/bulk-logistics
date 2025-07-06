@@ -1,7 +1,5 @@
 resource "aws_security_group" "api_sg" {
-  provider = aws.af_south
-  name_prefix = "api-sg"
-  vpc_id      = data.aws_vpc.default.id
+  vpc_id   = aws_default_vpc.default_vpc.id
 
   ingress {
     from_port   = 22
