@@ -38,7 +38,7 @@ INSERT INTO item_definitions (item_name, capacity_type_id) VALUES
 ('Pallet of Goods', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
 ('Small Parcel', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT')),
 ('Electronics Box', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT')),
-('Industrial Chemicals', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG'));
+('Screens', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'));
 
 -- Insert data into vehicle_type
 INSERT INTO vehicle_type (name, capacity_type_id, maximum_capacity, max_pickups_per_day, max_dropoffs_per_day) VALUES
@@ -62,12 +62,12 @@ INSERT INTO pickup_requests (requesting_company_id, origin_company_id, destinati
 ((SELECT company_id FROM company WHERE company_name = 'consumer-logistics'), (SELECT company_id FROM company WHERE company_name = 'pear-company'), (SELECT company_id FROM company WHERE company_name = 'recycler'), 'GLOBAL-ORDER-004', 300.00, '2024-06-03', '2024-06-04');
 
 -- Insert data into pickup_request_item
-INSERT INTO pickup_request_item (item_definition_id, pickup_request_id, quantity) VALUES
-((SELECT item_definition_id FROM item_definitions WHERE item_name = 'Heavy Machinery Part'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-001'), 3000),
-((SELECT item_definition_id FROM item_definitions WHERE item_name = 'Pallet of Goods'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-001'), 2000),
-((SELECT item_definition_id FROM item_definitions WHERE item_name = 'Small Parcel'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'BETA-ORDER-002'), 100),
-((SELECT item_definition_id FROM item_definitions WHERE item_name = 'Electronics Box'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'BETA-ORDER-002'), 50),
-((SELECT item_definition_id FROM item_definitions WHERE item_name = 'Industrial Chemicals'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-003'), 6000);
+INSERT INTO pickup_request_item (shipment_id,item_definition_id, pickup_request_id, quantity) VALUES
+(1, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'Heavy Machinery Part'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-001'), 3000),
+(1, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'Pallet of Goods'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-001'), 2000),
+(3, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'Small Parcel'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'BETA-ORDER-002'), 100),
+(3, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'Electronics Box'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'BETA-ORDER-002'), 50),
+(2, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'Screens'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-003'), 2000);
 
 -- Insert data into shipment_status (updated with new names)
 INSERT INTO shipment_status (name) VALUES

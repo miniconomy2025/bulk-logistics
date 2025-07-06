@@ -51,25 +51,25 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
     }
 
     if (measurementType === MeasurementType.Unit) {
-        let remaining = totalQuantity;
+        let remainingItems = totalQuantity;
 
-        const mediumTrucks = allVehicles.filter((v) => v.vehicle_type.name === "Medium");
-        const smallTrucks = allVehicles.filter((v) => v.vehicle_type.name === "Small");
+        const mediumTrucks = allVehicles.filter((v) => v.vehicle_type.name === VehicleType.Medium);
+        const smallTrucks = allVehicles.filter((v) => v.vehicle_type.name === VehicleType.Small);
 
         let mediumIndex = 0;
         let smallIndex = 0;
 
-        while (remaining > 0) {
-            if ((remaining > 2000 || remaining > 500) && mediumTrucks.length > 0) {
+        while (remainingItems > 0) {
+            if ((remainingItems > 2000 || remainingItems > 500) && mediumTrucks.length > 0) {
                 const vehicle = mediumTrucks[mediumIndex % mediumTrucks.length];
                 selectedVehicles.push(vehicle);
                 mediumIndex++;
-                remaining -= 2000;
+                remainingItems -= 2000;
             } else if (smallTrucks.length > 0) {
                 const vehicle = smallTrucks[smallIndex % smallTrucks.length];
                 selectedVehicles.push(vehicle);
                 smallIndex++;
-                remaining -= 500;
+                remainingItems -= 500;
             } else {
                 return { success: false, reason: "No vehicles available to complete the request" };
             }
