@@ -8,8 +8,7 @@ RETURNS TABLE (
     dispatch_date DATE,
     vehicle VARCHAR(50),
     status JSON,
-    "shipmentItems" JSON,
-    "totalTransportedItems" BIGINT
+    "shipmentItems" JSON
 )
 LANGUAGE plpgsql
 AS $$
@@ -59,7 +58,7 @@ BEGIN
                 FROM
                     pickup_requests pr
                 INNER JOIN
-                    pickup_request_item pri ON sid.pickup_request_id = pri.pickup_request_id
+                    pickup_request_item pri ON pr.pickup_request_id = pri.pickup_request_id
                 INNER JOIN
                     company oc ON pr.origin_company_id = oc.company_id
                 INNER JOIN
