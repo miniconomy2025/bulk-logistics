@@ -20,7 +20,7 @@ export interface VehicleWithType extends Vehicle {
 }
 
 export interface GetVehicleResult {
-  success: boolean;
-  vehicles?: VehicleWithType[];
-  reason?: string;
+    success: boolean;
+    vehicles?: VehicleWithType[];
+    reason?: string;
 }
