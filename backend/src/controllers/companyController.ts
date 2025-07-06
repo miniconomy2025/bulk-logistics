@@ -1,6 +1,7 @@
 import crypto from "crypto";
 
 import { Request, Response } from "express";
+
 import { insertCompany, getApiKeyByCompanyName } from "../models/companyRepository";
 
 export const generateApiKey = (): string => {
