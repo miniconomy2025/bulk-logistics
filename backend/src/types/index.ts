@@ -1,3 +1,3 @@
-export * from "./repostitoryResponses";
+export * from "./repositoryResponses";
 export * from "./db";
 export * from "./vehicle";
