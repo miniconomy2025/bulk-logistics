@@ -6,25 +6,29 @@ export const NavItems = () => {
             <ul className="space-y-2">
                 <li>
                     <NavLink
-                        text="Dashboard"
+                        href="#"
+                        title="Dashboard"
                         icon={<span className="material-symbols-outlined">dashboard</span>}
                     />
                 </li>
                 <li>
                     <NavLink
-                        text="Shipments"
+                        href="#"
+                        title="Shipments"
                         icon={<span className="material-symbols-outlined">delivery_truck_speed</span>}
                     />
                 </li>
                 <li>
                     <NavLink
-                        text="Clients"
+                        href="#"
+                        title="Clients"
                         icon={<span className="material-symbols-outlined">groups</span>}
                     />
                 </li>
                 <li>
                     <NavLink
-                        text="Transactions"
+                        href="#"
+                        title="Transactions"
                         icon={<span className="material-symbols-outlined">contract</span>}
                     />
                 </li>
