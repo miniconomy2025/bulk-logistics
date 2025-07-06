@@ -13,8 +13,5 @@ const shipmentRequestLimiter = rateLimit({
 });
 
 router.get("/", shipmentRequestLimiter, ShipmentController.getShipments);
-router.get("/:id", shipmentRequestLimiter, ShipmentController.getShipmentById);
-router.patch("/:id/dispatch", shipmentRequestLimiter, ShipmentController.dispatchShipment);
-router.patch("/:id/deliver", shipmentRequestLimiter, ShipmentController.deliverShipment);
 
 export default router;

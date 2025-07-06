@@ -35,16 +35,16 @@ class ShipmentModel {
             let sql: string;
             let values: any[];
             if (dispatchDate) {
-                sql = "UPDATE shipments SET shipment_status_id = $1, dispatch_date = $2 WHERE shipment_id = $3 RETURNING *";
+                sql = "UPDATE shipments SET shipment_status_id = $1, dispatch_date = $2 WHERE shipment_id = $3";
                 values = [statusId, dispatchDate, shipmentId];
             } else {
-                sql = "UPDATE shipments SET shipment_status_id = $1 WHERE shipment_id = $2 RETURNING *";
+                sql = "UPDATE shipments SET shipment_status_id = $1 WHERE shipment_id = $2";
                 values = [statusId, shipmentId];
             }
             const res = await db.query(sql, values);
 
             if (res.rowCount === 1) {
-                return await this.findShipmentById(res.rows[0].shipment_id);
+                return await this.findShipmentById(shipmentId);
             } else {
                 throw new Error("Failed to update shipment status");
             }
