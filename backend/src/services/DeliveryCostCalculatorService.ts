@@ -3,6 +3,7 @@ import { PickupRequestRequest } from "../models/PickupRequest";
 import { getVehicleForPickupRequest } from "./vehicleService";
 
 const PROFIT_MARGIN = 0.5;
+import { PickupRequestRequest } from "../types/pickupRequest";
 
 export const calculateDeliveryCost = async (pickupRequestDetails: PickupRequestRequest): Promise<number> => {
     // Get the type of vehicle we will be using.
