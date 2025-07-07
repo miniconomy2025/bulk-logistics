@@ -10,8 +10,7 @@ export const getTotalVehicleDeliveryCounts = async (): Promise<VehicleWithDelive
     FROM vehicle v
     JOIN vehicle_type vt ON vt.vehicle_type_id = v.vehicle_type_id
     JOIN shipments s ON s.vehicle_id = v.vehicle_id
-    JOIN shipment_item_details sid ON sid.shipment_id = s.shipment_id
-    JOIN pickup_request_item pri ON pri.pickup_request_item_id = sid.pickup_request_item_id
+    JOIN pickup_request_item pri ON pri.shipment_id = s.shipment_id
     JOIN pickup_requests pr ON pr.pickup_request_id = pri.pickup_request_id
     WHERE pr.completion_date IS NOT NULL
     GROUP BY v.vehicle_id, vt.name
@@ -70,6 +69,7 @@ export const getAllVehiclesWithType = async (): Promise<VehicleWithType[]> => {
 };
 
 export const getVehicleDeliveriesByDateRange = async (startDate: Date, endDate: Date): Promise<VehicleWithDeliveryCount[]> => {
+    // This query calculates the number of completed deliveries for each vehicle within a specific date range.
     const query = `
     SELECT 
       v.vehicle_id,
@@ -78,8 +78,7 @@ export const getVehicleDeliveriesByDateRange = async (startDate: Date, endDate: 
     FROM vehicle v
     JOIN vehicle_type vt ON vt.vehicle_type_id = v.vehicle_type_id
     JOIN shipments s ON s.vehicle_id = v.vehicle_id
-    JOIN shipment_item_details sid ON sid.shipment_id = s.shipment_id
-    JOIN pickup_request_item pri ON pri.pickup_request_item_id = sid.pickup_request_item_id
+    JOIN pickup_request_item pri ON pri.shipment_id = s.shipment_id
     JOIN pickup_requests pr ON pr.pickup_request_id = pri.pickup_request_id
     WHERE pr.completion_date BETWEEN $1 AND $2
     GROUP BY v.vehicle_id, vt.name

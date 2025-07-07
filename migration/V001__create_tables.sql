@@ -123,19 +123,6 @@ CREATE TABLE shipments (
       ON DELETE RESTRICT
 );
 
-CREATE TABLE shipment_item_details (
-  shipment_item_detail_id SERIAL PRIMARY KEY,
-  shipment_id             INTEGER NOT NULL
-    REFERENCES shipments (shipment_id)
-      ON UPDATE CASCADE
-      ON DELETE CASCADE,
-  pickup_request_item_id  INTEGER NOT NULL
-    REFERENCES pickup_request_item (pickup_request_item_id)
-      ON UPDATE CASCADE
-      ON DELETE CASCADE,
-  quantity_transported    INTEGER NOT NULL
-);
-
 CREATE TABLE bank_transactions_ledger (
   transaction_ledger_id           SERIAL PRIMARY KEY,
   commercial_bank_transaction_id  VARCHAR(100) UNIQUE,
