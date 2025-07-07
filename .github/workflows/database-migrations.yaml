@@ -1,0 +1,51 @@
+name: Database Migrations
+
+on:
+  push:
+    branches:
+      - terraform
+    paths:
+      - 'migration/**'
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    env:
+      PGHOST: ${{ secrets.PG_HOST }}
+      PGPORT: ${{ secrets.PG_PORT }}
+      PGUSER: ${{ secrets.PG_USER }}
+      PGPASSWORD: ${{ secrets.PG_PASSWORD }}
+      PGDATABASE: ${{ secrets.PG_DATABASE }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get install -y postgresql-client
+
+      - name: Ensure schema_migrations table exists
+        run: |
+          psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -c "
+            CREATE TABLE IF NOT EXISTS schema_migrations (
+              filename TEXT PRIMARY KEY,
+              applied_at TIMESTAMPTZ DEFAULT now()
+            );"
+
+      - name: Run migration files recursively
+        run: |
+          set -e
+          for file in $(find migration -type f -name '*.sql' | sort); do
+            filename=$(basename "$file")
+            echo "Checking migration: $filename"
+            applied=$(psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -tAc \
+              "SELECT 1 FROM schema_migrations WHERE filename = '$filename'")
+            if [ "$applied" != "1" ]; then
+              echo "Applying migration $filename"
+              psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -f "$file"
+              psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -c \
+                "INSERT INTO schema_migrations (filename) VALUES ('$filename');"
+            else
+              echo "Skipping $filename (already applied)"
+            fi
+          done
