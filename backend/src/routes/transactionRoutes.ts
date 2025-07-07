@@ -1,22 +1,26 @@
-import express from "express";
-import TransactionsController from "../controllers/transactionsController";
+import { Router } from "express";
+import {
+    getTransactions,
+    getTransactionById,
+    createTransaction,
+    getTransactionTotals,
+    getActiveShipments,
+    getMonthlyTransactions,
+    getDashboard,
+    getTopRevenueSources,
+} from "../controllers/transactionsController";
+
 import { rateLimiter } from "../utils";
 
-const router = express.Router();
+const router = Router();
 
-const rateLimit = rateLimiter({ message: "Too many requests" });
-
-router.get("/dashboard/", function (_, response) {
-    response.status(404).json({ error: "Not found" });
-});
-router.get("/dashboard/totals", TransactionsController.getTransactionTotals);
-router.get("/dashboard/active-shipments", TransactionsController.getActiveShipments);
-router.get("/dashboard/monthly", TransactionsController.getMonthlyTransactions);
-router.get("/dashboard/breakdown", TransactionsController.getDashboard);
-router.get("/dashboard/top-sources", TransactionsController.getTopRevenueSources);
-
-router.get("/", rateLimit, TransactionsController.getTransactions);
-router.get("/:id/", rateLimit, TransactionsController.getTransactionById);
-router.post("/", rateLimit, TransactionsController.createTransaction);
+router.get("/", rateLimiter(), getTransactions);
+router.get("/:id", getTransactionById);
+router.post("/", createTransaction);
+router.get("/totals", getTransactionTotals);
+router.get("/active-shipments", getActiveShipments);
+router.get("/monthly", getMonthlyTransactions);
+router.get("/dashboard", getDashboard);
+router.get("/top-sources", getTopRevenueSources);
 
 export default router;
