@@ -15,7 +15,7 @@ jobs:
       PGPORT: ${{ secrets.PG_PORT }}
       PGUSER: ${{ secrets.PG_USER }}
       PGPASSWORD: ${{ secrets.PG_PASSWORD }}
-      PGDATABASE: ${{ secrets.PGDATABASE }}
+      PGDATABASE: ${{ secrets.PG_DATABASE }}
 
     steps:
       - name: Checkout repo
@@ -42,8 +42,8 @@ jobs:
               "SELECT 1 FROM schema_migrations WHERE filename = '$filename'")
             if [ "$applied" != "1" ]; then
               echo "Applying migration $filename"
-              psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PGDATABASE" -f "$file"
-              psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PGDATABASE" -c \
+              psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -f "$file"
+              psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -c \
                 "INSERT INTO schema_migrations (filename) VALUES ('$filename');"
             else
               echo "Skipping $filename (already applied)"
