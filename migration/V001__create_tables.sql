@@ -1,7 +1,6 @@
 BEGIN;
 
 DROP TABLE IF EXISTS bank_transactions_ledger;
-DROP TABLE IF EXISTS shipment_item_details;
 DROP TABLE IF EXISTS shipments;
 DROP TABLE IF EXISTS shipment_status;
 DROP TABLE IF EXISTS pickup_request_item;
@@ -91,6 +90,10 @@ CREATE TABLE pickup_requests (
 
 CREATE TABLE pickup_request_item (
   pickup_request_item_id SERIAL PRIMARY KEY,
+  shipment_id             INTEGER NOT NULL
+    REFERENCES shipments (shipment_id)
+      ON UPDATE CASCADE
+      ON DELETE CASCADE,
   item_definition_id     INTEGER NOT NULL
     REFERENCES item_definitions (item_definition_id)
       ON UPDATE CASCADE
@@ -118,19 +121,6 @@ CREATE TABLE shipments (
     REFERENCES shipment_status (shipment_status_id)
       ON UPDATE CASCADE
       ON DELETE RESTRICT
-);
-
-CREATE TABLE shipment_item_details (
-  shipment_item_detail_id SERIAL PRIMARY KEY,
-  shipment_id             INTEGER NOT NULL
-    REFERENCES shipments (shipment_id)
-      ON UPDATE CASCADE
-      ON DELETE CASCADE,
-  pickup_request_item_id  INTEGER NOT NULL
-    REFERENCES pickup_request_item (pickup_request_item_id)
-      ON UPDATE CASCADE
-      ON DELETE CASCADE,
-  quantity_transported    INTEGER NOT NULL
 );
 
 CREATE TABLE bank_transactions_ledger (

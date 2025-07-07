@@ -1,3 +1,3 @@
-import type { Result } from "./repositoryResponses";
-
-export { Result };
+export * from "./repositoryResponses";
+export * from "./db";
+export * from "./vehicle";

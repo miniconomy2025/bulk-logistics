@@ -17,7 +17,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
         return next(new AppError(`Invalid input data: ${validationError.message}`, 400));
     }
 
-    const cost = calculateDeliveryCost(pickupRequestDetails);
+    const cost = await calculateDeliveryCost(pickupRequestDetails);
 
     const result: PickupRequestCreationResult = await savePickupRequest({
         ...pickupRequestDetails,
