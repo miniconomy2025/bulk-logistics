@@ -26,7 +26,7 @@ init(app, {
     - Supporting logistics analytics and capacity planning
     - Coordinating with manufacturing schedules and raw material supply
     description: Production server`,
-    }
+    },
 });
 
 const PORT = 3000;
