@@ -1,9 +1,10 @@
 BEGIN;
 
 DROP TABLE IF EXISTS bank_transactions_ledger;
+DROP TABLE IF EXISTS loans;
+DROP TABLE IF EXISTS pickup_request_item;
 DROP TABLE IF EXISTS shipments;
 DROP TABLE IF EXISTS shipment_status;
-DROP TABLE IF EXISTS pickup_request_item;
 DROP TABLE IF EXISTS pickup_requests;
 DROP TABLE IF EXISTS vehicle;
 DROP TABLE IF EXISTS vehicle_type;
@@ -123,6 +124,13 @@ CREATE TABLE pickup_request_item (
   quantity               INTEGER NOT NULL
 );
 
+CREATE TABLE loans (
+  loan_id                         SERIAL PRIMARY KEY,
+  loan_number                     VARCHAR(16)  NOT NULL UNIQUE,
+  interest_rate                   NUMERIC(8,5)  NOT NULL,
+  loan_amount                     NUMERIC(15,2) NOT NULL
+);
+
 CREATE TABLE bank_transactions_ledger (
   transaction_ledger_id           SERIAL PRIMARY KEY,
   commercial_bank_transaction_id  VARCHAR(100) UNIQUE,
@@ -141,7 +149,10 @@ CREATE TABLE bank_transactions_ledger (
     REFERENCES pickup_requests (pickup_request_id)
       ON UPDATE CASCADE
       ON DELETE SET NULL,
-  related_loan_id                 INTEGER,
+  loan_id                         INTEGER
+    REFERENCES loans (loan_id)
+      ON UPDATE CASCADE
+      ON DELETE SET NULL,
   related_thoh_order_id           VARCHAR(255)
 );
 

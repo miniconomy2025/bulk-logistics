@@ -23,13 +23,13 @@ export default class AutonomyService {
     private hasActiveLoan: boolean = false; // Example state property
     private truckCount: number = 0;         // Example state property
     private isFirstDay: boolean = true;
-    private profit: number = 0; // Will need an SQL statement for this.
+    private funds: number = 0; // Will need an SQL statement for this.
 
     private constructor() {
         console.log("AutonomyService instance created.");
     }
 
-    private resetState(){
+    private resetState() {
         this.isRunning = false;
         this.isProcessingTick = false;
         this.currentSimulatedDate = new Date('2050-01-01');
@@ -37,6 +37,7 @@ export default class AutonomyService {
         this.hasActiveLoan = false;
         this.truckCount = 0;
         this.isFirstDay = true;
+        this.funds = 0;
     }
 
     // This is necessary to make it a singleton.
@@ -49,7 +50,7 @@ export default class AutonomyService {
 
     /**
      * Starts the simulation's daily tick timer.
-     */
+    */
     public start(initialData: any): void {
         if (this.isRunning) {
             console.warn("Simulation is already running. Start command ignored.");
@@ -60,7 +61,7 @@ export default class AutonomyService {
         this.isRunning = true;
 
         // Immediately perform the first day's tick, then set the interval.
-        this._performDailyTick(); 
+        this._performDailyTick();
         // This is how we keep track of time. The "cron" job waits on this interval rather than acting on actual system time.
         this.tickIntervalId = setInterval(
             () => this._performDailyTick(),
@@ -89,9 +90,9 @@ export default class AutonomyService {
 
         console.log("AutonomyService stopped.");
     }
-    
-    public reset(initialData: any):void{
-        if (!this.isRunning){
+
+    public reset(initialData: any): void {
+        if (!this.isRunning) {
             console.warn("Simulation is not running. Stop command ignored.");
             return;
         }
@@ -100,7 +101,7 @@ export default class AutonomyService {
         this.start(initialData);
     }
 
-    public handleVehicleCrash() :void{
+    public handleVehicleCrash(): void {
         console.log("We have an insurance policy with Hive Insurance Co. Our policy dictates that all lost goods from a failed shipment will be replaced, and delivered on the same day! All surviving goods are thrown away since they were in a crash. Hooray! Everyone wins!!");
     }
 
@@ -108,6 +109,24 @@ export default class AutonomyService {
     // PRIVATE HELPER METHODS (The "Cron Job" Logic)
     // ========================================================================
 
+    private async _onInitOperations(): Promise<void> {
+        /* 
+            1. Create bank account (assume instant) -> bank account created (bankClient). update company table with our account number.
+            2. Provide bank with our notification endpoint url either in the creation request or that dubious notification endpoint
+            3. Figure out cost of [3 large, 3 medium, 3 small] vehicles from the hand (handClient) -> we have our needed loan amount.
+            4. We request a loan. If we get a success then -> update transaction ledger + loan table.  (bank will debit us)
+            RESPONSE WILL LOOK LIKE THIS FOR LOAN:
+                ========interface LoanResult {
+                ============loan_number: string;
+                ============initial_transaction_id: number;
+                ============interest_rate: number;
+                ============started_at: string;
+                ============write_off: boolean;
+                ========}
+            5. We purchase our trucks-> for now we assume that they will delivred instanbtly (info in the response) but we can only use them on the next day.
+                    Create trucks, set active to false, until they are "eligible", then we set active to true. 
+        */
+    }
     /**
      * The main "cron job" that runs on every interval.
      */
@@ -116,11 +135,21 @@ export default class AutonomyService {
             console.warn("Previous tick is still processing. Skipping new tick.");
             return;
         }
-        
+
         this.isProcessingTick = true;
         console.log(`\n--- Starting Daily Tick for: ${this.currentSimulatedDate.toISOString().split('T')[0]} ---`);
 
         try {
+
+            /**
+             * 1. Check the account balance and update our funds accordingly.
+             * 2. Check if trucks are available after purchase. check vehicles table for vehicles created the previous day and with is_active FALSE update is_active to true.
+             * 3. Do pick ups (assign pickup request items to shipments)
+             * 4. Assign pickup requests to different shipments
+             * 5. Wait until 30 seconds until 'midnight' and deliver (still under consideration)
+             * 6. based on our shipments (trucks used in the day), we pay operational costs to the hand.
+             */
+            
             // --- Condition-Based Setup Tasks ---
             // These now run at the start of each day to check if they are needed.
             await this._checkAndSecureLoan(); // Insert logic for first day operations.
@@ -129,7 +158,7 @@ export default class AutonomyService {
             // --- Regular Daily Operations ---
             await this._planAndDispatchShipments();
             await this._notifyCompletedDeliveries();
-            
+
         } catch (error) {
             console.error("FATAL ERROR during daily tick.", error);
         } finally {
@@ -145,7 +174,7 @@ export default class AutonomyService {
      */
     private async _checkAndSecureLoan(): Promise<void> {
         // TODO: Replace this with our actual business logic.
-        const needsLoan = !this.hasActiveLoan; 
+        const needsLoan = !this.hasActiveLoan;
 
         if (needsLoan) {
             try {
@@ -171,7 +200,7 @@ export default class AutonomyService {
         // If we dont have a loan, lets get another one and get more trucks. Maybe we should keep track of our profit somewhere lol.
 
         // TODO: Replace this with our actual business logic.
-        const needsTrucks = this.truckCount < 5; 
+        const needsTrucks = this.truckCount < 5;
 
         if (needsTrucks) {
             try {

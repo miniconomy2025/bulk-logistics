@@ -1,7 +1,7 @@
 import { SimulatedClock } from "../utils";
-import { getVehicleDeliveriesByDateRange, getAllVehiclesWithType } from "../repositories/vehicleRepository";
+import { getVehicleDeliveriesByDateRange, getAllVehiclesWithType } from "../models/vehicleRepository";
 import { GetVehicleResult, VehicleWithDeliveryCount, VehicleWithType } from "../types";
-import { PickupRequestRequest } from "../models/PickupRequest";
+import { PickupRequestRequest } from "../types/PickupRequest"
 import { MeasurementType, VehicleType } from "../enums";
 
 export const getTodaysVehicleDeliveries = async (): Promise<VehicleWithDeliveryCount[]> => {
@@ -11,7 +11,7 @@ export const getTodaysVehicleDeliveries = async (): Promise<VehicleWithDeliveryC
 
 export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestRequest): Promise<GetVehicleResult> => {
     let totalQuantity = 0;
-    let measurementType: string = "";
+    let measurementType: string | undefined = "";
     const selectedVehicles: VehicleWithType[] = [];
 
     const allVehicles = await getAllVehiclesWithType();
@@ -23,9 +23,9 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
         totalQuantity += item.quantity;
     }
 
-    const repeatVehicle = (vehicle: VehicleWithType, count: number) => {
+    const repeatVehicle = (vehicle: VehicleWithType[], count: number) => {
         for (let i = 0; i < count; i++) {
-            selectedVehicles.push(vehicle);
+            selectedVehicles.push(vehicle[count%i]);
         }
     };
 
@@ -44,9 +44,8 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
         // Reuse a truck if needed
         const remaining = required - useUnique;
         if (remaining > 0) {
-            repeatVehicle(largeTrucks[0], remaining);
+            repeatVehicle(largeTrucks, remaining);
         }
-
         return { success: true, vehicles: selectedVehicles };
     }
 
