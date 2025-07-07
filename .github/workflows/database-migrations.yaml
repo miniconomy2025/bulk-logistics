@@ -11,11 +11,11 @@ jobs:
   migrate:
     runs-on: ubuntu-latest
     env:
-      PGHOST: ${{ secrets.PGHOST }}
-      PGPORT: ${{ secrets.PGPORT }}
-      PGUSER: ${{ secrets.PGUSER }}
-      PGPASSWORD: ${{ secrets.PGPASSWORD }}
-      PGDATABASE: ${{ secrets.PGDATABASE }}
+      PGHOST: ${{ secrets.PG_HOST }}
+      PGPORT: ${{ secrets.PG_PORT }}
+      PGUSER: ${{ secrets.PG_USER }}
+      PGPASSWORD: ${{ secrets.PG_PASSWORD }}
+      PGDATABASE: ${{ secrets.PG_DATABASE }}
 
     steps:
       - name: Checkout repo
@@ -26,7 +26,7 @@ jobs:
 
       - name: Ensure schema_migrations table exists
         run: |
-          psql -c "
+          psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -c "
             CREATE TABLE IF NOT EXISTS schema_migrations (
               filename TEXT PRIMARY KEY,
               applied_at TIMESTAMPTZ DEFAULT now()
@@ -38,11 +38,13 @@ jobs:
           for file in $(find migration -type f -name '*.sql' | sort); do
             filename=$(basename "$file")
             echo "Checking migration: $filename"
-            applied=$(psql -tAc "SELECT 1 FROM schema_migrations WHERE filename = '$filename'")
+            applied=$(psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -tAc \
+              "SELECT 1 FROM schema_migrations WHERE filename = '$filename'")
             if [ "$applied" != "1" ]; then
               echo "Applying migration $filename"
-              psql -f "$file"
-              psql -c "INSERT INTO schema_migrations (filename) VALUES ('$filename');"
+              psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -f "$file"
+              psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -c \
+                "INSERT INTO schema_migrations (filename) VALUES ('$filename');"
             else
               echo "Skipping $filename (already applied)"
             fi
