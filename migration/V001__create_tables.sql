@@ -88,23 +88,6 @@ CREATE TABLE pickup_requests (
   completion_date         DATE
 );
 
-CREATE TABLE pickup_request_item (
-  pickup_request_item_id SERIAL PRIMARY KEY,
-  shipment_id             INTEGER NOT NULL
-    REFERENCES shipments (shipment_id)
-      ON UPDATE CASCADE
-      ON DELETE CASCADE,
-  item_definition_id     INTEGER NOT NULL
-    REFERENCES item_definitions (item_definition_id)
-      ON UPDATE CASCADE
-      ON DELETE RESTRICT,
-  pickup_request_id      INTEGER NOT NULL
-    REFERENCES pickup_requests (pickup_request_id)
-      ON UPDATE CASCADE
-      ON DELETE CASCADE,
-  quantity               INTEGER NOT NULL
-);
-
 CREATE TABLE shipment_status (
   shipment_status_id SERIAL PRIMARY KEY,
   name               VARCHAR(50) NOT NULL UNIQUE
@@ -121,6 +104,23 @@ CREATE TABLE shipments (
     REFERENCES shipment_status (shipment_status_id)
       ON UPDATE CASCADE
       ON DELETE RESTRICT
+);
+
+CREATE TABLE pickup_request_item (
+  pickup_request_item_id SERIAL PRIMARY KEY,
+  shipment_id             INTEGER NOT NULL
+    REFERENCES shipments (shipment_id)
+      ON UPDATE CASCADE
+      ON DELETE CASCADE,
+  item_definition_id     INTEGER NOT NULL
+    REFERENCES item_definitions (item_definition_id)
+      ON UPDATE CASCADE
+      ON DELETE RESTRICT,
+  pickup_request_id      INTEGER NOT NULL
+    REFERENCES pickup_requests (pickup_request_id)
+      ON UPDATE CASCADE
+      ON DELETE CASCADE,
+  quantity               INTEGER NOT NULL
 );
 
 CREATE TABLE bank_transactions_ledger (
