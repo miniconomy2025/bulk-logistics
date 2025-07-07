@@ -1,0 +1,30 @@
+CREATE OR REPLACE FUNCTION get_available_vehicles(p_dispatch_date DATE)
+RETURNS TABLE (
+    vehicle_id INT,
+    vehicle_type_id INT,
+    is_active BOOLEAN,
+    "vehicleType" VARCHAR, -- Or appropriate string type for your vehicle_type name
+    maximum_capacity INT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        v.vehicle_id,
+        v.vehicle_type_id,
+        v.is_active,
+        vt.name AS "vehicleType",
+        vt.maximum_capacity
+    FROM
+        vehicle v
+    INNER JOIN
+        vehicle_type vt ON v.vehicle_type_id = vt.vehicle_type_id
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM shipments s
+        WHERE s.vehicle_id = v.vehicle_id
+          AND s.dispatch_date = p_dispatch_date
+    );
+END;
+$$;
