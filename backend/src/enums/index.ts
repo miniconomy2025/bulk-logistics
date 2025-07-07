@@ -26,3 +26,12 @@ export const PickupRequestCompletionStatus = {
     PendingPayment: "PENDING_PAYMENT",
     Delivered: "DELIVERED",
 };
+
+// To be defined with more detail. We don't know what to expect from them.
+export const ThohEvents = {
+    StartSimulation: "START_SIMULATION",
+    EndSimulation: "END_SIMULATION",
+    ResetSimulation: "RESET_SIMULATION",
+    VehicleCrash: "VEHICLE_CRASH",
+    Config: "CONFIG"
+}

@@ -5,6 +5,7 @@ import companyRoutes from "./routes/companyRoutes";
 import transactionRoutes from "./routes/transactionRoutes";
 
 import pickupRequestRoutes from "./routes/pickupRequestRoutes";
+import thohRoutes from "./routes/thohRoutes"
 import AppError from "./utils/errorHandlingMiddleware/appError";
 import globalErrorHandler from "./utils/errorHandlingMiddleware/errorController";
 
@@ -44,6 +45,7 @@ app.use(express.json());
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/pickup-request", pickupRequestRoutes);
+app.use("/api/thoh", thohRoutes);
 app.all("*", (req, res, next) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });

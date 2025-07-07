@@ -62,7 +62,7 @@ export const getPickupRequest = catchAsync(async (req: Request, res: Response, n
         originalExternalOrderId: pickupRequest.originalExternalOrderId,
         requestDate: pickupRequest.requestDate,
         items: pickupRequest.items,
-    });
+    } as PickupRequestGetEntity);
 });
 
 export const getPickupRequestsByCompany = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
