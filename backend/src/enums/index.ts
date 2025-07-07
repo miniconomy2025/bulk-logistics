@@ -10,7 +10,7 @@ export const VehicleType = {
     Small: "SMALL",
 };
 
-export const MeasurmentType = {
+export const MeasurementType = {
     Weight: "KG",
     Unit: "UNIT",
 };
@@ -18,6 +18,7 @@ export const MeasurmentType = {
 export const TransactionCategory = {
     Loan: "LOAN",
     Purchase: "PURCHASE",
+    Expense: "EXPENSE",
     PaymentReceived: "PAYMENT_RECEIVED",
 };
 
