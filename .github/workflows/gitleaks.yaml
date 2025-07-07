@@ -2,9 +2,6 @@ name: Secrets Detection
 
 on:
   pull_request:
-  push:
-    branches:
-      - main
 
 jobs:
   gitleaks_secret_detection:
