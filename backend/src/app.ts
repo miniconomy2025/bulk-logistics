@@ -1,8 +1,10 @@
 import express from "express";
+
 import { init } from "express-oas-generator";
 
 import companyRoutes from "./routes/companyRoutes";
 import transactionRoutes from "./routes/transactionRoutes";
+import health from "./routes/health";
 
 import pickupRequestRoutes from "./routes/pickupRequestRoutes";
 import AppError from "./utils/errorHandlingMiddleware/appError";
@@ -26,22 +28,13 @@ init(app, {
     - Coordinating with manufacturing schedules and raw material supply
     description: Production server`,
     },
-    tags: [
-        {
-            name: "Pickup Requests",
-            description: "Manage requests to pick up and transfer goods from one company to another.",
-        },
-        {
-            name: "Shipments",
-            description: "Handle shipment dispatch, tracking, and status management.",
-        },
-    ],
 });
 
 const PORT = 3000;
 
 app.use(express.json());
 
+app.use("/api/health", health);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/pickup-request", pickupRequestRoutes);
