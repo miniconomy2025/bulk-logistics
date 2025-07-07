@@ -93,6 +93,7 @@ export async function getActiveShipments(_: Request, res: Response): Promise<voi
 
 export async function getMonthlyTransactions(_: Request, res: Response): Promise<void> {
     const result = await getMonthlyRevenueExpenses();
+
     if (result.ok) {
         res.status(200).json({ transaction: result.value.rows });
     } else {
@@ -103,6 +104,7 @@ export async function getMonthlyTransactions(_: Request, res: Response): Promise
 
 export async function getTopRevenueSources(_: Request, res: Response): Promise<void> {
     const result = await getTopRevenueSourcesRepo();
+
     if (result.ok) {
         res.status(200).json({ transaction: result.value.rows });
     } else {

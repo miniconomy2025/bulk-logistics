@@ -1,30 +1,16 @@
 import express from "express";
-import cors from "cors";
+
 import { init } from "express-oas-generator";
 
 import companyRoutes from "./routes/companyRoutes";
 import transactionRoutes from "./routes/transactionRoutes";
 import health from "./routes/health";
+
 import pickupRequestRoutes from "./routes/pickupRequestRoutes";
 import AppError from "./utils/errorHandlingMiddleware/appError";
 import globalErrorHandler from "./utils/errorHandlingMiddleware/errorController";
 
 const app = express();
-
-const allowedOrigins = ["http://localhost:3000", "http://localhost:5173"];
-const corsOptions: cors.CorsOptions = {
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error("Not allowed by CORS"));
-        }
-    },
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-    credentials: true,
-};
-
-app.use(cors(corsOptions));
 
 init(app, {
     info: {
@@ -40,7 +26,7 @@ init(app, {
     - Supporting logistics analytics and capacity planning
     - Coordinating with manufacturing schedules and raw material supply
     description: Production server`,
-    },
+    }
 });
 
 const PORT = 3000;
