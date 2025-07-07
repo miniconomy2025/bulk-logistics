@@ -2,7 +2,7 @@
 /* Get all uncompleted and paid pick requests, order them by IDs or request dates
         -//* Get undelivered Items:
             - //! check in the completed shipments or picked-up shipments
-        -//* check the measurement type of the first item in order to get a relevant vehicle type
+        -//* grouped unshipped items by measurement type
         -//* //! check the availability of the required vehicle type (if measurement_type = Units, vehicle = small/medium truck, else large truck)
         -//* check if there are available vehicles (based on the type on the previous step)
             -//! If available
@@ -21,3 +21,24 @@
                         .....More steps to follow
             - //! ELSE stop shipment creation
 */
+
+import { MeasurmentType } from "../enums";
+import { findUnshippedItems } from "../models/pickupRequestItem";
+import { findAvailableVehicles } from "../models/vehicle";
+
+async function createShipments() {
+    //1. Get unshipped items
+    const unshippedItems = await findUnshippedItems();
+
+    //2. Group shipments by unit types
+    const unitBasedItems = unshippedItems.filter((item) => item.capacity_type === MeasurmentType.Unit);
+    const kgBasedItems = unshippedItems.filter((item) => item.capacity_type === MeasurmentType.Weight);
+
+    //3. Get available vehicles
+    const availableVehicles = await findAvailableVehicles("2025-07-06"); // Date from the simulation date
+
+    //  medium trucks and small trucks if there are unit based items
+    if (unitBasedItems.length) {
+    }
+    //4. Get available large trucks if there are kg-based items
+}
