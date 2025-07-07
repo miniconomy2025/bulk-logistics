@@ -9,6 +9,7 @@ import health from "./routes/health";
 import pickupRequestRoutes from "./routes/pickupRequestRoutes";
 import AppError from "./utils/errorHandlingMiddleware/appError";
 import globalErrorHandler from "./utils/errorHandlingMiddleware/errorController";
+import shipmentRoutes from "./routes/shipmentRoutes";
 
 const app = express();
 
@@ -37,6 +38,8 @@ app.use("/api/health", health);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/pickup-request", pickupRequestRoutes);
+app.use("/api/shipments", shipmentRoutes);
+
 app.all("*", (req, res, next) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
