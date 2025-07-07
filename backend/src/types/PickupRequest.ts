@@ -6,9 +6,9 @@ export interface PickupRequestRequest {
 }
 
 export interface ItemRequest {
-    itemName: number;
+    itemName: string;
     quantity: number;
-    measurementType: "KG" | "UNIT";
+    measurementType?: "KG" | "UNIT";
 }
 
 export interface PickupRequestEntity {

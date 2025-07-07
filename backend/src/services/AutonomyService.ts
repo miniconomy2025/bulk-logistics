@@ -144,7 +144,7 @@ export default class AutonomyService {
      * Checks if a loan is needed and applies for one if conditions are met.
      */
     private async _checkAndSecureLoan(): Promise<void> {
-        // TODO: Replace this with your actual business logic.
+        // TODO: Replace this with our actual business logic.
         const needsLoan = !this.hasActiveLoan; 
 
         if (needsLoan) {
@@ -170,7 +170,7 @@ export default class AutonomyService {
         }
         // If we dont have a loan, lets get another one and get more trucks. Maybe we should keep track of our profit somewhere lol.
 
-        // TODO: Replace this with your actual business logic.
+        // TODO: Replace this with our actual business logic.
         const needsTrucks = this.truckCount < 5; 
 
         if (needsTrucks) {

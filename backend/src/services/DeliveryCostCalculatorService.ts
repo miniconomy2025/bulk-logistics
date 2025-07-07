@@ -1,4 +1,4 @@
-import { PickupRequestRequest } from "../types/pickupRequest";
+import { PickupRequestRequest } from "../types/PickupRequest";
 
 export const calculateDeliveryCost = (pickupRequestDetails: PickupRequestRequest): number => {
     // Get the type of vehicle we will be using.
