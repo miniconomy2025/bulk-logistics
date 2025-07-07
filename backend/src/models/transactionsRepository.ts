@@ -3,19 +3,30 @@ import { Result } from "../types";
 
 export const findTransactions = async (): Promise<Result<any>> => {
     const query = `
-          SELECT
-            t.transaction_ledger_id,
-            t.commercial_bank_transaction_id,
-            t.amount,
-            t.transaction_date,
-            ts.status AS transaction_status,
-            tc.name AS category
-          FROM
-            bank_transactions_ledger t
-          JOIN transaction_status ts ON t.transaction_status_id = ts.transaction_status_id
-          JOIN transaction_category tc ON t.transaction_category_id = tc.transaction_category_id
-          ORDER BY t.transaction_date DESC
-          LIMIT 100;
+         SELECT
+          t.transaction_ledger_id,
+          t.commercial_bank_transaction_id,
+          t.amount,
+          tc.money_direction,
+          CASE 
+            WHEN tc.money_direction = 'in' THEN t.amount 
+            ELSE -t.amount 
+          END AS signed_amount,
+          t.transaction_date,
+          ts.status AS transaction_status,
+          tc.name AS category,
+          COALESCE(c.company_name, 'N/A') AS company_name
+        FROM bank_transactions_ledger t
+        JOIN transaction_status ts 
+          ON t.transaction_status_id = ts.transaction_status_id
+        JOIN transaction_category tc 
+          ON t.transaction_category_id = tc.transaction_category_id
+        LEFT JOIN pickup_requests pr 
+          ON t.related_pickup_request_id = pr.pickup_request_id
+        LEFT JOIN company c 
+          ON pr.requesting_company_id = c.company_id
+        ORDER BY t.transaction_date DESC
+        LIMIT 100;
         `;
     try {
         const result = await db.query(query);
@@ -171,7 +182,7 @@ export const getTransactionBreakdown = async (): Promise<Result<any>> => {
     }
 };
 
-export const getTopRevenueSources = async (): Promise<Result<any>> => {
+export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
     const query = `
     SELECT c.company_name AS company,
            SUM(t.amount) AS total,
@@ -182,8 +193,7 @@ export const getTopRevenueSources = async (): Promise<Result<any>> => {
     JOIN company c ON pr.requesting_company_id = c.company_id
     WHERE tc.name = 'Revenue'
     GROUP BY c.company_name
-    ORDER BY total DESC
-    LIMIT 5;
+    ORDER BY total DESC;
   `;
 
     try {
