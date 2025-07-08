@@ -25,6 +25,9 @@ jobs:
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_FE_HOST }} << 'EOF'
             set -e
             cd /var/www/frontend
+            git config --global --add safe.directory /var/www/frontend
+            git reset --hard HEAD
+            git clean -fd
             git pull origin terraform
             cd frontend
             npm install
