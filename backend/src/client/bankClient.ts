@@ -4,7 +4,7 @@
 | DESC: A specific client for interacting with the Commercial Bank's REST API.
 ================================================================================
 */
-import { BaseApiClient } from './baseClient';
+import { BaseApiClient } from "./baseClient";
 
 // Define interfaces for the Bank API's request/response shapes
 interface LoanApplicationRequest {
@@ -14,14 +14,14 @@ interface LoanApplicationRequest {
 
 interface LoanApplicationResponse {
     loanId: string;
-    status: 'APPROVED' | 'REJECTED';
+    status: "APPROVED" | "REJECTED";
 }
 
 class BankApiClient extends BaseApiClient {
     // The constructor calls the parent constructor with the Bank API's specific
     // base URL (from environment variables) and a service name for logging.
     constructor() {
-        super(process.env.BANK_API_BASE_URL!, 'Bank');
+        super(process.env.BANK_API_BASE_URL!, "Bank");
     }
 
     /**
@@ -31,7 +31,7 @@ class BankApiClient extends BaseApiClient {
     public async applyForLoan(loanDetails: LoanApplicationRequest): Promise<LoanApplicationResponse> {
         // The `this.client.post` method comes from the BaseApiClient.
         // It will automatically use mTLS and handle errors.
-        const response = await this.client.post<LoanApplicationResponse>('/loans/apply', loanDetails);
+        const response = await this.client.post<LoanApplicationResponse>("/loans/apply", loanDetails);
         return response.data;
     }
 

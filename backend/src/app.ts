@@ -7,7 +7,7 @@ import transactionRoutes from "./routes/transactionRoutes";
 import health from "./routes/health";
 
 import pickupRequestRoutes from "./routes/pickupRequestRoutes";
-import thohRoutes from "./routes/thohRoutes"
+import thohRoutes from "./routes/thohRoutes";
 import AppError from "./utils/errorHandlingMiddleware/appError";
 import globalErrorHandler from "./utils/errorHandlingMiddleware/errorController";
 import shipmentRoutes from "./routes/shipmentRoutes";

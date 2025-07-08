@@ -1,7 +1,7 @@
 import { SimulatedClock } from "../utils";
 import { getVehicleDeliveriesByDateRange, getAllVehiclesWithType } from "../models/vehicleRepository";
 import { GetVehicleResult, VehicleWithDeliveryCount, VehicleWithType } from "../types";
-import { PickupRequestRequest } from "../types/PickupRequest"
+import { PickupRequestRequest } from "../types/PickupRequest";
 import { MeasurementType, VehicleType } from "../enums";
 
 export const getTodaysVehicleDeliveries = async (): Promise<VehicleWithDeliveryCount[]> => {
@@ -25,7 +25,7 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
 
     const repeatVehicle = (vehicle: VehicleWithType[], count: number) => {
         for (let i = 0; i < count; i++) {
-            selectedVehicles.push(vehicle[count%i]);
+            selectedVehicles.push(vehicle[count % i]);
         }
     };
 
