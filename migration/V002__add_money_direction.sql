@@ -1,7 +1,7 @@
 BEGIN;
 
-CREATE TYPE money_direction AS ENUM ('in', 'out');
+CREATE TYPE money_direction_enum AS ENUM ('in', 'out');
 
-ALTER TABLE IF EXISTS transaction_category ADD COLUMN money_direction money_direction;
+ALTER TABLE IF EXISTS transaction_category ADD COLUMN money_direction money_direction_enum;
 
 COMMIT;
