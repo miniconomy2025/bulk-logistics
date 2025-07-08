@@ -1,5 +1,5 @@
 import db from "../config/database";
-import { Result } from "../types";
+import { BankNotificationPayload, Result } from "../types";
 
 export const findTransactions = async (): Promise<Result<any>> => {
     const query = `
@@ -201,5 +201,98 @@ export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
         return { ok: true, value: result };
     } catch (error) {
         return { ok: false, error: error as Error };
+    }
+};
+
+const getOrCreateStatus = async (status: string): Promise<number> => {
+    const statusRes = await db.query(
+        `INSERT INTO transaction_status (status)
+   VALUES ($1)
+   ON CONFLICT (status) DO UPDATE SET status = EXCLUDED.status
+   RETURNING transaction_status_id`,
+        [status],
+    );
+    return statusRes.rows[0].transaction_status_id;
+};
+
+const getOrCreateCategory = async (direction: "in" | "out"): Promise<number> => {
+    const categoryName = direction === "in" ? "Miscellaneous Incoming" : "Miscellaneous Outgoing";
+
+    const categoryRes = await db.query(
+        `INSERT INTO transaction_category (name, money_direction)
+   VALUES ($1, $2)
+   ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+   RETURNING transaction_category_id`,
+        [categoryName, direction],
+    );
+    return categoryRes.rows[0].transaction_category_id;
+};
+
+const transactionExists = async (transactionNumber: string): Promise<boolean> => {
+    const result = await db.query(
+        `SELECT 1 FROM bank_transactions_ledger
+   WHERE commercial_bank_transaction_id = $1`,
+        [transactionNumber],
+    );
+    return new Promise((resolve, _) => {
+        resolve(result.rowCount != null ? result.rowCount > 0 : false);
+    });
+};
+
+const insertTransaction = async (
+    t: BankNotificationPayload & { statusId: number; categoryId: number; transactionDate: Date },
+): Promise<Result<any>> => {
+    const query = `INSERT INTO bank_transactions_ledger (
+     commercial_bank_transaction_id,
+     transaction_category_id,
+     amount,
+     transaction_date,
+     transaction_status_id
+   )
+   VALUES ($1, $2, $3, $4, $5)`;
+    try {
+        const result = await db.query(query, [t.transaction_number, t.categoryId, t.amount, t.transactionDate, t.statusId]);
+        return { ok: true, value: result };
+    } catch (error) {
+        return { ok: false, error: error as Error };
+    }
+};
+
+export const findAccountNumber = async (companyName: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        resolve("1234567890");
+        reject("Couldnt find account number");
+    });
+};
+
+export const createLedgerEntry = async (transaction: BankNotificationPayload) => {
+    try {
+        await db.query("BEGIN");
+
+        const statusId = await getOrCreateStatus(transaction.status);
+        const direction: "in" | "out" = transaction.to === (await findAccountNumber("bulk-logistics")) ? "in" : "out";
+
+        const categoryId = await getOrCreateCategory(direction);
+
+        const transactionDate = new Date(transaction.timestamp * 1000);
+
+        if (await transactionExists(transaction.transaction_number)) {
+            await db.query("ROLLBACK");
+            return 409;
+        }
+
+        await insertTransaction({
+            ...transaction,
+            statusId,
+            categoryId,
+            transactionDate,
+        });
+
+        await db.query("COMMIT");
+        return 201;
+    } catch (error) {
+        await db.query("ROLLBACK");
+        console.error("Transaction processing error:", error);
+        return 500;
     }
 };
