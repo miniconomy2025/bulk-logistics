@@ -26,7 +26,6 @@ jobs:
             set -e
             cd /home/ubuntu/bulk-logistics
 
-            # Tell Git this is a safe directory
             git config --global --add safe.directory /home/ubuntu/bulk-logistics
 
             git pull origin main
