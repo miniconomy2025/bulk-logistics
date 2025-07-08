@@ -37,5 +37,5 @@ jobs:
           cd backend
           npm install
           npm run build
-          pm2 restart backend || pm2 start dist/app.js --name backend
+          pm2 restart bulk-logistics-backend || pm2 start dist/app.js --name bulk-logistics-backend
           EOF
