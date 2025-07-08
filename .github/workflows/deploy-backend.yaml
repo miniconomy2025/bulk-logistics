@@ -22,10 +22,14 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_API_HOST }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             set -e
             cd /home/ubuntu/bulk-logistics
-            git pull origin terraform
+
+            # Tell Git this is a safe directory
+            git config --global --add safe.directory /home/ubuntu/bulk-logistics
+
+            git pull origin main
             cd backend
             npm install
             npm run build
