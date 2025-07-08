@@ -17,7 +17,6 @@ interface CreateAccountResponse {
 
 interface GetBalanceResponse {
     balance: number;
-}
 
 class BankClient extends BaseApiClient {
     constructor() {
