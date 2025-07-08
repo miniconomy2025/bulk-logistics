@@ -31,6 +31,8 @@ jobs:
 
           cd /home/ubuntu/bulk-logistics
           git config --global --add safe.directory /home/ubuntu/bulk-logistics
+          git reset --hard HEAD
+          git clean -fd
           git pull origin terraform
           cd backend
           npm install
