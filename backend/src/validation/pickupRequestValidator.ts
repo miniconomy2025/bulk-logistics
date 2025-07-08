@@ -1,4 +1,4 @@
-import { PickupRequestRequest } from "../types/PickupRequest";
+import { PickupRequestRequest } from "../types/pickupRequest";
 
 export const validatePickupRequest = (pickupRequest: PickupRequestRequest) => {
     // Check that the origin company id is in the DB

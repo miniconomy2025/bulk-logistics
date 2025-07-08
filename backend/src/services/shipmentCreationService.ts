@@ -22,7 +22,7 @@
             - //! ELSE stop shipment creation
 */
 
-import { MeasurmentType } from "../enums";
+import { MeasurementType } from "../enums";
 import { findUnshippedItems } from "../models/pickupRequestItem";
 import { findAvailableVehicles } from "../models/vehicle";
 
@@ -31,8 +31,8 @@ async function createShipments() {
     const unshippedItems = await findUnshippedItems();
 
     //2. Group shipments by unit types
-    const unitBasedItems = unshippedItems.filter((item) => item.capacity_type === MeasurmentType.Unit);
-    const kgBasedItems = unshippedItems.filter((item) => item.capacity_type === MeasurmentType.Weight);
+    const unitBasedItems = unshippedItems.filter((item) => item.capacity_type === MeasurementType.Unit);
+    const kgBasedItems = unshippedItems.filter((item) => item.capacity_type === MeasurementType.Weight);
 
     //3. Get available vehicles
     const availableVehicles = await findAvailableVehicles("2025-07-06"); // Date from the simulation date

@@ -1,7 +1,7 @@
 import { SimulatedClock } from "../utils";
 import { getVehicleDeliveriesByDateRange, getAllVehiclesWithType } from "../models/vehicleRepository";
 import { GetVehicleResult, VehicleWithDeliveryCount, VehicleWithType } from "../types";
-import { PickupRequestRequest } from "../types/PickupRequest";
+import { PickupRequestRequest } from "../types/pickupRequest";
 import { MeasurementType, VehicleType } from "../enums";
 
 export const getTodaysVehicleDeliveries = async (): Promise<VehicleWithDeliveryCount[]> => {
