@@ -70,7 +70,7 @@ resource "aws_instance" "api_server" {
               systemctl enable postgresql
               systemctl start postgresql
               sudo -u postgres psql -c "CREATE USER bulk-logistic WITH PASSWORD '$${DB_PASSWORD}';"
-              sudo -u postgres createdb mydb -O bulk-logistic
+              sudo -u postgres createdb bldatabase -O bulk-logistic
 
               apt install -y nodejs npm
               git clone https://github.com/miniconomy2025/bulk-logistics.git /home/ubuntu/bulk-logistics
@@ -80,7 +80,42 @@ resource "aws_instance" "api_server" {
               npm install -g pm2
               pm2 start dist/src/app.js --name bulk-logistics-backend
             EOF
+  tags = {
+    Name = "bulk-logistics-api"
+  }
 }
+resource "aws_eip" "api_eip" {
+  instance = aws_instance.api_server.id
+}
+
+
+resource "aws_instance" "frontend_server" {
+  ami                         = data.aws_ami.ubuntu.id
+  instance_type               = "t2.micro"
+  key_name                    = aws_key_pair.generated_key.key_name
+  subnet_id                   = data.aws_subnet.first.id
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [aws_security_group.frontend_sg.id]
+  iam_instance_profile        = aws_iam_instance_profile.ec2_ssm_profile.name
+
+  user_data = <<-EOF
+              #!/bin/bash
+              apt update -y
+              apt install -y nginx git curl
+              git clone https://github.com/miniconomy2025/bulk-logistics.git /var/www/frontend
+              cp -r /var/www/frontend/frontend/* /var/www/html/
+              systemctl restart nginx
+              systemctl enable nginx
+            EOF
+  tags = {
+    Name = "bulk-logistics-frontend"
+  }
+}
+
+resource "aws_eip" "frontend_eip" {
+  instance = aws_instance.frontend_server.id
+}
+
 resource "aws_budgets_budget" "bulk-logistics_budget" {
   name              = "bulk-logistics_budget"
   budget_type       = "COST"
