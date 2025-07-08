@@ -7,7 +7,7 @@ import companyRoutes from "./routes/companyRoutes";
 import health from "./routes/health";
 import pickupRequestRoutes from "./routes/pickupRequestRoutes";
 import shipmentRoutes from "./routes/shipmentRoutes";
-import thohRoutes from "./routes/thohRoutes"
+import thohRoutes from "./routes/thohRoutes";
 import transactionRoutes from "./routes/transactionRoutes";
 
 import AppError from "./utils/errorHandlingMiddleware/appError";

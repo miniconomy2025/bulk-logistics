@@ -22,10 +22,10 @@ export const processThohEvent = (thohEvent: ThohEvent) => {
             autonomyService.reset(thohEvent.data);
             break;
         case ThohEvents.VehicleCrash:
-            autonomyService.handleVehicleCrash(/*will likely need data here soon */); 
+            autonomyService.handleVehicleCrash(/*will likely need data here soon */);
             break;
         default:
             console.log("ERROR: UNACCOUNTED FOR MESSAGE TYPE FROM THOH:", thohEvent);
-            throw (new AppError("Thoh Event type has not been accounted for. Please contact bulk-logistics.", 422));
+            throw new AppError("Thoh Event type has not been accounted for. Please contact bulk-logistics.", 422);
     }
 };
