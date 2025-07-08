@@ -24,6 +24,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_FE_HOST }} << 'EOF'
             set -e
+            sudo chown -R ubuntu:ubuntu /var/www/frontend
             cd /var/www/frontend
             git config --global --add safe.directory /var/www/frontend
             git reset --hard HEAD
