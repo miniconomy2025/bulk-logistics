@@ -25,14 +25,15 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_API_HOST }} << 'EOF'
-            set -e
-            cd /home/ubuntu/bulk-logistics
+          set -e
 
-            git config --global --add safe.directory /home/ubuntu/bulk-logistics
+          sudo chown -R ubuntu:ubuntu /home/ubuntu/bulk-logistics
 
-            git pull origin main
-            cd backend
-            npm install
-            npm run build
-            pm2 restart bulk-logistics-backend || pm2 start dist/src/app.js --name bulk-logistics-backend
+          cd /home/ubuntu/bulk-logistics
+          git config --global --add safe.directory /home/ubuntu/bulk-logistics
+          git pull origin main
+          cd backend
+          npm install
+          npm run build
+          pm2 restart bulk-logistics-backend || pm2 start dist/src/app.js --name bulk-logistics-backend
           EOF
