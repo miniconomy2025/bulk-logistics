@@ -18,10 +18,10 @@ export default class AutonomyService {
     // --- State Properties ---
     private isRunning: boolean = false;
     private isProcessingTick: boolean = false;
-    private currentSimulatedDate: Date = new Date('2050-01-01');
+    private currentSimulatedDate: Date = new Date("2050-01-01");
     private tickIntervalId: NodeJS.Timeout | null = null;
     private hasActiveLoan: boolean = false; // Example state property
-    private truckCount: number = 0;         // Example state property
+    private truckCount: number = 0; // Example state property
     private isFirstDay: boolean = true;
     private funds: number = 0; // Will need an SQL statement for this.
 
@@ -32,7 +32,7 @@ export default class AutonomyService {
     private resetState() {
         this.isRunning = false;
         this.isProcessingTick = false;
-        this.currentSimulatedDate = new Date('2050-01-01');
+        this.currentSimulatedDate = new Date("2050-01-01");
         this.tickIntervalId = null;
         this.hasActiveLoan = false;
         this.truckCount = 0;
@@ -50,7 +50,7 @@ export default class AutonomyService {
 
     /**
      * Starts the simulation's daily tick timer.
-    */
+     */
     public start(initialData: any): void {
         if (this.isRunning) {
             console.warn("Simulation is already running. Start command ignored.");
@@ -63,10 +63,7 @@ export default class AutonomyService {
         // Immediately perform the first day's tick, then set the interval.
         this._performDailyTick();
         // This is how we keep track of time. The "cron" job waits on this interval rather than acting on actual system time.
-        this.tickIntervalId = setInterval(
-            () => this._performDailyTick(),
-            SIMULATION_TICK_INTERVAL_MS
-        );
+        this.tickIntervalId = setInterval(() => this._performDailyTick(), SIMULATION_TICK_INTERVAL_MS);
 
         console.log("AutonomyService started. Daily ticks will occur every 2 minutes.");
     }
@@ -96,13 +93,15 @@ export default class AutonomyService {
             console.warn("Simulation is not running. Stop command ignored.");
             return;
         }
-        console.log("Resetting the simulation...")
+        console.log("Resetting the simulation...");
         this.stop();
         this.start(initialData);
     }
 
     public handleVehicleCrash(): void {
-        console.log("We have an insurance policy with Hive Insurance Co. Our policy dictates that all lost goods from a failed shipment will be replaced, and delivered on the same day! All surviving goods are thrown away since they were in a crash. Hooray! Everyone wins!!");
+        console.log(
+            "We have an insurance policy with Hive Insurance Co. Our policy dictates that all lost goods from a failed shipment will be replaced, and delivered on the same day! All surviving goods are thrown away since they were in a crash. Hooray! Everyone wins!!",
+        );
     }
 
     // ========================================================================
@@ -137,10 +136,9 @@ export default class AutonomyService {
         }
 
         this.isProcessingTick = true;
-        console.log(`\n--- Starting Daily Tick for: ${this.currentSimulatedDate.toISOString().split('T')[0]} ---`);
+        console.log(`\n--- Starting Daily Tick for: ${this.currentSimulatedDate.toISOString().split("T")[0]} ---`);
 
         try {
-
             /**
              * 1. Check the account balance and update our funds accordingly.
              * 2. Check if trucks are available after purchase. check vehicles table for vehicles created the previous day and with is_active FALSE update is_active to true.
@@ -149,7 +147,7 @@ export default class AutonomyService {
              * 5. Wait until 30 seconds until 'midnight' and deliver (still under consideration)
              * 6. based on our shipments (trucks used in the day), we pay operational costs to the hand.
              */
-            
+
             // --- Condition-Based Setup Tasks ---
             // These now run at the start of each day to check if they are needed.
             await this._checkAndSecureLoan(); // Insert logic for first day operations.
@@ -158,14 +156,13 @@ export default class AutonomyService {
             // --- Regular Daily Operations ---
             await this._planAndDispatchShipments();
             await this._notifyCompletedDeliveries();
-
         } catch (error) {
             console.error("FATAL ERROR during daily tick.", error);
         } finally {
             this.isProcessingTick = false;
             // Advance the simulated day AFTER the tick is complete.
             this.currentSimulatedDate.setDate(this.currentSimulatedDate.getDate() + 1);
-            console.log(`--- Finished Daily Tick. Next tick will be for ${this.currentSimulatedDate.toISOString().split('T')[0]} ---`);
+            console.log(`--- Finished Daily Tick. Next tick will be for ${this.currentSimulatedDate.toISOString().split("T")[0]} ---`);
         }
     }
 

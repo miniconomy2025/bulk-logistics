@@ -34,5 +34,5 @@ export const ThohEvents = {
     EndSimulation: "END_SIMULATION",
     ResetSimulation: "RESET_SIMULATION",
     VehicleCrash: "VEHICLE_CRASH",
-    Config: "CONFIG"
-}
+    Config: "CONFIG",
+};
