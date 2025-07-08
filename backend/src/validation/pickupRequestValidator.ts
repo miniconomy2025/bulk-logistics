@@ -1,4 +1,4 @@
-import { PickupRequestRequest } from "../types/pickupRequest";
+import { PickupRequestRequest, ItemRequest } from "../types/PickupRequest";
 
 export const validatePickupRequest = (pickupRequest: PickupRequestRequest) => {
     // Check that the origin company id is in the DB
@@ -7,7 +7,7 @@ export const validatePickupRequest = (pickupRequest: PickupRequestRequest) => {
 
     // Check that the items coming in are correct.
     const items = pickupRequest.items;
-    items.forEach((item) => {
+    items.forEach((item: ItemRequest) => {
         const { itemName, quantity, measurementType } = item;
         if (["Copper", "Silicon", "Sand", "Plastic", "Aluminium"].includes(itemName)) {
             if (quantity > 5000) {

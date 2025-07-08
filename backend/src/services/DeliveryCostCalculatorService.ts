@@ -1,5 +1,5 @@
 import { VehicleType } from "../enums";
-import { PickupRequestRequest } from "../types/pickupRequest";
+import { PickupRequestRequest } from "../types/PickupRequest";
 import { getVehicleForPickupRequest } from "./vehicleService";
 
 const PROFIT_MARGIN = 0.5;
