@@ -4,7 +4,6 @@ import { init } from "express-oas-generator";
 
 import bankRoutes from "./routes/bankNotification";
 import companyRoutes from "./routes/companyRoutes";
-import globalErrorHandler from "./utils/errorHandlingMiddleware/errorController";
 import health from "./routes/health";
 import pickupRequestRoutes from "./routes/pickupRequestRoutes";
 import shipmentRoutes from "./routes/shipmentRoutes";
@@ -12,6 +11,7 @@ import thohRoutes from "./routes/thohRoutes"
 import transactionRoutes from "./routes/transactionRoutes";
 
 import AppError from "./utils/errorHandlingMiddleware/appError";
+import globalErrorHandler from "./utils/errorHandlingMiddleware/errorController";
 
 const app = express();
 
