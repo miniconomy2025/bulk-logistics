@@ -1,5 +1,5 @@
 import database from "../config/database";
-import { PickupRequestEntity, PickupRequestCreationResult, PickupRequestGetEntity } from "../types/pickupRequest";
+import { PickupRequestEntity, PickupRequestCreationResult, PickupRequestGetEntity } from "../types/PickupRequest";
 
 export const savePickupRequest = async (pickupRequest: PickupRequestEntity): Promise<PickupRequestCreationResult> => {
     const result = await database.query<PickupRequestCreationResult>("SELECT * FROM create_pickup_request($1, $2, $3, $4, $5, $6, $7::jsonb)", [

@@ -1,9 +1,10 @@
 BEGIN;
 
 DROP TABLE IF EXISTS bank_transactions_ledger;
+DROP TABLE IF EXISTS loans;
+DROP TABLE IF EXISTS pickup_request_item;
 DROP TABLE IF EXISTS shipments;
 DROP TABLE IF EXISTS shipment_status;
-DROP TABLE IF EXISTS pickup_request_item;
 DROP TABLE IF EXISTS pickup_requests;
 DROP TABLE IF EXISTS vehicle;
 DROP TABLE IF EXISTS vehicle_type;
@@ -88,6 +89,24 @@ CREATE TABLE pickup_requests (
   completion_date         DATE
 );
 
+CREATE TABLE shipment_status (
+  shipment_status_id SERIAL PRIMARY KEY,
+  name               VARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE shipments (
+  shipment_id        SERIAL PRIMARY KEY,
+  dispatch_date      DATE    NOT NULL,
+  vehicle_id         INTEGER NOT NULL
+    REFERENCES vehicle (vehicle_id)
+      ON UPDATE CASCADE
+      ON DELETE RESTRICT,
+  shipment_status_id INTEGER NOT NULL
+    REFERENCES shipment_status (shipment_status_id)
+      ON UPDATE CASCADE
+      ON DELETE RESTRICT
+);
+
 CREATE TABLE pickup_request_item (
   pickup_request_item_id SERIAL PRIMARY KEY,
   shipment_id             INTEGER NOT NULL
@@ -105,22 +124,11 @@ CREATE TABLE pickup_request_item (
   quantity               INTEGER NOT NULL
 );
 
-CREATE TABLE shipment_status (
-  shipment_status_id SERIAL PRIMARY KEY,
-  name               VARCHAR(50) NOT NULL UNIQUE
-);
-
-CREATE TABLE shipments (
-  shipment_id        SERIAL PRIMARY KEY,
-  dispatch_date      DATE    NOT NULL,
-  vehicle_id         INTEGER NOT NULL
-    REFERENCES vehicle (vehicle_id)
-      ON UPDATE CASCADE
-      ON DELETE RESTRICT,
-  shipment_status_id INTEGER NOT NULL
-    REFERENCES shipment_status (shipment_status_id)
-      ON UPDATE CASCADE
-      ON DELETE RESTRICT
+CREATE TABLE loans (
+  loan_id                         SERIAL PRIMARY KEY,
+  loan_number                     VARCHAR(16)  NOT NULL UNIQUE,
+  interest_rate                   NUMERIC(8,5)  NOT NULL,
+  loan_amount                     NUMERIC(15,2) NOT NULL
 );
 
 CREATE TABLE bank_transactions_ledger (
@@ -141,7 +149,10 @@ CREATE TABLE bank_transactions_ledger (
     REFERENCES pickup_requests (pickup_request_id)
       ON UPDATE CASCADE
       ON DELETE SET NULL,
-  related_loan_id                 INTEGER,
+  loan_id                         INTEGER
+    REFERENCES loans (loan_id)
+      ON UPDATE CASCADE
+      ON DELETE SET NULL,
   related_thoh_order_id           VARCHAR(255)
 );
 

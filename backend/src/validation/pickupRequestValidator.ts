@@ -1,14 +1,29 @@
-import { PickupRequestRequest } from "../types/pickupRequest";
+import { PickupRequestRequest } from "../types/PickupRequest";
 
 export const validatePickupRequest = (pickupRequest: PickupRequestRequest) => {
-    // here we get the list of possible companies
-    // and we check whether or not the identifiers provided are within the domain or not.
 
-    // we also check that the number of items does not go above some hard max that we can set in the
-    //future if need be.
+    // Check that the origin company id is in the DB
+    //const companyCheck = await getCompany(pickupRequest.originCompanyId)
+    //
 
-    //Typescript will handle the nullability of the fields within the pickupRequest type.
+    // Check that the items coming in are correct.
+    const items = pickupRequest.items;
+    items.forEach(item => {
+        const { itemName, quantity, measurementType } = item;
+        if (['Copper', 'Silicon', 'Sand', 'Plastic', 'Aluminium'].includes(itemName)) {
+            if (quantity > 5000) {
+                throw new Error(`You have attempted to purchase too much ${itemName} in one go. The max quantity is 5000kg and you have ordered ${quantity}kg for a single item in a single pickup request.`)
+            }
+        }
+        else if (['Electronics', 'Screens', 'Cases'].includes(itemName)) {
+            if (quantity > 2000) {
+                throw new Error(`You have attempted to purchase too many ${itemName} in one go. The max quantity is 2000 units and you have ordered ${quantity} units for a single item in a single pickup request.`)
+            }
+        }
+        else {
+            throw new Error(`You have tried to order an item which we do not support (${itemName}). The list of valid items is: 'Copper', 'Silicon', 'Sand', 'Plastic', 'Aluminium','Electronics','Screens', and 'Cases'`)
+        }
+    })
 
-    // Finally we check that the provided items are valid and within the DB.
     return;
 };

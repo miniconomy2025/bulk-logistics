@@ -2,9 +2,6 @@ name: Secrets Detection
 
 on:
   pull_request:
-  push:
-    branches:
-      - main
 
 jobs:
   gitleaks_secret_detection:
@@ -26,7 +23,7 @@ jobs:
           set -x
 
           # Get the latest version of Gitleaks
-          version=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .name)
+          version=$(curl -s https://api.github.com/repos/gitleaks/gitleaks/releases/latest | jq -r .tag_name)
 
           # Remove the first 'v' character from the version string (if present)
           version=${version#v}

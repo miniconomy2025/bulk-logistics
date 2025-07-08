@@ -1,14 +1,44 @@
-import { PickupRequestRequest } from "../types/pickupRequest";
+import { VehicleType } from "../enums";
+import { PickupRequestRequest } from "../types/PickupRequest";
+import { getVehicleForPickupRequest } from "./vehicleService";
 
-export const calculateDeliveryCost = (pickupRequestDetails: PickupRequestRequest): number => {
+const PROFIT_MARGIN = 0.5;
+
+export const calculateDeliveryCost = async (pickupRequestDetails: PickupRequestRequest): Promise<number> => {
     // Get the type of vehicle we will be using.
-    // Get the amount we need to add to cover operational costs.
-    // Get the amount we need to add to cover loan interest.
-    // A little on the top for profit ;) if we want to buy more trucks and make life easier.
+    const vehicleResult = await getVehicleForPickupRequest(pickupRequestDetails);
 
-    // Finally do the calculation
+    if (!vehicleResult.success || !vehicleResult.vehicles) {
+        return 0;
+    }
 
-    // return the cost.
+    //TODO: get next loan repayment
+    const loanRepayment = 500;
 
-    return 1000;
+    let totalOperationalCost = 0;
+    let loanRepaymentPerDelivery = 0;
+
+    for (const vehicle of vehicleResult.vehicles) {
+        const { daily_operational_cost, vehicle_type } = vehicle;
+
+        switch (vehicle_type.name) {
+            case VehicleType.Large:
+                totalOperationalCost += daily_operational_cost;
+                loanRepaymentPerDelivery += loanRepayment / 30;
+                break;
+            case VehicleType.Medium:
+            case VehicleType.Small:
+                totalOperationalCost += Number(daily_operational_cost) / vehicle_type.max_pickups_per_day;
+                loanRepaymentPerDelivery += loanRepayment / 30 / vehicle_type.max_pickups_per_day;
+                break;
+            default:
+                throw new Error("Unknown vehicle type.");
+        }
+    }
+
+    const baseCost = totalOperationalCost + loanRepaymentPerDelivery;
+    // Add profit margin
+    const finalCost = baseCost * (1 + PROFIT_MARGIN);
+
+    return Math.ceil(finalCost);
 };

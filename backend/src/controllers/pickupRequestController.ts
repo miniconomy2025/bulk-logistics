@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { validatePickupRequest } from "../validation/pickupRequestValidator";
-import { PickupRequestCreationResult, PickupRequestRequest, PickupRequestCreateResponse, PickupRequestGetEntity } from "../types/pickupRequest";
+import { PickupRequestCreationResult, PickupRequestRequest, PickupRequestCreateResponse, PickupRequestGetEntity } from "../types/PickupRequest";
 import { calculateDeliveryCost } from "../services/DeliveryCostCalculatorService";
 import { findPickupRequestById, findPickupRequestsByCompanyId, savePickupRequest } from "../models/pickupRequestRepository";
 import catchAsync from "../utils/errorHandlingMiddleware/catchAsync";
@@ -17,7 +17,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
         return next(new AppError(`Invalid input data: ${validationError.message}`, 400));
     }
 
-    const cost = calculateDeliveryCost(pickupRequestDetails);
+    const cost = await calculateDeliveryCost(pickupRequestDetails);
 
     const result: PickupRequestCreationResult = await savePickupRequest({
         ...pickupRequestDetails,
@@ -62,7 +62,7 @@ export const getPickupRequest = catchAsync(async (req: Request, res: Response, n
         originalExternalOrderId: pickupRequest.originalExternalOrderId,
         requestDate: pickupRequest.requestDate,
         items: pickupRequest.items,
-    });
+    } as PickupRequestGetEntity);
 });
 
 export const getPickupRequestsByCompany = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
