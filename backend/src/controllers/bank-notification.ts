@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { BankNotificationPayload } from "../types";
 import { createLedgerEntry, findAccountNumber } from "../models/transactionsRepository";
 
-export const bankNofication = async (req: Request, res: Response): Promise<void> => {
+export const bankNotification = async (req: Request, res: Response): Promise<void> => {
     const transaction = req.body as BankNotificationPayload;
 
     const bankAccount = await findAccountNumber("bulk-logistics");

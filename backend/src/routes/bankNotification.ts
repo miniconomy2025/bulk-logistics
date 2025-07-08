@@ -1,10 +1,10 @@
 import { Router } from "express";
 
 import { rateLimiter } from "../utils";
-import { bankNofication } from "../controllers/bank-notification";
+import { bankNotification } from "../controllers/bank-notification";
 
 const router = Router();
 
-router.post("/notification", rateLimiter, bankNofication);
+router.post("/notification", rateLimiter, bankNotification);
 
 export default router;
