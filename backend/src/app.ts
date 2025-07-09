@@ -9,7 +9,6 @@ import pickupRequestRoutes from "./routes/pickupRequestRoutes";
 import shipmentRoutes from "./routes/shipmentRoutes";
 import thohRoutes from "./routes/thohRoutes";
 import transactionRoutes from "./routes/transactionRoutes";
-import thohRoutes from "./routes/thohRoutes";
 
 import AppError from "./utils/errorHandlingMiddleware/appError";
 import globalErrorHandler from "./utils/errorHandlingMiddleware/errorController";
