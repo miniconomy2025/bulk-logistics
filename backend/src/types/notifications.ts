@@ -1,6 +1,6 @@
 export interface Item {
-  name: string;
-  quantity: number;
+    name: string;
+    quantity: number;
 }
 
 export interface LogisticsNotification {
