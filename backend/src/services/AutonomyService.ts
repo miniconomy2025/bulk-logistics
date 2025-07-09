@@ -4,6 +4,10 @@ import { updateCompletionDate, updatePickupRequestStatuses } from "../models/pic
 import { PickupToShipmentItemDetails } from "../types";
 import { Item, LogisticsNotification } from "../types/notifications";
 
+import { thohApiClient } from "../client/thohClient";
+import { addVehicle } from "../models/vehicle";
+import type { TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
+
 const SIMULATION_TICK_INTERVAL_MS = 3000; // should be set to 2 minutes, is on 15 seconds for testing
 
 export default class AutonomyService {
@@ -116,9 +120,51 @@ export default class AutonomyService {
                 ============started_at: string;
                 ============write_off: boolean;
                 ========}
-            5. We purchase our trucks-> for now we assume that they will delivred instanbtly (info in the response) but we can only use them on the next day.
+            5. We purchase our trucks-> for now we assume that they will delivered instantly (info in the response) but we can only use them on the next day.
                     Create trucks, set active to false, until they are "eligible", then we set active to true. 
         */
+
+        //3. Figure out cost of [3 large, 3 medium, 3 small] vehicles from the hand (handClient) -> we have our needed loan amount.
+        const requiredTrucks: TruckPurchaseRequest[] = [
+            { truckName: "large_truck", quantity: 3 },
+            { truckName: "medium_truck", quantity: 3 },
+            { truckName: "small", quantity: 3 },
+        ];
+
+        const truckPriceMap: { [key: string]: number } = {};
+
+        const trucksInfo = await thohApiClient.getTrucksInformation();
+
+        trucksInfo.forEach((truck) => {
+            truckPriceMap[truck.truckName] = truck.price;
+        });
+
+        const trucksCost = requiredTrucks.reduce((overallCost, truck) => {
+            return (overallCost += truckPriceMap[truck.truckName] * truck.quantity);
+        }, 0);
+
+        //4. Request Loan
+
+        //5. Purchase trucks
+        const truckPurchasePromises: Promise<TruckPurchaseResponse | undefined>[] = [];
+        requiredTrucks.forEach((truckInfo) => {
+            truckPurchasePromises.push(this._checkAndPurchaseTrucks(truckInfo));
+        });
+
+        // Wait for all the started operations to complete
+        const purchasedTrucks = await Promise.all(truckPurchasePromises);
+
+        for (const truck of purchasedTrucks) {
+            // Make sure the truck data is valid before saving
+            if (truck) {
+                await addVehicle({
+                    type: truck.truckName,
+                    purchase_date: this.currentSimulatedDate.toISOString(),
+                    operational_cost: Number(truck.operatingCostPerDay.split("/")[0]), // THOH should change this to a number
+                    load_capacity: truck.maximumLoad,
+                });
+            }
+        }
     }
     /**
      * The main "cron job" that runs on every interval.
@@ -183,25 +229,26 @@ export default class AutonomyService {
     /**
      * Checks if new trucks are needed and purchases them if conditions are met.
      */
-    private async _checkAndPurchaseTrucks(): Promise<void> {
+    private async _checkAndPurchaseTrucks(truckInfo: TruckPurchaseRequest): Promise<TruckPurchaseResponse | undefined> {
         // This check will only run if we have a loan to pay for the trucks.
         if (!this.hasActiveLoan) {
-            return;
-        }
-        // If we dont have a loan, lets get another one and get more trucks. Maybe we should keep track of our profit somewhere lol.
+            // should be modified to check available funds as well, assuming we might need to buy trucks from our own funds once accumulated enough
+            const loanRequest = await this._checkAndSecureLoan();
 
-        // TODO: Replace this with our actual business logic.
-        const needsTrucks = this.truckCount < 5;
-
-        if (needsTrucks) {
-            try {
-                console.log("Condition met: Purchasing initial fleet of trucks...");
-                // const purchaseResult = await ThohApiClient.purchaseTrucks({ count: 5 });
-                this.truckCount = 5; // Update state upon success
-                console.log("Trucks purchased and state updated.");
-            } catch (error) {
-                console.error("Failed to purchase trucks.", error);
+            if (loanRequest.data && this.hasActiveLoan) {
+                // To be updated once loan request has been implemented
+                return await this._checkAndPurchaseTrucks(truckInfo); // try purchasing the truck/s again
             }
+        }
+
+        try {
+            console.log("Condition met: Purchasing initial fleet of trucks...");
+            const purchaseResult = await thohApiClient.purchaseTruck(truckInfo);
+            this.truckCount += purchaseResult.quantity; // Update state upon success
+
+            return purchaseResult;
+        } catch (error) {
+            console.error("Failed to purchase trucks.", error);
         }
     }
 

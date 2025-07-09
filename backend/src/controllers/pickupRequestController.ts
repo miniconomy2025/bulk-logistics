@@ -30,7 +30,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
         pickupRequestId: result.pickupRequestId,
         cost: result.cost,
         paymentReferenceId: result.paymentReferenceId,
-        bulkLogisticsBankAccountNumber: result.bulkLogisticsBankAccountNumber,
+        accountNumber: result.bulkLogisticsBankAccountNumber,
         status: PickupRequestCompletionStatus.PendingPayment,
         statusCheckUrl: `/pickup-requests/${result.pickupRequestId}`,
     } as PickupRequestCreateResponse);

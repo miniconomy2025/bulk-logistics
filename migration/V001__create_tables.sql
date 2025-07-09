@@ -1,19 +1,30 @@
 BEGIN;
 
 DROP TABLE IF EXISTS bank_transactions_ledger;
-DROP TABLE IF EXISTS loans;
-DROP TABLE IF EXISTS pickup_request_item;
-DROP TABLE IF EXISTS shipments;
-DROP TABLE IF EXISTS shipment_status;
-DROP TABLE IF EXISTS pickup_requests;
-DROP TABLE IF EXISTS vehicle;
-DROP TABLE IF EXISTS vehicle_type;
-DROP TABLE IF EXISTS item_definitions;
-DROP TABLE IF EXISTS company;
-DROP TABLE IF EXISTS transaction_status;
-DROP TABLE IF EXISTS transaction_category;
-DROP TABLE IF EXISTS capacity_type;
 
+DROP TABLE IF EXISTS loans;
+
+DROP TABLE IF EXISTS pickup_request_item;
+
+DROP TABLE IF EXISTS shipments;
+
+DROP TABLE IF EXISTS shipment_status;
+
+DROP TABLE IF EXISTS pickup_requests;
+
+DROP TABLE IF EXISTS vehicle;
+
+DROP TABLE IF EXISTS vehicle_type;
+
+DROP TABLE IF EXISTS item_definitions;
+
+DROP TABLE IF EXISTS company;
+
+DROP TABLE IF EXISTS transaction_status;
+
+DROP TABLE IF EXISTS transaction_category;
+
+DROP TABLE IF EXISTS capacity_type;
 
 CREATE TABLE capacity_type (
   capacity_type_id SERIAL PRIMARY KEY,
@@ -30,14 +41,13 @@ CREATE TABLE transaction_status (
   status                VARCHAR(50) NOT NULL UNIQUE
 );
 
-CREATE TABLE
-  company (
-    company_id SERIAL PRIMARY KEY,
-    company_name VARCHAR(150) NOT NULL UNIQUE,
-    company_url VARCHAR(255) NOT NULL UNIQUE,
-    certificate_identifier VARCHAR(255) UNIQUE,
-    bank_account_number VARCHAR(50) UNIQUE
-  );
+CREATE TABLE company (
+  company_id             SERIAL PRIMARY KEY,
+  company_name           VARCHAR(150) NOT NULL UNIQUE,
+  company_url VARCHAR(255) NOT NULL UNIQUE,
+  certificate_identifier VARCHAR(255) NOT NULL UNIQUE,
+  bank_account_number    VARCHAR(50)  UNIQUE
+);
 
 CREATE TABLE item_definitions (
   item_definition_id SERIAL PRIMARY KEY,
@@ -62,7 +72,7 @@ CREATE TABLE vehicle_type (
 
 CREATE TABLE vehicle (
   vehicle_id      SERIAL PRIMARY KEY,
-  is_active       BOOLEAN NOT NULL,
+  is_active       BOOLEAN NOT NULL DEFAULT TRUE,
   daily_operational_cost NUMERIC(10,2) NOT NULL,
   vehicle_type_id INTEGER NOT NULL
     REFERENCES vehicle_type (vehicle_type_id)
@@ -159,3 +169,4 @@ CREATE TABLE bank_transactions_ledger (
 );
 
 COMMIT;
+
