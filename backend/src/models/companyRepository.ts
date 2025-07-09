@@ -47,3 +47,47 @@ export const getCompanyByName = async (companyName: string): Promise<Company | n
 
     return company;
 };
+
+export const updateCompanyDetails = async (
+    companyName: string, 
+    details: { 
+        certificateIdentifier?: string | null; 
+        bankAccountNumber?: string | null;
+    }
+): Promise<Company | null> => {
+    const query = `
+        UPDATE company
+        SET 
+            certificate_identifier = COALESCE($1, certificate_identifier),
+            bank_account_number = COALESCE($2, bank_account_number)
+        WHERE 
+            company_name = $3
+        RETURNING *;
+    `;
+    
+    // Pass the new details and the company name as parameters.
+    // If a detail is not provided, its value will be 'undefined', which the pg driver converts to NULL.
+    const values = [
+        details.certificateIdentifier, 
+        details.bankAccountNumber, 
+        companyName
+    ];
+
+    const result = await database.query(query, values);
+
+    // If no rows are returned, it means no company with that name was found.
+    if (result.rows.length === 0) return null;
+
+    const row = result.rows[0];
+
+    // Map the returned database row to your Company object.
+    const company: Company = {
+        id: row.company_id,
+        companyName: row.company_name,
+        companyURL: row.company_url,
+        certificateIdentifier: row.certificate_identifier ?? undefined,
+        bankAccountNumber: row.bank_account_number ?? undefined,
+    };
+
+    return company;
+};
