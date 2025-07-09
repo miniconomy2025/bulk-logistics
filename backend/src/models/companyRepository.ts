@@ -11,3 +11,9 @@ export const getCertificateByCompanyName = async (companyName: string) => {
     const result = await database.query(query, [companyName]);
     return result.rows[0]?.certificate_identifier || null;
 };
+
+export const findAccountNumberByCompanyName = async (companyName: string) => {
+    const query = "SELECT bank_account_number FROM company WHERE company_name = $1";
+    const result = await database.query(query, [companyName]);
+    return result.rows[0]?.bank_account_number || null;
+};
