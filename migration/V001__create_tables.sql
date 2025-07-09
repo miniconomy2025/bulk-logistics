@@ -67,7 +67,7 @@ CREATE TABLE vehicle_type (
       ON DELETE RESTRICT,
   maximum_capacity     INTEGER     NOT NULL,
   max_pickups_per_day  INTEGER     NOT NULL,
-  max_dropoffs_per_day INTEGER     NOT NULL,
+  max_dropoffs_per_day INTEGER     NOT NULL
 );
 
 CREATE TABLE vehicle (

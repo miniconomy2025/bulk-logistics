@@ -3,9 +3,9 @@ import { PickupRequestEntity, PickupRequestCreationResult, PickupRequestGetEntit
 
 export const savePickupRequest = async (pickupRequest: PickupRequestEntity): Promise<PickupRequestCreationResult> => {
     const result = await database.query<PickupRequestCreationResult>("SELECT * FROM create_pickup_request($1, $2, $3, $4, $5, $6, $7::jsonb)", [
-        pickupRequest.requestingCompanyId,
-        pickupRequest.originCompanyId,
-        pickupRequest.destinationCompanyId,
+        pickupRequest.requestingCompany,
+        pickupRequest.originCompany,
+        pickupRequest.destinationCompany,
         pickupRequest.originalExternalOrderId,
         pickupRequest.cost,
         pickupRequest.requestDate,
@@ -60,7 +60,7 @@ export const findPickupRequestById = async (id: string): Promise<PickupRequestGe
     return result.rows[0];
 };
 
-export const findPickupRequestsByCompanyId = async (companyId: string): Promise<PickupRequestGetEntity[] | null> => {
+export const findPickupRequestsByCompanyName = async (companyName: string): Promise<PickupRequestGetEntity[] | null> => {
     const query = `
         SELECT
             pr.pickup_request_id as "pickupRequestId",
@@ -89,10 +89,10 @@ export const findPickupRequestsByCompanyId = async (companyId: string): Promise<
         LEFT JOIN bank_transactions_ledger btl ON pr.pickup_request_id = btl.related_pickup_request_id
         LEFT JOIN transaction_status ts ON btl.transaction_status_id = ts.transaction_status_id
         WHERE
-            pr.destination_company_id = $1;
+            dc.company_name = $1;
     `;
 
-    const result = await database.query<PickupRequestGetEntity>(query, [companyId]);
+    const result = await database.query<PickupRequestGetEntity>(query, [companyName]);
 
     return result.rows;
 };
@@ -135,7 +135,7 @@ export const findPaidAndUnshippedRequests = async () => {
     JOIN transaction_status ts ON btl.transaction_status_id = ts.transaction_status_id
     WHERE
         pr.completion_date IS NULL
-        AND ts.status = 'Completed'
+        AND ts.status = 'COMPLETED'
     ORDER BY
         btl.transaction_date ASC, 
         pr.request_date ASC;`;

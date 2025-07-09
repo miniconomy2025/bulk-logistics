@@ -268,7 +268,6 @@ export default class AutonomyService {
         const planner = new ShipmentPlannerService();
         let dropoffEntities: LogisticsNotification[] = [];
         const { createdShipmentsPlan, plannedRequestIds } = await planner.planDailyShipments(this.currentSimulatedDate);
-        console.log(createdShipmentsPlan);
         for (const plan of createdShipmentsPlan) {
             plan.itemsToAssign.forEach(async (item) => {
                 let pickupRequestNotification: LogisticsNotification = {

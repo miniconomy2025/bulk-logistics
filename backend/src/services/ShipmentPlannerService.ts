@@ -17,7 +17,6 @@ export class ShipmentPlannerService {
 
         const allPendingRequests = await findPaidAndUnshippedRequests();
         const vehicleData = await findAvailableVehicles(simulatedDate.toISOString());
-
         const availableFleet: PlannableVehicle[] = vehicleData.map((v) => ({
             ...v,
             capacityRemaining: v.maximum_capacity,
@@ -28,14 +27,11 @@ export class ShipmentPlannerService {
         const plannedRequestIds = new Set<number>();
         const finalShipmentPlans = new Map<number, ShipmentPlan>(); // Key: vehicle_id
 
-        // 2. PASS 1: PLAN FULL REQUESTS
         this._planFullRequests(allPendingRequests, availableFleet, plannedRequestIds, finalShipmentPlans);
-        // 3. PASS 2: PLAN PARTIALS (ITEM-BY-ITEM)
         const remainingRequests = allPendingRequests.filter((req) => !plannedRequestIds.has(req.pickupRequestId));
         this._planPartialRequests(remainingRequests, availableFleet, finalShipmentPlans);
 
         console.log(`--- Finished Shipment Planning. ${finalShipmentPlans.size} shipments planned.`);
-        // 4. ** NEW **: Return the calculated plan as an array
         return {
             createdShipmentsPlan: Array.from(finalShipmentPlans.values()),
             plannedRequestIds: Array.from(plannedRequestIds),
@@ -87,7 +83,6 @@ export class ShipmentPlannerService {
 
         for (const item of allRemainingItems) {
             const vehicleIndex = this._findVehicleForItem(item, fleet);
-
             if (item.shipment_id) {
                 continue;
             }
