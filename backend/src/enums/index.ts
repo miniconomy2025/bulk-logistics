@@ -40,5 +40,5 @@ export const ThohEvents = {
 export const TransactionStatus = {
     Pending: "PENDING",
     Failed: "FAILED",
-    Completed: "COMPLETED"
-}
+    Completed: "COMPLETED",
+};
