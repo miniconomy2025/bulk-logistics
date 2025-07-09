@@ -273,14 +273,14 @@ export default class AutonomyService {
                 let pickupRequestNotification: LogisticsNotification = {
                     id: item.originalExternalOrderId,
                     notificationURL: item.originCompanyUrl,
-                    type: 'PICKUP',
+                    type: "PICKUP",
                     items: [
                         {
                             name: item.itemName,
-                            quantity: item.quantity
-                        }
-                    ]
-                }
+                            quantity: item.quantity,
+                        },
+                    ],
+                };
                 const response = await notificationApiClient.sendLogisticsNotification(pickupRequestNotification);
                 if (response.status >= 200 && response.status < 300) {
                     try {
@@ -297,27 +297,24 @@ export default class AutonomyService {
                         dropoffEntities.push({
                             id: item.pickup_request_id,
                             notificationURL: item.destinationCompanyUrl,
-                            type: 'DELIVERY',
+                            type: "DELIVERY",
                             items: [
                                 {
                                     name: item.itemName,
-                                    quantity: item.quantity
-                                }
-                            ]
+                                    quantity: item.quantity,
+                                },
+                            ],
                         });
                     } catch (error) {
                         console.error(`Failed to commit shipment plan for vehicle ${plan.vehicle.vehicle_id}.`, error);
                     }
-                }
-                else {
+                } else {
                     return;
                 }
-            })
-
+            });
         }
         console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         return dropoffEntities;
-
     }
 
     /**
@@ -328,7 +325,7 @@ export default class AutonomyService {
 
         notifications.forEach(async (notification) => {
             await notificationApiClient.sendLogisticsNotification(notification);
-        })
+        });
 
         await updatePickupRequestStatuses(this.currentSimulatedDate);
         console.log("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV");
