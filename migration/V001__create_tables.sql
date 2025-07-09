@@ -121,7 +121,7 @@ CREATE TABLE shipments (
 
 CREATE TABLE pickup_request_item (
   pickup_request_item_id SERIAL PRIMARY KEY,
-  shipment_id             INTEGER NOT NULL
+  shipment_id             INTEGER
     REFERENCES shipments (shipment_id)
       ON UPDATE CASCADE
       ON DELETE CASCADE,

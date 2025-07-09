@@ -20,17 +20,17 @@ INSERT INTO transaction_status (status) VALUES
 
 -- Insert data into company (updated with new names)
 INSERT INTO company (company_name, company_url, certificate_identifier, bank_account_number) VALUES
-('electronics-supplier', 'http://localhost:8000/', 'CERT-ELEC-SUP-001', '1000000001'),
-('screen-supplier', 'http://localhost:8000/', 'CERT-SCRN-SUP-001', '1000000002'),
-('case-supplier', 'http://localhost:8000/', 'CERT-CASE-SUP-001', '1000000003'),
-('bulk-logistics', 'http://localhost:8000/', 'CERT-BULK-LOG-001', '1000000004'),
-('consumer-logistics', 'http://localhost:8000/', 'CERT-CONS-LOG-001', '1000000005'),
-('pear-company', 'http://localhost:8000/', 'CERT-PEAR-CMP-001', '1000000006'),
-('sumsang-company', 'http://localhost:8000/', 'CERT-SUMS-CMP-001', '1000000007'),
-('commercial-bank', 'http://localhost:8000/', 'CERT-COMM-BANK-001', '1000000008'),
-('retail-bank', 'http://localhost:8000/', 'CERT-RET-BANK-001', '1000000009'),
-('thoh', 'http://localhost:8000/', 'CERT-THOH-001', '1000000010'),
-('recycler', 'http://localhost:8000/', 'CERT-RECYCLER-001', '1000000011');
+('electronics-supplier', 'electronics-supplier-api.com', 'CERT-ELEC-SUP-001', '1000000001'),
+('screen-supplier', 'screen-supplier-api.com', 'CERT-SCRN-SUP-001', '1000000002'),
+('case-supplier', 'case-supplier-api.com', 'CERT-CASE-SUP-001', '1000000003'),
+('bulk-logistics', 'bulk-logistics-api.com', 'CERT-BULK-LOG-001', '1000000004'),
+('consumer-logistics', 'consumer-logistics-api.com', 'CERT-CONS-LOG-001', '1000000005'),
+('pear-company', 'pear-company-api.com', 'CERT-PEAR-CMP-001', '1000000006'),
+('sumsang-company', 'sumsang-company-api.com', 'CERT-SUMS-CMP-001', '1000000007'),
+('commercial-bank', 'commercial-bank-api.com', 'CERT-COMM-BANK-001', '1000000008'),
+('retail-bank', 'retail-bank-api.com', 'CERT-RET-BANK-001', '1000000009'),
+('thoh', 'thoh-api.com', 'CERT-THOH-001', '1000000010'),
+('recycler', 'recycler-api.com', 'CERT-RECYCLER-001', '1000000011');
 
 -- Insert data into item_definitions
 INSERT INTO item_definitions (item_name, capacity_type_id) VALUES

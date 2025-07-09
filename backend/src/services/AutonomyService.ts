@@ -1,20 +1,14 @@
-/*
-================================================================================
-| FILE: /src/services/AutonomyService.ts (REFACTORED)
-| DESC: The central service that manages the simulation's lifecycle.
-|       It has been refactored to check for setup conditions (like needing a
-|       loan or trucks) on every daily tick, rather than only once at the start.
-================================================================================
-*/
-// import { BankApiClient } from './BankApiClient';
-// import { ThohApiClient } from './ThohApiClient';
-// import { ShipmentPlanner } from './ShipmentPlanner';
+import { ShipmentPlannerService } from "./ShipmentPlannerService";
+import { shipmentModel } from "../models/shipment";
+import { updateCompletionDate, updatePickupRequestStatuses } from "../models/pickupRequestRepository";
+import { PickupToShipmentItemDetails } from "../types";
+import { Item, LogisticsNotification } from "../types/notifications";
 
 import { thohApiClient } from "../client/thohClient";
 import { addVehicle } from "../models/vehicle";
 import type { TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
 
-const SIMULATION_TICK_INTERVAL_MS = 15000; // should be set to 2 minutes, is on 15 seconds for testing
+const SIMULATION_TICK_INTERVAL_MS = 3000; // should be set to 2 minutes, is on 15 seconds for testing
 
 export default class AutonomyService {
     private static instance: AutonomyService;
@@ -200,8 +194,8 @@ export default class AutonomyService {
             await this._checkAndPurchaseTrucks(); // Insert logic for first day operations.
 
             // --- Regular Daily Operations ---
-            await this._planAndDispatchShipments();
-            await this._notifyCompletedDeliveries();
+            const notificationDetails = await this._planAndDispatchShipments();
+            await this._notifyCompletedDeliveries(notificationDetails);
         } catch (error) {
             console.error("FATAL ERROR during daily tick.", error);
         } finally {
@@ -261,19 +255,53 @@ export default class AutonomyService {
     /**
      * Finds paid pickup requests and assigns vehicles to them.
      */
-    private async _planAndDispatchShipments(): Promise<void> {
+    private async _planAndDispatchShipments(): Promise<LogisticsNotification[]> {
         console.log("Morning Ops: Planning and dispatching shipments...");
-        // Logic for this would go here...
+        const planner = new ShipmentPlannerService();
+        let dropoffEntities: LogisticsNotification[] = [];
+        const { createdShipmentsPlan, plannedRequestIds } = await planner.planDailyShipments(this.currentSimulatedDate);
+        for (const plan of createdShipmentsPlan) {
+            try {
+                const newShipment = await shipmentModel.createShipment(plan.vehicle.vehicle_id, this.currentSimulatedDate);
+
+                for (const item of plan.itemsToAssign) {
+                    await shipmentModel.assignItemToShipmentWithPickupRequestItemId(item.pickup_request_item_id, newShipment.shipment_id);
+                }
+
+                for (const id in plannedRequestIds) {
+                    await updateCompletionDate(+id, this.currentSimulatedDate);
+                }
+                console.log(`PICKUP: Notifying ${plan.originCompanyName} that items for shipment ${newShipment.shipment_id} have been collected.`);
+            } catch (error) {
+                console.error(`Failed to commit shipment plan for vehicle ${plan.vehicle.vehicle_id}.`, error);
+            }
+            plan.itemsToAssign.forEach((item) =>
+                dropoffEntities.push({
+                    id: item.pickup_request_id,
+                    notificationURL: item.destinationCompanyUrl,
+                    type: "DELIVERY",
+                    items: [
+                        {
+                            name: item.itemName,
+                            quantity: item.quantity,
+                        },
+                    ],
+                }),
+            );
+        }
+        return dropoffEntities;
     }
 
     /**
      * Notifies destination companies that their goods have arrived.
      */
-    private async _notifyCompletedDeliveries(): Promise<void> {
+    private async _notifyCompletedDeliveries(notifications: LogisticsNotification[]): Promise<void> {
         console.log("Evening Ops: Notifying completed deliveries...");
-        // Logic for this would go here...
+        // TODO: instead of logging, we hit the client.
+
+        // then update all our pickup requests' completedDates
+        await updatePickupRequestStatuses(this.currentSimulatedDate);
     }
 }
 
-// Export a single instance to be used throughout the application.
 export const autonomyService = AutonomyService.getInstance();
