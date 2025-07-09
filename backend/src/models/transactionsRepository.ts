@@ -1,5 +1,6 @@
 import db from "../config/database";
 import { BankNotificationPayload, Result } from "../types";
+import { findAccountNumberByCompanyName } from "./companyRepository";
 
 export const findTransactions = async (): Promise<Result<any>> => {
     const query = `
@@ -204,17 +205,6 @@ export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
     }
 };
 
-const getOrCreateStatus = async (status: string): Promise<number> => {
-    const statusRes = await db.query(
-        `INSERT INTO transaction_status (status)
-   VALUES ($1)
-   ON CONFLICT (status) DO UPDATE SET status = EXCLUDED.status
-   RETURNING transaction_status_id`,
-        [status],
-    );
-    return statusRes.rows[0].transaction_status_id;
-};
-
 const getOrCreateCategory = async (direction: "in" | "out"): Promise<number> => {
     const categoryName = direction === "in" ? "Miscellaneous Incoming" : "Miscellaneous Outgoing";
 
@@ -240,7 +230,7 @@ const transactionExists = async (transactionNumber: string): Promise<boolean> =>
 };
 
 const insertTransaction = async (
-    t: BankNotificationPayload & { statusId: number; categoryId: number; transactionDate: Date },
+    t: BankNotificationPayload & { statusName: string; categoryId: number; transactionDate: Date },
 ): Promise<Result<any>> => {
     const query = `INSERT INTO bank_transactions_ledger (
      commercial_bank_transaction_id,
@@ -249,28 +239,20 @@ const insertTransaction = async (
      transaction_date,
      transaction_status_id
    )
-   VALUES ($1, $2, $3, $4, $5)`;
+   VALUES ($1, $2, $3, $4, (SELECT transaction_status_id FROM transaction_status WHERE status = $5))`;
     try {
-        const result = await db.query(query, [t.transaction_number, t.categoryId, t.amount, t.transactionDate, t.statusId]);
+        const result = await db.query(query, [t.transaction_number, t.categoryId, t.amount, t.transactionDate, t.statusName]);
         return { ok: true, value: result };
     } catch (error) {
         return { ok: false, error: error as Error };
     }
 };
 
-export const findAccountNumber = async (companyName: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        resolve("1234567890");
-        reject("Couldnt find account number");
-    });
-};
-
-export const createLedgerEntry = async (transaction: BankNotificationPayload) => {
+export const createLedgerEntry = async (transaction: BankNotificationPayload & { statusName: string }) => {
     try {
         await db.query("BEGIN");
 
-        const statusId = await getOrCreateStatus(transaction.status);
-        const direction: "in" | "out" = transaction.to === (await findAccountNumber("bulk-logistics")) ? "in" : "out";
+        const direction: "in" | "out" = transaction.to === (await findAccountNumberByCompanyName("bulk-logistics")) ? "in" : "out";
 
         const categoryId = await getOrCreateCategory(direction);
 
@@ -283,7 +265,6 @@ export const createLedgerEntry = async (transaction: BankNotificationPayload) =>
 
         await insertTransaction({
             ...transaction,
-            statusId,
             categoryId,
             transactionDate,
         });

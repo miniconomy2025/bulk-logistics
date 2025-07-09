@@ -17,7 +17,8 @@ export const bankNotification = async (req: Request, res: Response): Promise<voi
         return;
     }
 
-    const response = await createLedgerEntry(transaction);
+    const statusName = transaction.status;
+    const response = await createLedgerEntry({ ...transaction, statusName });
 
     switch (response) {
         case 409:
