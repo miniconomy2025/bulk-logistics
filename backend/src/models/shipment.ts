@@ -57,10 +57,10 @@ class ShipmentModel {
         const query = `
         UPDATE pickup_request_item
         SET shipment_id = $2
-        WHERE pickup_request_item_id = $1;`
+        WHERE pickup_request_item_id = $1;`;
 
-        await db.query(query, [pickupRequestItemId, shipmentId])
-    }
+        await db.query(query, [pickupRequestItemId, shipmentId]);
+    };
 
     createShipment = async (vehicleId: number, dispatchDate: Date) => {
         const query = `
@@ -70,7 +70,7 @@ class ShipmentModel {
     `;
         const result = await db.query(query, [vehicleId, dispatchDate]);
         return result.rows[0];
-    }
+    };
 }
 
 const shipmentModel = new ShipmentModel();

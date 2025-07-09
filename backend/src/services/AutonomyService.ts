@@ -225,23 +225,22 @@ export default class AutonomyService {
                     await updateCompletionDate(+id, this.currentSimulatedDate);
                 }
                 console.log(`PICKUP: Notifying ${plan.originCompanyName} that items for shipment ${newShipment.shipment_id} have been collected.`);
-
             } catch (error) {
                 console.error(`Failed to commit shipment plan for vehicle ${plan.vehicle.vehicle_id}.`, error);
             }
-            plan.itemsToAssign.forEach(item => 
+            plan.itemsToAssign.forEach((item) =>
                 dropoffEntities.push({
                     id: item.pickup_request_id,
                     notificationURL: item.destinationCompanyUrl,
-                    type: 'DELIVERY',
+                    type: "DELIVERY",
                     items: [
                         {
                             name: item.itemName,
-                            quantity: item.quantity
-                        }
-                    ]
-                }
-            ));
+                            quantity: item.quantity,
+                        },
+                    ],
+                }),
+            );
         }
         return dropoffEntities;
     }
