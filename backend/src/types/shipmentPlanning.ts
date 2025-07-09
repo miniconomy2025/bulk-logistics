@@ -16,6 +16,6 @@ export interface ShipmentPlan {
 }
 
 export interface DailyPlanOutput {
-    createdShipmentsPlan: ShipmentPlan[],
-    plannedRequestIds: number[]
+    createdShipmentsPlan: ShipmentPlan[];
+    plannedRequestIds: number[];
 }
