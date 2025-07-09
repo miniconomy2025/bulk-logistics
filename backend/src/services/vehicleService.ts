@@ -25,7 +25,7 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
 
     const repeatVehicle = (vehicle: VehicleWithType[], count: number) => {
         for (let i = 0; i < count; i++) {
-            selectedVehicles.push(vehicle[count % i]);
+            selectedVehicles.push(vehicle[i % vehicle.length]);
         }
     };
 

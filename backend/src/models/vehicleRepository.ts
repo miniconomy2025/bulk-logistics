@@ -49,7 +49,6 @@ export const getAllVehiclesWithType = async (): Promise<VehicleWithType[]> => {
   `;
 
     const result = await database.query(query);
-
     return result.rows.map((row) => ({
         vehicle_id: row.vehicle_id,
         is_active: row.is_active,
@@ -57,6 +56,7 @@ export const getAllVehiclesWithType = async (): Promise<VehicleWithType[]> => {
         purchase_date: row.purchase_date,
         daily_operational_cost: parseFloat(row.daily_operational_cost),
         is_in_active_shipment: row.is_in_active_shipment,
+        max_pickups_per_day: row.vt_max_pickups,
         vehicle_type: {
             vehicle_type_id: row.vt_id,
             name: row.vt_name,
@@ -121,6 +121,7 @@ export const getVehicleForShipmentId = async (shipmentId: number): Promise<Vehic
         vehicle_type_id: row.vehicle_type_id,
         purchase_date: row.purchase_date,
         daily_operational_cost: row.vt_cost,
+        max_pickups_per_day: row.vt_max_pickups,
         vehicle_type: {
             vehicle_type_id: row.vt_id,
             name: row.vt_name,
@@ -163,6 +164,7 @@ export const getAvailableVehiclesWithType = async (): Promise<VehicleWithType[]>
         vehicle_type_id: row.vehicle_type_id,
         daily_operational_cost: row.daily_operational_cost,
         purchase_date: row.purchase_date,
+        max_pickups_per_day: row.vt_max_pickups,
         vehicle_type: {
             vehicle_type_id: row.vt_id,
             name: row.vt_name,

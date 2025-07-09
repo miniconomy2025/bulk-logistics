@@ -1,16 +1,8 @@
-/*
-================================================================================
-| FILE: /src/services/AutonomyService.ts (REFACTORED)
-| DESC: The central service that manages the simulation's lifecycle.
-|       It has been refactored to check for setup conditions (like needing a
-|       loan or trucks) on every daily tick, rather than only once at the start.
-================================================================================
-*/
-// import { BankApiClient } from './BankApiClient';
-// import { ThohApiClient } from './ThohApiClient';
-// import { ShipmentPlanner } from './ShipmentPlanner';
+import { ShipmentPlannerService } from "./ShipmentPlannerService";
+import { shipmentModel } from "../models/shipment";
+import { updateCompletionDate } from "../models/pickupRequestRepository";
 
-const SIMULATION_TICK_INTERVAL_MS = 15000; // should be set to 2 minutes, is on 15 seconds for testing
+const SIMULATION_TICK_INTERVAL_MS = 3000; // should be set to 2 minutes, is on 15 seconds for testing
 
 export default class AutonomyService {
     private static instance: AutonomyService;
@@ -216,7 +208,33 @@ export default class AutonomyService {
      */
     private async _planAndDispatchShipments(): Promise<void> {
         console.log("Morning Ops: Planning and dispatching shipments...");
-        // Logic for this would go here...
+        
+        const planner = new ShipmentPlannerService();
+        
+        // 1. Call the planner to get the calculated plan for the day.
+        const {createdShipmentsPlan, plannedRequestIds} = await planner.planDailyShipments(this.currentSimulatedDate); 
+        // 2. Execute the plan: Loop through the returned plans and commit to DB.
+        for (const plan of createdShipmentsPlan) {
+            try {
+                // a. Create the main shipment record
+                const newShipment = await shipmentModel.createShipment(plan.vehicle.vehicle_id, this.currentSimulatedDate);
+
+                // b. Assign all items for this shipment
+                for (const item of plan.itemsToAssign) {
+                    await shipmentModel.assignItemToShipmentWithPickupRequestItemId(item.pickup_request_item_id, newShipment.shipment_id);
+                }
+
+                for (const id in plannedRequestIds){
+                    await updateCompletionDate(+id, this.currentSimulatedDate);
+                }
+                // c. Log the pickup notification (replaces API call)
+                console.log(`PICKUP: Notifying ${plan.originCompanyName} that items for shipment ${newShipment.shipment_id} have been collected.`);
+
+            } catch (error) {
+                console.error(`Failed to commit shipment plan for vehicle ${plan.vehicle.vehicle_id}.`, error);
+                // Continue to the next plan even if one fails.
+            }
+        }
     }
 
     /**

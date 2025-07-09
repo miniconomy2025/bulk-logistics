@@ -4,7 +4,9 @@ RETURNS TABLE (
     vehicle_type_id INT,
     is_active BOOLEAN,
     "vehicleType" VARCHAR, -- Or appropriate string type for your vehicle_type name
-    maximum_capacity INT
+    maximum_capacity INT,
+    capacity_type_id INT,
+    max_pickups_per_day INT
 )
 LANGUAGE plpgsql
 AS $$
@@ -15,7 +17,9 @@ BEGIN
         v.vehicle_type_id,
         v.is_active,
         vt.name AS "vehicleType",
-        vt.maximum_capacity
+        vt.maximum_capacity,
+        vt.capacity_type_id,
+        vt.max_pickups_per_day
     FROM
         vehicle v
     INNER JOIN

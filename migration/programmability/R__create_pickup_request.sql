@@ -95,11 +95,11 @@ BEGIN
     -- 5. Create an associated entry in bank_transactions_ledger
     SELECT transaction_category_id INTO v_transaction_category_id
     FROM transaction_category
-    WHERE name = 'INBOUND_LOGISTICS_FEE';
+    WHERE name = 'PAYMENT_RECEIVED';
 
     SELECT transaction_status_id INTO v_transaction_status_id
     FROM transaction_status
-    WHERE status = 'PENDING';
+    WHERE status = 'Pending';
 
     INSERT INTO bank_transactions_ledger (
         commercial_bank_transaction_id,
@@ -109,7 +109,7 @@ BEGIN
         transaction_date,
         transaction_status_id,
         related_pickup_request_id,
-        related_loan_id,
+        loan_id,
         related_thoh_order_id
     ) VALUES (
         NULL,
