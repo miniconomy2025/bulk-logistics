@@ -146,17 +146,4 @@ export class ShipmentPlannerService {
             plans.get(vehicleId)!.itemsToAssign.push(...plan.items);
         }
     }
-
-    /**
-     * Writes the final, calculated shipment plans to the database.
-     */
-    private async _commitPlansToDatabase(plans: Map<number, ShipmentPlan>, date: Date): Promise<void> {
-        for (const [vehicleId, plan] of plans.entries()) {
-            const newShipment = await shipmentModel.createShipment(vehicleId, date);
-
-            for (const item of plan.itemsToAssign) {
-                await shipmentModel.assignItemToShipmentWithPickupRequestItemId(item.pickup_request_item_id, newShipment.shipment_id);
-            }
-        }
-    }
 }

@@ -67,7 +67,7 @@ CREATE TABLE vehicle_type (
       ON DELETE RESTRICT,
   maximum_capacity     INTEGER     NOT NULL,
   max_pickups_per_day  INTEGER     NOT NULL,
-  max_dropoffs_per_day INTEGER     NOT NULL
+  max_dropoffs_per_day INTEGER     NOT NULL,
 );
 
 CREATE TABLE vehicle (
@@ -78,7 +78,8 @@ CREATE TABLE vehicle (
     REFERENCES vehicle_type (vehicle_type_id)
       ON UPDATE CASCADE
       ON DELETE RESTRICT,
-  purchase_date   DATE    NOT NULL
+  purchase_date   DATE    NOT NULL,
+  disabled_date   DATE
 );
 
 CREATE TABLE pickup_requests (
