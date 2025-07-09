@@ -1,23 +1,5 @@
+import { CreateAccountResponse, GetBalanceResponse, LoanApplicationRequest, LoanApplicationResponse } from "../types";
 import { BaseApiClient } from "./baseClient";
-
-interface LoanApplicationRequest {
-    amount: number;
-    companyIdentifier: string;
-}
-
-interface LoanApplicationResponse {
-    loanId: string;
-    status: "APPROVED" | "REJECTED";
-}
-
-interface CreateAccountResponse {
-    account_number: string;
-    net_balance: number;
-}
-
-interface GetBalanceResponse {
-    balance: number;
-}
 
 class BankClient extends BaseApiClient {
     constructor() {
