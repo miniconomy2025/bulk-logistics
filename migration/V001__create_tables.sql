@@ -44,6 +44,7 @@ CREATE TABLE transaction_status (
 CREATE TABLE company (
   company_id             SERIAL PRIMARY KEY,
   company_name           VARCHAR(150) NOT NULL UNIQUE,
+  company_url VARCHAR(255) NOT NULL UNIQUE,
   certificate_identifier VARCHAR(255) NOT NULL UNIQUE,
   bank_account_number    VARCHAR(50)  UNIQUE
 );
