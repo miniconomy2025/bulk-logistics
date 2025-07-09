@@ -24,7 +24,7 @@ export const getCompanyByName = async (companyName: string): Promise<Company | n
         FROM company
         WHERE company_name = $1
     `;
-    
+
     const result = await database.query(query, [companyName]);
 
     if (result.rows.length === 0) return null;

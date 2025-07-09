@@ -1,14 +1,13 @@
-import { LogisticsNotification, LogisticsNotificationResponse } from '../types/notifications';
-import { BaseApiClient } from './baseClient';
+import { LogisticsNotification, LogisticsNotificationResponse } from "../types/notifications";
+import { BaseApiClient } from "./baseClient";
 
 class NotificationApiClient extends BaseApiClient {
-
     constructor() {
-        super('', 'NotificationService');
+        super("", "NotificationService");
     }
 
-    private readonly NotificationEndpoint = '/logistics';
-  
+    private readonly NotificationEndpoint = "/logistics";
+
     public async sendLogisticsNotification(notification: LogisticsNotification): Promise<LogisticsNotificationResponse> {
         return await this.client.post<LogisticsNotificationResponse>(`${notification.notificationURL}${this.NotificationEndpoint}`, notification);
     }
