@@ -49,11 +49,11 @@ export const getCompanyByName = async (companyName: string): Promise<Company | n
 };
 
 export const updateCompanyDetails = async (
-    companyName: string, 
-    details: { 
-        certificateIdentifier?: string | null; 
+    companyName: string,
+    details: {
+        certificateIdentifier?: string | null;
         bankAccountNumber?: string | null;
-    }
+    },
 ): Promise<Company | null> => {
     const query = `
         UPDATE company
@@ -64,14 +64,10 @@ export const updateCompanyDetails = async (
             company_name = $3
         RETURNING *;
     `;
-    
+
     // Pass the new details and the company name as parameters.
     // If a detail is not provided, its value will be 'undefined', which the pg driver converts to NULL.
-    const values = [
-        details.certificateIdentifier, 
-        details.bankAccountNumber, 
-        companyName
-    ];
+    const values = [details.certificateIdentifier, details.bankAccountNumber, companyName];
 
     const result = await database.query(query, values);
 
