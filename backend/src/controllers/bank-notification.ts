@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
 import { BankNotificationPayload } from "../types";
-import { createLedgerEntry, findAccountNumber } from "../models/transactionsRepository";
+import { createLedgerEntry } from "../models/transactionsRepository";
+import { findAccountNumberByCompanyName } from "../models/companyRepository";
 
 export const bankNotification = async (req: Request, res: Response): Promise<void> => {
     const transaction = req.body as BankNotificationPayload;
 
-    const bankAccount = await findAccountNumber("bulk-logistics");
+    const bankAccount = await findAccountNumberByCompanyName("bulk-logistics");
 
     if (!validateTransaction(transaction)) {
         res.status(400).json({ error: "Invalid transaction data" });
@@ -18,6 +19,8 @@ export const bankNotification = async (req: Request, res: Response): Promise<voi
     }
 
     const statusName = transaction.status;
+    const categoryId = transaction.status;
+
     const response = await createLedgerEntry({ ...transaction, statusName });
 
     switch (response) {

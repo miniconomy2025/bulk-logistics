@@ -205,17 +205,13 @@ export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
     }
 };
 
-const getOrCreateCategory = async (direction: "in" | "out"): Promise<number> => {
-    const categoryName = direction === "in" ? "Miscellaneous Incoming" : "Miscellaneous Outgoing";
-
-    const categoryRes = await db.query(
-        `INSERT INTO transaction_category (name, money_direction)
-   VALUES ($1, $2)
-   ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
-   RETURNING transaction_category_id`,
-        [categoryName, direction],
+const getCategoryId = async (direction: "in" | "out"): Promise<number> => {
+    const result = await db.query(
+        `
+        SELECT 1 transaction_category_id FROM transaction_category WHERE name $1`,
+        [direction],
     );
-    return categoryRes.rows[0].transaction_category_id;
+    return result.rows[0]?.transaction_category_id || null;
 };
 
 const transactionExists = async (transactionNumber: string): Promise<boolean> => {
@@ -254,7 +250,7 @@ export const createLedgerEntry = async (transaction: BankNotificationPayload & {
 
         const direction: "in" | "out" = transaction.to === (await findAccountNumberByCompanyName("bulk-logistics")) ? "in" : "out";
 
-        const categoryId = await getOrCreateCategory(direction);
+        const categoryId = await getCategoryId(direction);
 
         const transactionDate = new Date(transaction.timestamp * 1000);
 
