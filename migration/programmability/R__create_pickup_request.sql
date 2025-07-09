@@ -2,8 +2,15 @@
 -- REPLACE LATER WHEN WE HAVE CONFIG SET UP
 CREATE OR REPLACE FUNCTION get_bulk_logistics_bank_account()
 RETURNS VARCHAR(50) AS $$
+DECLARE
+    v_account_number VARCHAR(50);
 BEGIN
-    RETURN 'BL1234567890'; -- Replace with our actual bank account number. How else are we gonna get this? Can pass it in query from config perhaps.
+    SELECT bank_account_number 
+    INTO v_account_number
+    FROM company 
+    WHERE company_name = 'bulk-logistics';
+
+    RETURN v_account_number;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -95,11 +102,11 @@ BEGIN
     -- 5. Create an associated entry in bank_transactions_ledger
     SELECT transaction_category_id INTO v_transaction_category_id
     FROM transaction_category
-    WHERE name = 'INBOUND_LOGISTICS_FEE';
+    WHERE name = 'PAYMENT_RECEIVED';
 
     SELECT transaction_status_id INTO v_transaction_status_id
     FROM transaction_status
-    WHERE status = 'PENDING';
+    WHERE status = 'Pending';
 
     INSERT INTO bank_transactions_ledger (
         commercial_bank_transaction_id,
@@ -109,7 +116,7 @@ BEGIN
         transaction_date,
         transaction_status_id,
         related_pickup_request_id,
-        related_loan_id,
+        loan_id,
         related_thoh_order_id
     ) VALUES (
         NULL,

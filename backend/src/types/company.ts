@@ -1,5 +1,7 @@
-export interface User {
+export interface Company {
     id: number;
     companyName: string;
-    apiKey: string;
+    companyURL: string;
+    certificateIdentifier?: string;
+    bankAccountNumber?: string;
 }

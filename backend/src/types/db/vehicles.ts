@@ -17,6 +17,7 @@ export interface Vehicle {
 }
 export interface VehicleWithType extends Vehicle {
     vehicle_type: VehicleType;
+    max_pickups_per_day: number;
 }
 
 export interface GetVehicleResult {

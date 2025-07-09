@@ -22,6 +22,8 @@
             - //! ELSE stop shipment creation
 */
 
+// I think this is deprecated. I dont use it + it was incomplete.
+
 import { MeasurementType } from "../enums";
 import { findUnshippedItems } from "../models/pickupRequestItem";
 import { findAvailableVehicles } from "../models/vehicle";

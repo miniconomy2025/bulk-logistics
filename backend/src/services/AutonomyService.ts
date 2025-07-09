@@ -1,16 +1,15 @@
-/*
-================================================================================
-| FILE: /src/services/AutonomyService.ts (REFACTORED)
-| DESC: The central service that manages the simulation's lifecycle.
-|       It has been refactored to check for setup conditions (like needing a
-|       loan or trucks) on every daily tick, rather than only once at the start.
-================================================================================
-*/
-// import { BankApiClient } from './BankApiClient';
-// import { ThohApiClient } from './ThohApiClient';
-// import { ShipmentPlanner } from './ShipmentPlanner';
+import { ShipmentPlannerService } from "./ShipmentPlannerService";
+import { shipmentModel } from "../models/shipment";
+import { updateCompletionDate, updatePickupRequestStatuses } from "../models/pickupRequestRepository";
+import { PickupToShipmentItemDetails } from "../types";
+import { Item, LogisticNotificationsGrouped, LogisticsNotification } from "../types/notifications";
 
-const SIMULATION_TICK_INTERVAL_MS = 15000; // should be set to 2 minutes, is on 15 seconds for testing
+import { thohApiClient } from "../client/thohClient";
+import { addVehicle } from "../models/vehicle";
+import type { TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
+import { timer } from "rxjs";
+
+const SIMULATION_TICK_INTERVAL_MS = 3000; // should be set to 2 minutes, is on 15 seconds for testing
 
 export default class AutonomyService {
     private static instance: AutonomyService;
@@ -122,9 +121,51 @@ export default class AutonomyService {
                 ============started_at: string;
                 ============write_off: boolean;
                 ========}
-            5. We purchase our trucks-> for now we assume that they will delivred instanbtly (info in the response) but we can only use them on the next day.
+            5. We purchase our trucks-> for now we assume that they will delivered instantly (info in the response) but we can only use them on the next day.
                     Create trucks, set active to false, until they are "eligible", then we set active to true. 
         */
+
+        //3. Figure out cost of [3 large, 3 medium, 3 small] vehicles from the hand (handClient) -> we have our needed loan amount.
+        const requiredTrucks: TruckPurchaseRequest[] = [
+            { truckName: "large_truck", quantity: 3 },
+            { truckName: "medium_truck", quantity: 3 },
+            { truckName: "small", quantity: 3 },
+        ];
+
+        const truckPriceMap: { [key: string]: number } = {};
+
+        const trucksInfo = await thohApiClient.getTrucksInformation();
+
+        trucksInfo.forEach((truck) => {
+            truckPriceMap[truck.truckName] = truck.price;
+        });
+
+        const trucksCost = requiredTrucks.reduce((overallCost, truck) => {
+            return (overallCost += truckPriceMap[truck.truckName] * truck.quantity);
+        }, 0);
+
+        //4. Request Loan
+
+        //5. Purchase trucks
+        const truckPurchasePromises: Promise<TruckPurchaseResponse | undefined>[] = [];
+        requiredTrucks.forEach((truckInfo) => {
+            truckPurchasePromises.push(this._checkAndPurchaseTrucks(truckInfo));
+        });
+
+        // Wait for all the started operations to complete
+        const purchasedTrucks = await Promise.all(truckPurchasePromises);
+
+        for (const truck of purchasedTrucks) {
+            // Make sure the truck data is valid before saving
+            if (truck) {
+                await addVehicle({
+                    type: truck.truckName,
+                    purchase_date: this.currentSimulatedDate.toISOString(),
+                    operational_cost: Number(truck.operatingCostPerDay.split("/")[0]), // THOH should change this to a number
+                    load_capacity: truck.maximumLoad,
+                });
+            }
+        }
     }
     /**
      * The main "cron job" that runs on every interval.
@@ -151,11 +192,19 @@ export default class AutonomyService {
             // --- Condition-Based Setup Tasks ---
             // These now run at the start of each day to check if they are needed.
             await this._checkAndSecureLoan(); // Insert logic for first day operations.
-            await this._checkAndPurchaseTrucks(); // Insert logic for first day operations.
+            //await this._checkAndPurchaseTrucks(); // Insert logic for first day operations.
 
             // --- Regular Daily Operations ---
-            await this._planAndDispatchShipments();
-            await this._notifyCompletedDeliveries();
+            const notificationDetails = await this._planAndDispatchShipments();
+
+            await this._notifyPickedUpDeliveries(notificationDetails.pickups);
+            const delayedObservable = timer(10000);
+            const subscription =  delayedObservable.subscribe({
+                next: async () => {
+                    console.log("10 seconds have passed!!!!")
+                    await this._notifyCompletedDeliveries(notificationDetails.dropoffs);
+                }
+                });
         } catch (error) {
             console.error("FATAL ERROR during daily tick.", error);
         } finally {
@@ -189,44 +238,103 @@ export default class AutonomyService {
     /**
      * Checks if new trucks are needed and purchases them if conditions are met.
      */
-    private async _checkAndPurchaseTrucks(): Promise<void> {
+    private async _checkAndPurchaseTrucks(truckInfo: TruckPurchaseRequest): Promise<TruckPurchaseResponse | undefined> {
         // This check will only run if we have a loan to pay for the trucks.
         if (!this.hasActiveLoan) {
-            return;
+            // should be modified to check available funds as well, assuming we might need to buy trucks from our own funds once accumulated enough
+            const loanRequest = await this._checkAndSecureLoan();
+
+            // if (loanRequest.data && this.hasActiveLoan) {
+            //     // To be updated once loan request has been implemented
+            //     return await this._checkAndPurchaseTrucks(truckInfo); // try purchasing the truck/s again
+            // }
         }
-        // If we dont have a loan, lets get another one and get more trucks. Maybe we should keep track of our profit somewhere lol.
 
-        // TODO: Replace this with our actual business logic.
-        const needsTrucks = this.truckCount < 5;
+        try {
+            console.log("Condition met: Purchasing initial fleet of trucks...");
+            const purchaseResult = await thohApiClient.purchaseTruck(truckInfo);
+            this.truckCount += purchaseResult.quantity; // Update state upon success
 
-        if (needsTrucks) {
-            try {
-                console.log("Condition met: Purchasing initial fleet of trucks...");
-                // const purchaseResult = await ThohApiClient.purchaseTrucks({ count: 5 });
-                this.truckCount = 5; // Update state upon success
-                console.log("Trucks purchased and state updated.");
-            } catch (error) {
-                console.error("Failed to purchase trucks.", error);
-            }
+            return purchaseResult;
+        } catch (error) {
+            console.error("Failed to purchase trucks.", error);
         }
     }
 
     /**
      * Finds paid pickup requests and assigns vehicles to them.
      */
-    private async _planAndDispatchShipments(): Promise<void> {
+    private async _planAndDispatchShipments(): Promise<LogisticNotificationsGrouped> {
         console.log("Morning Ops: Planning and dispatching shipments...");
-        // Logic for this would go here...
+        const planner = new ShipmentPlannerService();
+        let dropoffEntities: LogisticsNotification[] = [];
+        let pickupEntities: LogisticsNotification[] = [];
+        const { createdShipmentsPlan, plannedRequestIds } = await planner.planDailyShipments(this.currentSimulatedDate);
+        for (const plan of createdShipmentsPlan) {
+            try {
+                const newShipment = await shipmentModel.createShipment(plan.vehicle.vehicle_id, this.currentSimulatedDate);
+
+                for (const item of plan.itemsToAssign) {
+                    await shipmentModel.assignItemToShipmentWithPickupRequestItemId(item.pickup_request_item_id, newShipment.shipment_id);
+                }
+
+                for (const id in plannedRequestIds) {
+                    await updateCompletionDate(+id, this.currentSimulatedDate);
+                }
+                console.log(`PICKUP: Notifying ${plan.originCompanyName} that items for shipment ${newShipment.shipment_id} have been collected.`);
+
+            } catch (error) {
+                console.error(`Failed to commit shipment plan for vehicle ${plan.vehicle.vehicle_id}.`, error);
+            }
+            plan.itemsToAssign.forEach(item => {
+                console.log(item.originCompanyUrl);
+                pickupEntities.push({
+                    id: item.originalExternalOrderId,
+                    notificationURL: item.originCompanyUrl,
+                    type: 'PICKUP',
+                    items: [
+                        {
+                            name: item.itemName,
+                            quantity: item.quantity
+                        }
+                    ]
+                });
+                dropoffEntities.push({
+                    id: item.pickup_request_id,
+                    notificationURL: item.destinationCompanyUrl,
+                    type: 'DELIVERY',
+                    items: [
+                        {
+                            name: item.itemName,
+                            quantity: item.quantity
+                        }
+                    ]
+                });
+            }
+            );
+
+        }
+        return {dropoffs: dropoffEntities, pickups: pickupEntities};
     }
 
     /**
      * Notifies destination companies that their goods have arrived.
      */
-    private async _notifyCompletedDeliveries(): Promise<void> {
+    private async _notifyCompletedDeliveries(notifications: LogisticsNotification[]): Promise<void> {
         console.log("Evening Ops: Notifying completed deliveries...");
-        // Logic for this would go here...
+        // TODO: instead of logging, we hit the client.
+        // then update all our pickup requests' completedDates
+        await updatePickupRequestStatuses(this.currentSimulatedDate);
+        console.log("Dropped Off",notifications)
+    }
+
+    private async _notifyPickedUpDeliveries(notifications: LogisticsNotification[]): Promise<void> {
+        console.log("Morning Ops: Notifying picked up deliveries...");
+        // TODO: instead of logging, we hit the client.
+        console.log("Picked up:",notifications);
+        // then update all our pickup requests' completedDates
+        //await updatePickupRequestStatuses(this.currentSimulatedDate);
     }
 }
 
-// Export a single instance to be used throughout the application.
 export const autonomyService = AutonomyService.getInstance();

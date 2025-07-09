@@ -52,6 +52,25 @@ class ShipmentModel {
             throw new Error(error.message);
         }
     };
+
+    assignItemToShipmentWithPickupRequestItemId = async (pickupRequestItemId: number, shipmentId: number) => {
+        const query = `
+        UPDATE pickup_request_item
+        SET shipment_id = $2
+        WHERE pickup_request_item_id = $1;`;
+
+        await db.query(query, [pickupRequestItemId, shipmentId]);
+    };
+
+    createShipment = async (vehicleId: number, dispatchDate: Date) => {
+        const query = `
+        INSERT INTO shipments (vehicle_id, dispatch_date, shipment_status_id)
+        VALUES ($1, $2, (SELECT shipment_status_id FROM shipment_status WHERE name = 'PENDING'))
+        RETURNING *;
+    `;
+        const result = await db.query(query, [vehicleId, dispatchDate]);
+        return result.rows[0];
+    };
 }
 
 const shipmentModel = new ShipmentModel();
