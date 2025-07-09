@@ -60,7 +60,7 @@ CREATE TABLE vehicle_type (
 
 CREATE TABLE vehicle (
   vehicle_id      SERIAL PRIMARY KEY,
-  is_active       BOOLEAN NOT NULL,
+  is_active       BOOLEAN NOT NULL DEFAULT TRUE,
   daily_operational_cost NUMERIC(10,2) NOT NULL,
   vehicle_type_id INTEGER NOT NULL
     REFERENCES vehicle_type (vehicle_type_id)
