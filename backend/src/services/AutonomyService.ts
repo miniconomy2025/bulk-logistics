@@ -2,11 +2,12 @@ import { ShipmentPlannerService } from "./ShipmentPlannerService";
 import { shipmentModel } from "../models/shipment";
 import { updateCompletionDate, updatePickupRequestStatuses } from "../models/pickupRequestRepository";
 import { PickupToShipmentItemDetails } from "../types";
-import { Item, LogisticsNotification } from "../types/notifications";
+import { Item, LogisticNotificationsGrouped, LogisticsNotification } from "../types/notifications";
 
 import { thohApiClient } from "../client/thohClient";
 import { addVehicle } from "../models/vehicle";
 import type { TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
+import { timer } from "rxjs";
 
 const SIMULATION_TICK_INTERVAL_MS = 3000; // should be set to 2 minutes, is on 15 seconds for testing
 
@@ -191,11 +192,19 @@ export default class AutonomyService {
             // --- Condition-Based Setup Tasks ---
             // These now run at the start of each day to check if they are needed.
             await this._checkAndSecureLoan(); // Insert logic for first day operations.
-            await this._checkAndPurchaseTrucks(); // Insert logic for first day operations.
+            //await this._checkAndPurchaseTrucks(); // Insert logic for first day operations.
 
             // --- Regular Daily Operations ---
             const notificationDetails = await this._planAndDispatchShipments();
-            await this._notifyCompletedDeliveries(notificationDetails);
+
+            await this._notifyPickedUpDeliveries(notificationDetails.pickups);
+            const delayedObservable = timer(10000);
+            const subscription =  delayedObservable.subscribe({
+                next: async () => {
+                    console.log("10 seconds have passed!!!!")
+                    await this._notifyCompletedDeliveries(notificationDetails.dropoffs);
+                }
+                });
         } catch (error) {
             console.error("FATAL ERROR during daily tick.", error);
         } finally {
@@ -235,10 +244,10 @@ export default class AutonomyService {
             // should be modified to check available funds as well, assuming we might need to buy trucks from our own funds once accumulated enough
             const loanRequest = await this._checkAndSecureLoan();
 
-            if (loanRequest.data && this.hasActiveLoan) {
-                // To be updated once loan request has been implemented
-                return await this._checkAndPurchaseTrucks(truckInfo); // try purchasing the truck/s again
-            }
+            // if (loanRequest.data && this.hasActiveLoan) {
+            //     // To be updated once loan request has been implemented
+            //     return await this._checkAndPurchaseTrucks(truckInfo); // try purchasing the truck/s again
+            // }
         }
 
         try {
@@ -255,10 +264,11 @@ export default class AutonomyService {
     /**
      * Finds paid pickup requests and assigns vehicles to them.
      */
-    private async _planAndDispatchShipments(): Promise<LogisticsNotification[]> {
+    private async _planAndDispatchShipments(): Promise<LogisticNotificationsGrouped> {
         console.log("Morning Ops: Planning and dispatching shipments...");
         const planner = new ShipmentPlannerService();
         let dropoffEntities: LogisticsNotification[] = [];
+        let pickupEntities: LogisticsNotification[] = [];
         const { createdShipmentsPlan, plannedRequestIds } = await planner.planDailyShipments(this.currentSimulatedDate);
         for (const plan of createdShipmentsPlan) {
             try {
@@ -272,24 +282,39 @@ export default class AutonomyService {
                     await updateCompletionDate(+id, this.currentSimulatedDate);
                 }
                 console.log(`PICKUP: Notifying ${plan.originCompanyName} that items for shipment ${newShipment.shipment_id} have been collected.`);
+
             } catch (error) {
                 console.error(`Failed to commit shipment plan for vehicle ${plan.vehicle.vehicle_id}.`, error);
             }
-            plan.itemsToAssign.forEach((item) =>
-                dropoffEntities.push({
-                    id: item.pickup_request_id,
-                    notificationURL: item.destinationCompanyUrl,
-                    type: "DELIVERY",
+            plan.itemsToAssign.forEach(item => {
+                console.log(item.originCompanyUrl);
+                pickupEntities.push({
+                    id: item.originalExternalOrderId,
+                    notificationURL: item.originCompanyUrl,
+                    type: 'PICKUP',
                     items: [
                         {
                             name: item.itemName,
-                            quantity: item.quantity,
-                        },
-                    ],
-                }),
+                            quantity: item.quantity
+                        }
+                    ]
+                });
+                dropoffEntities.push({
+                    id: item.pickup_request_id,
+                    notificationURL: item.destinationCompanyUrl,
+                    type: 'DELIVERY',
+                    items: [
+                        {
+                            name: item.itemName,
+                            quantity: item.quantity
+                        }
+                    ]
+                });
+            }
             );
+
         }
-        return dropoffEntities;
+        return {dropoffs: dropoffEntities, pickups: pickupEntities};
     }
 
     /**
@@ -298,9 +323,17 @@ export default class AutonomyService {
     private async _notifyCompletedDeliveries(notifications: LogisticsNotification[]): Promise<void> {
         console.log("Evening Ops: Notifying completed deliveries...");
         // TODO: instead of logging, we hit the client.
-
         // then update all our pickup requests' completedDates
         await updatePickupRequestStatuses(this.currentSimulatedDate);
+        console.log("Dropped Off",notifications)
+    }
+
+    private async _notifyPickedUpDeliveries(notifications: LogisticsNotification[]): Promise<void> {
+        console.log("Morning Ops: Notifying picked up deliveries...");
+        // TODO: instead of logging, we hit the client.
+        console.log("Picked up:",notifications);
+        // then update all our pickup requests' completedDates
+        //await updatePickupRequestStatuses(this.currentSimulatedDate);
     }
 }
 

@@ -98,7 +98,8 @@ export const findPickupRequestsByCompanyId = async (companyId: string): Promise<
 };
 
 export const findPaidAndUnshippedRequests = async () => {
-    const query = `SELECT
+    const query = 
+    `SELECT
         pr.pickup_request_id as "pickupRequestId",
         rc.company_name as "requestingCompanyName",
         oc.company_name as "originCompanyName",
@@ -117,7 +118,9 @@ export const findPaidAndUnshippedRequests = async () => {
                 'quantity', pri.quantity,
                 'capacity_type_id', idf.capacity_type_id,
                 'shipment_id', pri.shipment_id,
-                'destinationCompanyUrl', dc.company_url -- <-- ADDED
+                'destinationCompanyUrl', dc.company_url,
+                'originCompanyUrl', oc.company_url,
+                'originalExternalOrderId', pr.original_external_order_id
             )), '[]'::json)
             FROM pickup_request_item pri
             JOIN item_definitions idf ON pri.item_definition_id = idf.item_definition_id
@@ -140,13 +143,13 @@ export const findPaidAndUnshippedRequests = async () => {
     const result = await database.query(query);
 
     return result.rows;
-};
+}
 
 export const updateCompletionDate = async (pickup_request_id: number, date: Date) => {
     const query = `UPDATE pickup_requests SET completion_date = $1 WHERE pickup_request_id = $2`;
 
     const result = await database.query(query, [date, pickup_request_id]);
-};
+}
 
 export const updatePickupRequestStatuses = async (completionDate: Date): Promise<number> => {
     const query = `
@@ -163,7 +166,7 @@ export const updatePickupRequestStatuses = async (completionDate: Date): Promise
     `;
 
     const result = await database.query(query, [completionDate]);
-
+    
     // Return the number of rows that were updated.
     return result.rowCount ?? 0;
 };
