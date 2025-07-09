@@ -24,6 +24,9 @@ export const processThohEvent = (thohEvent: ThohEvent) => {
         case ThohEvents.VehicleCrash:
             autonomyService.handleVehicleCrash(/*will likely need data here soon */);
             break;
+        case ThohEvents.TruckDelivery:
+            autonomyService.handleTruckDelivery(thohEvent.data);
+            break;
         default:
             console.log("ERROR: UNACCOUNTED FOR MESSAGE TYPE FROM THOH:", thohEvent);
             throw new AppError("Thoh Event type has not been accounted for. Please contact bulk-logistics.", 422);
