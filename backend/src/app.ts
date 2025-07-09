@@ -2,15 +2,16 @@ import express from "express";
 
 import { init } from "express-oas-generator";
 
+import bankRoutes from "./routes/bankNotification";
 import companyRoutes from "./routes/companyRoutes";
-import transactionRoutes from "./routes/transactionRoutes";
 import health from "./routes/health";
-
 import pickupRequestRoutes from "./routes/pickupRequestRoutes";
+import shipmentRoutes from "./routes/shipmentRoutes";
 import thohRoutes from "./routes/thohRoutes";
+import transactionRoutes from "./routes/transactionRoutes";
+
 import AppError from "./utils/errorHandlingMiddleware/appError";
 import globalErrorHandler from "./utils/errorHandlingMiddleware/errorController";
-import shipmentRoutes from "./routes/shipmentRoutes";
 
 const app = express();
 
@@ -36,6 +37,7 @@ const PORT = 3000;
 app.use(express.json());
 
 app.use("/api/health", health);
+app.use("/api/bank", bankRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/pickup-request", pickupRequestRoutes);

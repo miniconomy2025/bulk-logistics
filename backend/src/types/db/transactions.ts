@@ -20,3 +20,13 @@ export interface BankTransactionLedger {
     related_loan_id?: number | null;
     related_thoh_order_id?: string | null;
 }
+
+export interface BankNotificationPayload {
+    transaction_number: string;
+    status: string;
+    amount: number;
+    timestamp: number;
+    description: string;
+    from: string;
+    to: string;
+}
