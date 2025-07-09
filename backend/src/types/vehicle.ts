@@ -6,3 +6,10 @@ export interface BasicVehicle {
 export interface VehicleWithDeliveryCount extends BasicVehicle {
     deliveries_completed: number;
 }
+
+export interface VehicleCreate {
+    type: string;
+    purchase_date: string;
+    operational_cost: number;
+    load_capacity: number;
+}
