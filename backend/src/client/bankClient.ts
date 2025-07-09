@@ -20,6 +20,7 @@ class BankClient extends BaseApiClient {
         const response = await this.client.get<GetBalanceResponse>("/account/me/balance");
         return response.data;
     }
+    // We need a function to pay the hand.
 }
 
 export const bankApiClient = new BankClient();

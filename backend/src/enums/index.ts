@@ -36,3 +36,9 @@ export const ThohEvents = {
     VehicleCrash: "VEHICLE_CRASH",
     Config: "CONFIG",
 };
+
+export const TransactionStatus = {
+    Pending: "PENDING",
+    Failed: "FAILED",
+    Completed: "COMPLETED",
+};
