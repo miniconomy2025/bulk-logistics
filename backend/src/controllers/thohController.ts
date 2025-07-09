@@ -8,4 +8,3 @@ export const postThohEvent = catchAsync(async (req: Request, res: Response, next
     res.status(200).send();
     processThohEvent(thohEvent);
 });
-
