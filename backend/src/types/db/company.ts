@@ -1,4 +1,4 @@
-export interface Company {
+export interface CompanyEntity {
     company_id: number;
     company_name: string;
     certificate_identifier: string;

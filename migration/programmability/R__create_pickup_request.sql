@@ -2,8 +2,15 @@
 -- REPLACE LATER WHEN WE HAVE CONFIG SET UP
 CREATE OR REPLACE FUNCTION get_bulk_logistics_bank_account()
 RETURNS VARCHAR(50) AS $$
+DECLARE
+    v_account_number VARCHAR(50);
 BEGIN
-    RETURN 'BL1234567890'; -- Replace with our actual bank account number. How else are we gonna get this? Can pass it in query from config perhaps.
+    SELECT bank_account_number 
+    INTO v_account_number
+    FROM company 
+    WHERE company_name = 'bulk-logistics';
+
+    RETURN v_account_number;
 END;
 $$ LANGUAGE plpgsql;
 
