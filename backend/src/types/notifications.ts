@@ -4,15 +4,15 @@ export interface Item {
 }
 
 export interface LogisticsNotification {
-    id: number|string;
+    id: number | string;
     notificationURL: string;
     type: "PICKUP" | "DELIVERY";
     items: Item[];
 }
 
 export interface LogisticNotificationsGrouped {
-    pickups: LogisticsNotification[],
-    dropoffs: LogisticsNotification[]
+    pickups: LogisticsNotification[];
+    dropoffs: LogisticsNotification[];
 }
 
 export interface LogisticsNotificationResponse {
