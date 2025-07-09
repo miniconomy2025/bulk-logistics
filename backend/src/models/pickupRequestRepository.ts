@@ -100,23 +100,25 @@ export const findPickupRequestsByCompanyId = async (companyId: string): Promise<
 export const findPaidAndUnshippedRequests = async () => {
     const query = 
     `SELECT
-    pr.pickup_request_id as "pickupRequestId",
-    rc.company_name as "requestingCompanyName",
-    oc.company_name as "originCompanyName",
-    dc.company_name as "destinationCompanyName",
-    pr.original_external_order_id as "originalExternalOrderId",
-    pr.cost,
-    pr.request_date as "requestDate",
-    pr.completion_date as "completionDate",
-    ts.status as "paymentStatus",
-    btl.transaction_date as "paymentDate",
+        pr.pickup_request_id as "pickupRequestId",
+        rc.company_name as "requestingCompanyName",
+        oc.company_name as "originCompanyName",
+        dc.company_name as "destinationCompanyName",
+        pr.original_external_order_id as "originalExternalOrderId",
+        pr.cost,
+        pr.request_date as "requestDate",
+        pr.completion_date as "completionDate",
+        ts.status as "paymentStatus",
+        btl.transaction_date as "paymentDate",
         (
             SELECT COALESCE(json_agg(json_build_object(
+                'pickup_request_id', pri.pickup_request_id,
                 'pickup_request_item_id', pri.pickup_request_item_id,
                 'itemName', idf.item_name,
                 'quantity', pri.quantity,
                 'capacity_type_id', idf.capacity_type_id,
-                'shipment_id', pri.shipment_id
+                'shipment_id', pri.shipment_id,
+                'destinationCompanyUrl', dc.company_url -- <-- ADDED
             )), '[]'::json)
             FROM pickup_request_item pri
             JOIN item_definitions idf ON pri.item_definition_id = idf.item_definition_id
@@ -134,9 +136,9 @@ export const findPaidAndUnshippedRequests = async () => {
         AND ts.status = 'Completed'
     ORDER BY
         btl.transaction_date ASC, 
-        pr.request_date ASC;`
+        pr.request_date ASC;`;
 
-    const result = await database.query(query)
+    const result = await database.query(query);
 
     return result.rows;
 }
@@ -146,3 +148,23 @@ export const updateCompletionDate = async (pickup_request_id: number, date: Date
 
     const result = await database.query(query, [date, pickup_request_id]);
 }
+
+export const updatePickupRequestStatuses = async (completionDate: Date): Promise<number> => {
+    const query = `
+        UPDATE pickup_requests
+        SET completion_date = $1
+        WHERE 
+            completion_date IS NULL
+            AND pickup_request_id IN (
+                SELECT pickup_request_id
+                FROM pickup_request_item
+                GROUP BY pickup_request_id
+                HAVING COUNT(*) FILTER (WHERE shipment_id IS NULL) = 0
+            );
+    `;
+
+    const result = await database.query(query, [completionDate]);
+    
+    // Return the number of rows that were updated.
+    return result.rowCount ?? 0;
+};

@@ -31,9 +31,11 @@ export interface PickupRequestWithDetails {
 }
 
 export interface PickupToShipmentItemDetails {
+    "pickup_request_id":number,
     "pickup_request_item_id": number,
     "itemName": string,
     "quantity": number,
     "capacity_type_id": number,
-    "shipment_id": number
+    "shipment_id": number,
+    "destinationCompanyUrl": string
 }

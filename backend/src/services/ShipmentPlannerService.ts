@@ -5,21 +5,7 @@ import { shipmentModel } from '../models/shipment';
 // Importing the specific types you provided
 import { PickupRequestWithDetails, PickupToShipmentItemDetails } from '../types';
 import { VehicleWithType } from '../types';
-
-// In-memory representation of a vehicle's state during planning
-interface PlannableVehicle extends VehicleWithType {
-    capacityRemaining: number;
-    pickupsAssignedToday: number;
-    capacity_type_id: number;
-}
-
-// In-memory representation of the final plan for a single vehicle
-export interface ShipmentPlan {
-    vehicle: PlannableVehicle;
-    itemsToAssign: PickupToShipmentItemDetails[];
-    originCompanyName: string; // Added for logging
-    destinationCompanyName: string; // Added for logging
-}
+import { DailyPlanOutput, PlannableVehicle, ShipmentPlan } from '../types/shipmentPlanning';
 
 export class ShipmentPlannerService {
 
@@ -27,12 +13,12 @@ export class ShipmentPlannerService {
      * The main entry point for the daily shipment planning process.
      * @param simulatedDate The current date of the simulation.
      */
-    public async planDailyShipments(simulatedDate: Date): Promise<any> {
+    public async planDailyShipments(simulatedDate: Date): Promise<DailyPlanOutput> {
         console.log(`--- Starting Shipment Planning for ${simulatedDate.toISOString().split('T')[0]} ---`);
 
         const allPendingRequests = await findPaidAndUnshippedRequests();
         const vehicleData = await findAvailableVehicles(simulatedDate.toISOString());
-        
+
         const availableFleet: PlannableVehicle[] = vehicleData.map(v => ({
             ...v,
             capacityRemaining: v.maximum_capacity,
@@ -48,7 +34,7 @@ export class ShipmentPlannerService {
         // 3. PASS 2: PLAN PARTIALS (ITEM-BY-ITEM)
         const remainingRequests = allPendingRequests.filter(req => !plannedRequestIds.has(req.pickupRequestId));
         this._planPartialRequests(remainingRequests, availableFleet, finalShipmentPlans);
-        
+
         console.log(`--- Finished Shipment Planning. ${finalShipmentPlans.size} shipments planned.`);
         // 4. ** NEW **: Return the calculated plan as an array
         return {
@@ -72,13 +58,13 @@ export class ShipmentPlannerService {
             let canFitEntireRequest = true;
 
             for (const item of request.items) {
-                if(item.shipment_id !== null){
+                if (item.shipment_id) {
                     continue;
                 }
                 const vehicleIndex = this._findVehicleForItem(item, tempFleetState);
                 if (vehicleIndex === -1) {
                     canFitEntireRequest = false;
-                    break; 
+                    break;
                 }
                 tempFleetState[vehicleIndex].capacityRemaining -= item.quantity;
                 if (!dryRunPlan.has(tempFleetState[vehicleIndex].vehicle_id)) {
@@ -102,19 +88,23 @@ export class ShipmentPlannerService {
         fleet: PlannableVehicle[],
         plans: Map<number, ShipmentPlan>
     ): void {
-        const allRemainingItems = requests.flatMap(req => 
+        const allRemainingItems = requests.flatMap(req =>
             req.items.map(item => ({ ...item, pickupRequestId: req.pickupRequestId }))
         );
 
         for (const item of allRemainingItems) {
             const vehicleIndex = this._findVehicleForItem(item, fleet);
 
+            if (item.shipment_id) {
+                continue;
+            }
+            
             if (vehicleIndex !== -1) {
                 console.log(`PASS 2: Planning partial item ${item.itemName} from request ${item.pickupRequestId}`);
                 const vehicle = fleet[vehicleIndex];
-                
+
                 if (!plans.has(vehicle.vehicle_id)) {
-                    plans.set(vehicle.vehicle_id, { vehicle, itemsToAssign: [], originCompanyName:"ORIGIN FILLER", destinationCompanyName:"DESTINATION FILLER" });
+                    plans.set(vehicle.vehicle_id, { vehicle, itemsToAssign: [], originCompanyName: "ORIGIN FILLER", destinationCompanyName: "DESTINATION FILLER" });
                 }
                 plans.get(vehicle.vehicle_id)!.itemsToAssign.push(item);
 
@@ -133,7 +123,7 @@ export class ShipmentPlannerService {
             vehicle.pickupsAssignedToday < vehicle.max_pickups_per_day
         );
     }
-    
+
     /**
      * Helper to merge a successful dry run plan into the main plan.
      */
@@ -141,9 +131,9 @@ export class ShipmentPlannerService {
         for (const [vehicleId, plan] of dryRunPlan.entries()) {
             const vehicle = fleet.find(v => v.vehicle_id === vehicleId)!;
             vehicle.capacityRemaining -= plan.items.reduce((sum, item) => sum + item.quantity, 0);
-            
+
             if (!plans.has(vehicleId)) {
-                plans.set(vehicleId, { vehicle, itemsToAssign: [], originCompanyName:"ORIGIN FILLER", destinationCompanyName:"DESTINATION FILLER"  });
+                plans.set(vehicleId, { vehicle, itemsToAssign: [], originCompanyName: "ORIGIN FILLER", destinationCompanyName: "DESTINATION FILLER" });
             }
             plans.get(vehicleId)!.itemsToAssign.push(...plan.items);
         }

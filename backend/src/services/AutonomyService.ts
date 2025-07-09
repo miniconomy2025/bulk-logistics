@@ -1,6 +1,8 @@
 import { ShipmentPlannerService } from "./ShipmentPlannerService";
 import { shipmentModel } from "../models/shipment";
-import { updateCompletionDate } from "../models/pickupRequestRepository";
+import { updateCompletionDate, updatePickupRequestStatuses } from "../models/pickupRequestRepository";
+import { PickupToShipmentItemDetails } from "../types";
+import { Item, LogisticsNotification } from "../types/notifications";
 
 const SIMULATION_TICK_INTERVAL_MS = 3000; // should be set to 2 minutes, is on 15 seconds for testing
 
@@ -146,8 +148,8 @@ export default class AutonomyService {
             await this._checkAndPurchaseTrucks(); // Insert logic for first day operations.
 
             // --- Regular Daily Operations ---
-            await this._planAndDispatchShipments();
-            await this._notifyCompletedDeliveries();
+            const notificationDetails = await this._planAndDispatchShipments();
+            await this._notifyCompletedDeliveries(notificationDetails);
         } catch (error) {
             console.error("FATAL ERROR during daily tick.", error);
         } finally {
@@ -206,45 +208,54 @@ export default class AutonomyService {
     /**
      * Finds paid pickup requests and assigns vehicles to them.
      */
-    private async _planAndDispatchShipments(): Promise<void> {
+    private async _planAndDispatchShipments(): Promise<LogisticsNotification[]> {
         console.log("Morning Ops: Planning and dispatching shipments...");
-        
         const planner = new ShipmentPlannerService();
-        
-        // 1. Call the planner to get the calculated plan for the day.
-        const {createdShipmentsPlan, plannedRequestIds} = await planner.planDailyShipments(this.currentSimulatedDate); 
-        // 2. Execute the plan: Loop through the returned plans and commit to DB.
+        let dropoffEntities: LogisticsNotification[] = [];
+        const { createdShipmentsPlan, plannedRequestIds } = await planner.planDailyShipments(this.currentSimulatedDate);
         for (const plan of createdShipmentsPlan) {
             try {
-                // a. Create the main shipment record
                 const newShipment = await shipmentModel.createShipment(plan.vehicle.vehicle_id, this.currentSimulatedDate);
 
-                // b. Assign all items for this shipment
                 for (const item of plan.itemsToAssign) {
                     await shipmentModel.assignItemToShipmentWithPickupRequestItemId(item.pickup_request_item_id, newShipment.shipment_id);
                 }
 
-                for (const id in plannedRequestIds){
+                for (const id in plannedRequestIds) {
                     await updateCompletionDate(+id, this.currentSimulatedDate);
                 }
-                // c. Log the pickup notification (replaces API call)
                 console.log(`PICKUP: Notifying ${plan.originCompanyName} that items for shipment ${newShipment.shipment_id} have been collected.`);
 
             } catch (error) {
                 console.error(`Failed to commit shipment plan for vehicle ${plan.vehicle.vehicle_id}.`, error);
-                // Continue to the next plan even if one fails.
             }
+            plan.itemsToAssign.forEach(item => 
+                dropoffEntities.push({
+                    id: item.pickup_request_id,
+                    notificationURL: item.destinationCompanyUrl,
+                    type: 'DELIVERY',
+                    items: [
+                        {
+                            name: item.itemName,
+                            quantity: item.quantity
+                        }
+                    ]
+                }
+            ));
         }
+        return dropoffEntities;
     }
 
     /**
      * Notifies destination companies that their goods have arrived.
      */
-    private async _notifyCompletedDeliveries(): Promise<void> {
+    private async _notifyCompletedDeliveries(notifications: LogisticsNotification[]): Promise<void> {
         console.log("Evening Ops: Notifying completed deliveries...");
-        // Logic for this would go here...
+        // TODO: instead of logging, we hit the client.
+
+        // then update all our pickup requests' completedDates
+        await updatePickupRequestStatuses(this.currentSimulatedDate);
     }
 }
 
-// Export a single instance to be used throughout the application.
 export const autonomyService = AutonomyService.getInstance();
