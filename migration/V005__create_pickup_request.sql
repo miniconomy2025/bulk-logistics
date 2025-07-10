@@ -1,4 +1,4 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- The CREATE EXTENSION line is no longer needed and has been removed.
 
 CREATE OR REPLACE FUNCTION get_bulk_logistics_bank_account()
 RETURNS VARCHAR(50) AS $$
@@ -23,19 +23,22 @@ CREATE TYPE pickup_request_creation_result AS (
     "bulkLogisticsBankAccountNumber" VARCHAR(50)
 );
 
+-- The function signature is updated to accept the new parameter
 CREATE OR REPLACE FUNCTION create_pickup_request(
     p_requesting_company_name VARCHAR, 
-    p_origin_company_name VARCHAR,     
+    p_origin_company_name VARCHAR,      
     p_destination_company_name VARCHAR,
     p_original_external_order_id VARCHAR,
     p_cost NUMERIC(10,2), 
     p_request_date DATE, 
-    p_items_json JSONB 
+    p_items_json JSONB,
+    p_payment_reference_id UUID 
 )
 RETURNS pickup_request_creation_result 
 LANGUAGE plpgsql AS $$
 DECLARE
     v_pickup_request_id INTEGER;
+    -- The v_payment_reference_id variable is still used internally
     v_payment_reference_id UUID;
     v_item_data JSONB;
     v_bulk_logistics_bank_account VARCHAR(50);
@@ -65,7 +68,7 @@ BEGIN
         RAISE EXCEPTION 'Company not found for name: %', p_destination_company_name;
     END IF;
 
-    v_payment_reference_id := uuid_generate_v4();
+    v_payment_reference_id := p_payment_reference_id;
 
     v_bulk_logistics_bank_account := get_bulk_logistics_bank_account();
 
