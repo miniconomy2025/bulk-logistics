@@ -1,4 +1,3 @@
-
 export interface TruckFailureInfo {
     truckName: string;
     failureQuantity: number;
@@ -34,20 +33,20 @@ export interface TruckInfoResponse {
 }
 
 export interface TruckFailureRequest {
-  truckName: string;
-  failureQuantity: number;
-  simulationDate: string;
-  simulationTime: string;
+    truckName: string;
+    failureQuantity: number;
+    simulationDate: string;
+    simulationTime: string;
 }
 
 export interface TruckDeliveryRequest {
-  orderId: number;
-  itemName: string;
-  quantity: number;
-  totalPrice: number;
-  status: string;
-  message: string;
-  canFulfill: boolean;
-  maximumLoad: number;
-  operationalCostPerDay: number;
+    orderId: number;
+    itemName: string;
+    quantity: number;
+    totalPrice: number;
+    status: string;
+    message: string;
+    canFulfill: boolean;
+    maximumLoad: number;
+    operationalCostPerDay: number;
 }

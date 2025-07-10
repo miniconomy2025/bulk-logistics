@@ -58,7 +58,7 @@ export default class AutonomyService {
             console.warn("Simulation is already running. Start command ignored.");
             return;
         }
-        console.log("--- SIMULATION STARTING ---", "\n Real Time:",startTime,"\nSimulation Time:");
+        console.log("--- SIMULATION STARTING ---", "\n Real Time:", startTime, "\nSimulation Time:");
         this.isRunning = true;
 
         // Immediately perform the first day's tick, then set the interval.
@@ -110,15 +110,14 @@ export default class AutonomyService {
             for (let i = 0; i < truckDelivery.quantity; i++) {
                 try {
                     await addVehicle({
-                    type: truckDelivery.itemName,
-                    purchase_date: this.currentSimulatedDate.toISOString().split("T")[0], // we can not put the actual purchase date unless if the HAND API provides it
-                    operational_cost: truckDelivery.operatingCostPerDay,
-                    load_capacity: truckDelivery.maximumLoad,
-                });
+                        type: truckDelivery.itemName,
+                        purchase_date: this.currentSimulatedDate.toISOString().split("T")[0], // we can not put the actual purchase date unless if the HAND API provides it
+                        operational_cost: truckDelivery.operatingCostPerDay,
+                        load_capacity: truckDelivery.maximumLoad,
+                    });
                 } catch (error) {
-                    throw new Error("There was an error adding the vehicle")
+                    throw new Error("There was an error adding the vehicle");
                 }
-                
             }
         } else {
             console.error("Truck delivery cannot be fulfilled:", truckDelivery.message);

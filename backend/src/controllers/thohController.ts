@@ -5,9 +5,8 @@ import { TruckDelivery } from "../types";
 import { TruckFailureInfo } from "../types/thoh";
 import { handleTruckFailure } from "../services/thohService";
 
-
 export const startSimulation = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const {unixEpochStart} = req.body;
+    const { unixEpochStart } = req.body;
     res.status(200).send();
     beginSimulation(unixEpochStart);
 });
@@ -26,8 +25,8 @@ export const truckFailure = catchAsync(async (req: Request, res: Response, next:
     }
 });
 
-export const truckDelivery = catchAsync(async (req: Request, res: Response, next: NextFunction) =>{
-    const truckDeliveryInfo : TruckDelivery = req.body;
+export const truckDelivery = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const truckDeliveryInfo: TruckDelivery = req.body;
     await handleTruckDelivery(truckDeliveryInfo);
     res.status(200).send();
 });

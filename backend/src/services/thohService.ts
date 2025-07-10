@@ -16,16 +16,15 @@ import AutonomyService, { autonomyService } from "./AutonomyService";
 
 export const beginSimulation = (startTime: string) => {
     autonomyService.start(startTime);
-}
+};
 
 export const processTruckFailure = async (failureRequest: TruckFailureRequest) => {
     autonomyService.handleVehicleFailure(failureRequest);
-}
+};
 
-export const handleTruckDelivery = async (truckDeliveryInfo : TruckDelivery) => {
-    await autonomyService.handleTruckDelivery(truckDeliveryInfo)
-}
-
+export const handleTruckDelivery = async (truckDeliveryInfo: TruckDelivery) => {
+    await autonomyService.handleTruckDelivery(truckDeliveryInfo);
+};
 
 export const handleTruckFailure = async (failureInfo: TruckFailureInfo) => {
     const allVehicles = await getAllVehiclesWithType();
