@@ -11,7 +11,7 @@ export const validatePickupRequest = async (pickupRequest: PickupRequestRequest)
 
     //todo: refactor
     const items = pickupRequest.items;
-    items.forEach((item) => {
+    items.forEach((item: ItemRequest) => {
         const { itemName, quantity, measurementType } = item;
         if (
             [

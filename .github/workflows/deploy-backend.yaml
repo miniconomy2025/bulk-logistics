@@ -7,6 +7,8 @@ on:
     paths:
       - 'backend/**'
 
+  workflow_dispatch:
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -23,11 +25,17 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_API_HOST }} << 'EOF'
-            set -e
-            cd /home/ubuntu/bulk-logistics
-            git pull origin terraform
-            cd backend
-            npm install
-            npm run build
-            pm2 restart bulk-logistics-backend || pm2 start dist/src/app.js --name bulk-logistics-backend
+          set -e
+
+          sudo chown -R ubuntu:ubuntu /home/ubuntu/bulk-logistics
+
+          cd /home/ubuntu/bulk-logistics
+          git config --global --add safe.directory /home/ubuntu/bulk-logistics
+          git reset --hard HEAD
+          git clean -fd
+          git pull origin terraform
+          cd backend
+          npm install
+          npm run build
+          pm2 restart bulk-logistics-backend || pm2 start dist/app.js --name bulk-logistics-backend
           EOF
