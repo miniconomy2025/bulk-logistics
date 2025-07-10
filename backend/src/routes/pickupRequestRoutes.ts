@@ -4,8 +4,8 @@ import { createPickupRequest, getPickupRequest, getPickupRequestsByCompany } fro
 
 const router = express.Router();
 
-router.post("",rateLimiter(), createPickupRequest);
-router.get("/:id",rateLimiter(), getPickupRequest);
+router.post("", rateLimiter(), createPickupRequest);
+router.get("/:id", rateLimiter(), getPickupRequest);
 router.get("/company/:companyName", rateLimiter(), getPickupRequestsByCompany);
 
 export default router;
