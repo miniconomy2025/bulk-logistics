@@ -16,8 +16,6 @@ export const SidebarMenu = () => {
             </div>
 
             <NavItems />
-
-            <QuickActions />
         </aside>
     );
 };

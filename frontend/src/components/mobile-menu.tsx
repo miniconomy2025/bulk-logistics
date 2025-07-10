@@ -49,8 +49,6 @@ export const MobileMenu: React.FC = () => {
                 </div>
 
                 <NavItems />
-
-                <QuickActions />
             </div>
         </>
     );
