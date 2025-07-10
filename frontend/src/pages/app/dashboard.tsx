@@ -6,6 +6,7 @@ import { DashboardLayout } from "../../layouts/app-layout";
 import Transactions from "../../data/transactions";
 import IncomeExpensesChart from "../../components/income-expense-chart";
 import type { IncomeExpensesChartProps, RecentTransactionsItem } from "../../types";
+import Shipments from "../../data/shipments";
 
 interface TransactionItem {
     purchase: string;
@@ -18,12 +19,10 @@ interface TransactionResponse {
     transaction: TransactionItem[];
 }
 
-interface ActiveShipmentsItem {
-    count: string;
-}
-
 interface ActiveShipmentsResponse {
-    transaction: ActiveShipmentsItem[];
+    shipments: {
+        active: string;
+    };
 }
 
 interface TopRevenueSourceItem {
@@ -52,11 +51,9 @@ const Dashboard: React.FC = () => {
         ],
     });
     const [activeShipments, setActiveShipments] = useState<ActiveShipmentsResponse>({
-        transaction: [
-            {
-                count: "0",
-            },
-        ],
+        shipments: {
+            active: "0",
+        },
     });
     const [topRevenueSources, setTopRevenueSources] = useState<TopRevenueSourcesResponse>({
         transaction: [
@@ -80,9 +77,9 @@ const Dashboard: React.FC = () => {
     });
     const [incomeBreakdown, setIncomeBreakdown] = useState<IncomeExpensesChartProps>({
         transaction: [
-            { year: "2025", month: "6", revenue: 32912, expenses: 8934 },
-            { year: "2025", month: "5", revenue: 3482, expenses: 121123 },
-            { year: "2025", month: "4", revenue: 234435, expenses: 7382 },
+            { year: "2025", month: "6", revenue: 0, expenses: 0 },
+            { year: "2025", month: "5", revenue: 0, expenses: 0 },
+            { year: "2025", month: "4", revenue: 0, expenses: 0 },
         ],
     });
 
@@ -105,7 +102,7 @@ const Dashboard: React.FC = () => {
     };
 
     const fetchActiveShipmentsData = async (): Promise<ActiveShipmentsResponse> => {
-        const response = await Transactions.activeShipments();
+        const response = await Shipments.activeShipments();
         const data: ActiveShipmentsResponse = await response.json();
         return data;
     };
@@ -161,8 +158,6 @@ const Dashboard: React.FC = () => {
                     <MetricCard
                         title="Total Revenues"
                         value={Number(totals.transaction[0].payment_received)}
-                        change=""
-                        changeType="increase"
                         bgColor="bg-green-100"
                         textColor="text-green-600"
                         icon={<span className="material-symbols-outlined">attach_money</span>}
@@ -170,8 +165,6 @@ const Dashboard: React.FC = () => {
                     <MetricCard
                         title="Total Expenses"
                         value={Number(total_money_out)}
-                        change=""
-                        changeType="decrease"
                         bgColor="bg-red-100"
                         textColor="text-red-600"
                         icon={<span className="material-symbols-outlined">account_balance_wallet</span>}
@@ -179,17 +172,13 @@ const Dashboard: React.FC = () => {
                     <MetricCard
                         title="Net Profit"
                         value={Number(totals.transaction[0].payment_received) - Number(total_money_out)}
-                        change=""
-                        changeType="increase"
                         bgColor="bg-blue-100"
                         textColor="text-blue-600"
                         icon={<span className="material-symbols-outlined">money_bag</span>}
                     />
                     <MetricCard
                         title="Active Shipments"
-                        value={Number(activeShipments.transaction[0].count)}
-                        change=""
-                        changeType="increase"
+                        value={Number(activeShipments.shipments.active)}
                         bgColor="bg-orange-100"
                         textColor="text-orange-600"
                         icon={<span className="material-symbols-outlined">assignment</span>}

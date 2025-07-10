@@ -132,21 +132,6 @@ export const getTotals = async (): Promise<Result<any>> => {
     }
 };
 
-export const getActiveShipmentsCount = async (): Promise<Result<any>> => {
-    const query = `
-    SELECT COUNT(*) AS count
-    FROM shipments s
-    JOIN shipment_status st ON s.shipment_status_id = st.shipment_status_id
-    WHERE st.name = 'Active';
-  `;
-    try {
-        const result = await db.query(query);
-        return { ok: true, value: result };
-    } catch (error) {
-        return { ok: false, error: error as Error };
-    }
-};
-
 export const getMonthlyRevenueExpenses = async (): Promise<Result<any>> => {
     const query = `
     SELECT

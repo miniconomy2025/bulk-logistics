@@ -26,6 +26,17 @@ class ShipmentController {
             return res.status(500).json({ error: "Failed to fetch shipments." });
         }
     };
+
+    public static getActiveShipments = async (req: Request, res: Response) => {
+        const result = await shipmentModel.findActiveShipments();
+
+        if (result.ok) {
+            res.status(200).json({ shipments: result.value.rows[0] });
+        } else {
+            console.error(result.error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    };
 }
 
 export default ShipmentController;
