@@ -11,6 +11,7 @@ import { lastValueFrom, timer } from "rxjs";
 import { bankApiClient } from "../client/bankClient";
 import { TransactionCategory } from "../enums";
 import { reactivateVehicle } from "./vehicleService";
+import { updateCompanyDetails } from "../models/companyRepository";
 
 const SIMULATION_TICK_INTERVAL_MS = 15000; // should be set to 2 minutes, is on 15 seconds for testing
 
@@ -23,8 +24,6 @@ export default class AutonomyService {
     private currentSimulatedDate: Date = new Date("2050-01-01");
     private tickIntervalId: NodeJS.Timeout | null = null;
     private hasActiveLoan: boolean = false; // Example state property
-    private truckCount: number = 0; // Example state property
-    private isFirstDay: boolean = true;
     private funds: number = 0; // Will need an SQL statement for this.
     private initialTrucksCost: number = 0; // This will be set after calculating the cost of trucks from the HAND.
 
@@ -38,8 +37,6 @@ export default class AutonomyService {
         this.currentSimulatedDate = new Date("2050-01-01");
         this.tickIntervalId = null;
         this.hasActiveLoan = false;
-        this.truckCount = 0;
-        this.isFirstDay = true;
         this.funds = 0;
         this.initialTrucksCost = 0;
     }
@@ -133,24 +130,15 @@ export default class AutonomyService {
     // ========================================================================
 
     private async _onInitOperations(): Promise<void> {
-        /* 
-            1. Create bank account (assume instant) -> bank account created (bankClient). update company table with our account number.
-            2. Provide bank with our notification endpoint url either in the creation request or that dubious notification endpoint
-            3. Figure out cost of [3 large, 3 medium, 3 small] vehicles from the hand (handClient) -> we have our needed loan amount.
-            4. We request a loan. If we get a success then -> update transaction ledger + loan table.  (bank will debit us)
-            RESPONSE WILL LOOK LIKE THIS FOR LOAN:
-                ========interface LoanResult {
-                ============loan_number: string;
-                ============initial_transaction_id: number;
-                ============interest_rate: number;
-                ============started_at: string;
-                ============write_off: boolean;
-                ========}
-            5. We purchase our trucks-> for now we assume that they will delivered instantly (info in the response) but we can only use them on the next day.
-                    Create trucks, set active to false, until they are "eligible", then we set active to true. 
-        */
+        //1. Create bank account, send the notification URL to the bank
+        const accountCreationResponse = await bankApiClient.createAccount("https://bulk-logistics-api.projects.bbdgrad.com/api/bank");
 
-        //3. Figure out cost of [3 large, 3 medium, 3 small] vehicles from the hand (handClient) -> we have our needed loan amount.
+        if (accountCreationResponse.account_number) {
+            await updateCompanyDetails("bulk-logistics", {
+                bankAccountNumber: accountCreationResponse.account_number,
+            });
+        }
+        //2. Figure out cost of [3 large, 3 medium, 3 small] vehicles from the hand (handClient) -> we have our needed loan amount.
         const requiredTrucks: TruckPurchaseRequest[] = [
             { truckName: "large_truck", quantity: 3 },
             { truckName: "medium_truck", quantity: 3 },
@@ -165,20 +153,20 @@ export default class AutonomyService {
             truckPriceMap[truck.truckName] = truck.price;
         });
 
-        //4. Request Loan
+        //3. Request Loan
         const totalLoanAmount = requiredTrucks.reduce((total, truckInfo) => {
             const price = truckPriceMap[truckInfo.truckName];
             return total + price * truckInfo.quantity;
         }, 0);
 
-        const isLoanApplicationSuccessful = await this._checkAndSecureLoan(totalLoanAmount  * 2);
+        const isLoanApplicationSuccessful = await this._checkAndSecureLoan(totalLoanAmount * 2);
 
         if (isLoanApplicationSuccessful) {
             const accountBalance = await bankApiClient.getBalance();
             this.funds = accountBalance.balance;
         }
 
-        //5. Purchase trucks
+        //4. Purchase trucks
         const truckPurchasePromises: Promise<TruckPurchaseResponse | undefined>[] = [];
         requiredTrucks.forEach((truckInfo) => {
             truckPurchasePromises.push(this._checkAndPurchaseTrucks(truckInfo));
@@ -240,7 +228,7 @@ export default class AutonomyService {
 
             // --- Condition-Based Setup Tasks ---
             // These now run at the start of each day to check if they are needed.
-            await this._checkAndSecureLoan(); // Insert logic for first day operations.
+            // await this._checkAndSecureLoan(); // Insert logic for first day operations.
 
             const response = await reactivateVehicle();
             console.log(`---${response.message}---`);
@@ -304,7 +292,6 @@ export default class AutonomyService {
         } else {
             try {
                 const purchaseResult = await thohApiClient.purchaseTruck(truckInfo);
-                this.truckCount += purchaseResult.quantity; // Update state upon success
 
                 return purchaseResult;
             } catch (error) {
