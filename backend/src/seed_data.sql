@@ -67,20 +67,6 @@ INSERT INTO vehicle (is_active, daily_operational_cost, vehicle_type_id, purchas
 (TRUE, 160.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'large_truck'), '2022-07-20'),
 (FALSE, 90.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'medium_truck'), '2021-11-05');
 
--- Insert data into pickup_requests (updated with new company references)
--- INSERT INTO pickup_requests (requesting_company_id, origin_company_id, destination_company_id, original_external_order_id, cost, request_date, completion_date) VALUES
--- ((SELECT company_id FROM company WHERE company_name = 'pear-company'), (SELECT company_id FROM company WHERE company_name = 'electronics-supplier'), (SELECT company_id FROM company WHERE company_name = 'bulk-logistics'), 'ACME-ORDER-001', 500.00, '2024-06-01', '2024-06-02'),
--- ((SELECT company_id FROM company WHERE company_name = 'sumsang-company'), (SELECT company_id FROM company WHERE company_name = 'screen-supplier'), (SELECT company_id FROM company WHERE company_name = 'consumer-logistics'), 'BETA-ORDER-002', 150.00, '2024-06-01', NULL),
--- ((SELECT company_id FROM company WHERE company_name = 'pear-company'), (SELECT company_id FROM company WHERE company_name = 'case-supplier'), (SELECT company_id FROM company WHERE company_name = 'bulk-logistics'), 'ACME-ORDER-003', 750.00, '2024-06-02', NULL),
--- ((SELECT company_id FROM company WHERE company_name = 'consumer-logistics'), (SELECT company_id FROM company WHERE company_name = 'pear-company'), (SELECT company_id FROM company WHERE company_name = 'recycler'), 'GLOBAL-ORDER-004', 300.00, '2024-06-03', '2024-06-04');
-
--- -- Insert data into pickup_request_item
--- INSERT INTO pickup_request_item (shipment_id,item_definition_id, pickup_request_id, quantity) VALUES
--- (1, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'Heavy Machinery Part'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-001'), 3000),
--- (1, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'Pallet of Goods'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-001'), 2000),
--- (3, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'small_truck Parcel'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'BETA-ORDER-002'), 100),
--- (3, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'Electronics Box'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'BETA-ORDER-002'), 50),
--- (2, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'Screens'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-003'), 2000);
 
 -- Insert data into shipment_status (updated with new names)
 INSERT INTO shipment_status (name) VALUES
@@ -91,10 +77,26 @@ INSERT INTO shipment_status (name) VALUES
 -- Insert data into shipments
 -- Note: The original script used 'Delivered' and 'Pending' which are now 'DELIVERED' and 'PENDING'.
 -- Also, 'Dispatched' is no longer a status, using 'PICKED_UP' instead.
--- INSERT INTO shipments (dispatch_date, vehicle_id, shipment_status_id) VALUES
--- ('2024-06-02', (SELECT vehicle_id FROM vehicle WHERE vehicle_type_id = (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'large_truck') AND is_active = TRUE LIMIT 1), (SELECT shipment_status_id FROM shipment_status WHERE name = 'DELIVERED')),
--- ('2024-06-02', (SELECT vehicle_id FROM vehicle WHERE vehicle_type_id = (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'medium_truck') AND is_active = TRUE LIMIT 1), (SELECT shipment_status_id FROM shipment_status WHERE name = 'PENDING')),
--- ('2024-06-04', (SELECT vehicle_id FROM vehicle WHERE vehicle_type_id = (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'small_truck') AND is_active = TRUE LIMIT 1), (SELECT shipment_status_id FROM shipment_status WHERE name = 'PICKED_UP'));
+INSERT INTO shipments (dispatch_date, vehicle_id, shipment_status_id) VALUES
+('2024-06-02', (SELECT vehicle_id FROM vehicle WHERE vehicle_type_id = (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'large_truck') AND is_active = TRUE LIMIT 1), (SELECT shipment_status_id FROM shipment_status WHERE name = 'DELIVERED')),
+('2024-06-02', (SELECT vehicle_id FROM vehicle WHERE vehicle_type_id = (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'medium_truck') AND is_active = TRUE LIMIT 1), (SELECT shipment_status_id FROM shipment_status WHERE name = 'PENDING')),
+('2024-06-04', (SELECT vehicle_id FROM vehicle WHERE vehicle_type_id = (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'small_truck') AND is_active = TRUE LIMIT 1), (SELECT shipment_status_id FROM shipment_status WHERE name = 'PICKED_UP'));
+
+
+-- Insert data into pickup_requests (updated with new company references)
+INSERT INTO pickup_requests (requesting_company_id, origin_company_id, destination_company_id, original_external_order_id, cost, request_date, completion_date) VALUES
+((SELECT company_id FROM company WHERE company_name = 'pear-company'), (SELECT company_id FROM company WHERE company_name = 'electronics-supplier'), (SELECT company_id FROM company WHERE company_name = 'bulk-logistics'), 'ACME-ORDER-001', 500.00, '2024-06-01', '2024-06-02'),
+((SELECT company_id FROM company WHERE company_name = 'sumsang-company'), (SELECT company_id FROM company WHERE company_name = 'screen-supplier'), (SELECT company_id FROM company WHERE company_name = 'consumer-logistics'), 'BETA-ORDER-002', 150.00, '2024-06-01', NULL),
+((SELECT company_id FROM company WHERE company_name = 'pear-company'), (SELECT company_id FROM company WHERE company_name = 'case-supplier'), (SELECT company_id FROM company WHERE company_name = 'bulk-logistics'), 'ACME-ORDER-003', 750.00, '2024-06-02', NULL),
+((SELECT company_id FROM company WHERE company_name = 'consumer-logistics'), (SELECT company_id FROM company WHERE company_name = 'pear-company'), (SELECT company_id FROM company WHERE company_name = 'recycler'), 'GLOBAL-ORDER-004', 300.00, '2024-06-03', '2024-06-04');
+
+-- -- Insert data into pickup_request_item
+INSERT INTO pickup_request_item (shipment_id,item_definition_id, pickup_request_id, quantity) VALUES
+(1, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'aluminium'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-001'), 3000),
+(1, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'cosmos_z25_ultra_machine'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-001'), 2000),
+(3, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'case_machine'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'BETA-ORDER-002'), 100),
+(3, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'ephone_pro_max_machine'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'BETA-ORDER-002'), 50),
+(2, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'screens'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-003'), 2000);
 
 -- Insert data into bank_transactions_ledger (updated with new transaction categories and company references)
 INSERT INTO bank_transactions_ledger (
