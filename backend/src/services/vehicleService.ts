@@ -1,5 +1,5 @@
 import { SimulatedClock } from "../utils";
-import { getVehicleDeliveriesByDateRange, getAllVehiclesWithType } from "../models/vehicleRepository";
+import { getVehicleDeliveriesByDateRange, getAllVehiclesWithType, updateVehicleStatus } from "../models/vehicle";
 import { GetVehicleResult, VehicleWithDeliveryCount, VehicleWithType } from "../types";
 import { PickupRequestRequest } from "../types/PickupRequest";
 import { MeasurementType, VehicleType } from "../enums";
@@ -78,4 +78,43 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
     }
 
     return { success: false, reason: "Unsupported measurement type." };
+};
+
+export const reactivateVehicle = async () => {
+    const allVehicles = await getAllVehiclesWithType();
+
+    const simulatedNow = SimulatedClock.getSimulatedTime();
+
+    const twoDaysAgo = new Date(simulatedNow);
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+    const vehiclesToActivate = [];
+
+    for (const vehicle of allVehicles) {
+        if (vehicle.disabled_date && !vehicle.is_active && new Date(vehicle.disabled_date) <= twoDaysAgo) {
+            vehiclesToActivate.push(vehicle);
+        }
+    }
+
+    if (!vehiclesToActivate.length) {
+        return {
+            success: false,
+            message: "No Vehicles to activate",
+        };
+    }
+
+    const activatedVehicles = [];
+    for (const vehicle of vehiclesToActivate) {
+        const response = await updateVehicleStatus(vehicle.vehicle_id, true, null);
+
+        activatedVehicles.push(response);
+        console.log("----Vehicle Reactivate-----");
+        console.log({ response });
+    }
+
+    return {
+        success: true,
+        message: "Found Vehicles to Reactivate",
+        data: activatedVehicles,
+    };
 };

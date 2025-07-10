@@ -1,10 +1,10 @@
 import express from "express";
-import { postThohEvent } from "../controllers/thohController";
+import { startSimulation, truckDelivery, truckFailure } from "../controllers/thohController";
 
 const router = express.Router();
 
-router.post("/truck/failure", postThohEvent);
-router.post("/truck/delivery", postThohEvent);
-router.post("/simulation", postThohEvent);
+router.post("/truck/failure", truckFailure);
+router.post("/truck/delivery", truckDelivery);
+router.post("/simulation", startSimulation);
 
 export default router;

@@ -6,10 +6,11 @@ import { Item, LogisticNotificationsGrouped, LogisticsNotification } from "../ty
 import { notificationApiClient } from "../client/notificationClient";
 import { thohApiClient } from "../client/thohClient";
 import { addVehicle } from "../models/vehicle";
-import type { TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
+import type { TruckFailureRequest, TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
 import { lastValueFrom, timer } from "rxjs";
 import { bankApiClient } from "../client/bankClient";
 import { TransactionCategory } from "../enums";
+import { reactivateVehicle } from "./vehicleService";
 
 const SIMULATION_TICK_INTERVAL_MS = 15000; // should be set to 2 minutes, is on 15 seconds for testing
 
@@ -54,13 +55,12 @@ export default class AutonomyService {
     /**
      * Starts the simulation's daily tick timer.
      */
-    public start(initialData: any): void {
+    public start(startTime: string): void {
         if (this.isRunning) {
             console.warn("Simulation is already running. Start command ignored.");
             return;
         }
-
-        console.log("--- SIMULATION STARTING ---", initialData);
+        console.log("--- SIMULATION STARTING ---", "\n Real Time:", startTime, "\nSimulation Time:");
         this.isRunning = true;
 
         // Immediately perform the first day's tick, then set the interval.
@@ -101,7 +101,7 @@ export default class AutonomyService {
         this.start(initialData);
     }
 
-    public handleVehicleCrash(): void {
+    public handleVehicleFailure(failureRequest: TruckFailureRequest): void {
         console.log(
             "We have an insurance policy with Hive Insurance Co. Our policy dictates that all lost goods from a failed shipment will be replaced, and delivered on the same day! All surviving goods are thrown away since they were in a crash. Hooray! Everyone wins!!",
         );
@@ -110,12 +110,16 @@ export default class AutonomyService {
     public async handleTruckDelivery(truckDelivery: TruckDelivery): Promise<void> {
         if (truckDelivery && truckDelivery.canFulfill) {
             for (let i = 0; i < truckDelivery.quantity; i++) {
-                await addVehicle({
-                    type: truckDelivery.itemName,
-                    purchase_date: this.currentSimulatedDate.toISOString().split("T")[0], // we can not put the actual purchase date unless if the HAND API provides it
-                    operational_cost: truckDelivery.operatingCostPerDay,
-                    load_capacity: truckDelivery.maximumLoad,
-                });
+                try {
+                    await addVehicle({
+                        type: truckDelivery.itemName,
+                        purchase_date: this.currentSimulatedDate.toISOString().split("T")[0], // we can not put the actual purchase date unless if the HAND API provides it
+                        operational_cost: truckDelivery.operatingCostPerDay,
+                        load_capacity: truckDelivery.maximumLoad,
+                    });
+                } catch (error) {
+                    throw new Error("There was an error adding the vehicle");
+                }
             }
         } else {
             console.error("Truck delivery cannot be fulfilled:", truckDelivery.message);
@@ -237,6 +241,10 @@ export default class AutonomyService {
             // --- Condition-Based Setup Tasks ---
             // These now run at the start of each day to check if they are needed.
             await this._checkAndSecureLoan(); // Insert logic for first day operations.
+
+            const response = await reactivateVehicle();
+            console.log(`---${response.message}---`);
+            console.log(`${response.success && response.data}`);
 
             // --- Regular Daily Operations ---
             const dropOffDetails = await this._planAndDispatchShipments();

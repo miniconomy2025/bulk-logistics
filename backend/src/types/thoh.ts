@@ -1,7 +1,8 @@
-export interface ThohEvent {
-    type: string;
-    message: string;
-    data?: any;
+export interface TruckFailureInfo {
+    truckName: string;
+    failureQuantity: number;
+    simulationDate: string;
+    simulationTime: string;
 }
 
 export interface TruckPurchaseRequest {
@@ -29,4 +30,23 @@ export interface TruckInfoResponse {
     operatingCost: number;
     maximumLoad: number;
     weight: number;
+}
+
+export interface TruckFailureRequest {
+    truckName: string;
+    failureQuantity: number;
+    simulationDate: string;
+    simulationTime: string;
+}
+
+export interface TruckDeliveryRequest {
+    orderId: number;
+    itemName: string;
+    quantity: number;
+    totalPrice: number;
+    status: string;
+    message: string;
+    canFulfill: boolean;
+    maximumLoad: number;
+    operationalCostPerDay: number;
 }
