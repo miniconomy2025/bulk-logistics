@@ -176,8 +176,11 @@ export default class AutonomyService {
 
         const trucksPurchasePaymentsPromises: Promise<TransactionResponse>[] = [];
 
-        trucksPurchaseResponse.forEach((response) => {
-            if (response && response.orderId) {
+        trucksPurchaseResponse.forEach(async (response, index) => {
+            if (index === 0 && response && response.orderId) {
+                await updateCompanyDetails("bulk-logistics", {
+                    bankAccountNumber: response.bankAccount,
+                });
                 trucksPurchasePaymentsPromises.push(
                     bankApiClient.makePayment({
                         paymentDetails: {
