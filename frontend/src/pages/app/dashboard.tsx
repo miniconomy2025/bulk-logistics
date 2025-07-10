@@ -27,8 +27,9 @@ interface ActiveShipmentsResponse {
 }
 
 interface TopRevenueSourceItem {
-    category: string;
+    company: string;
     total: string;
+    shipments: string;
 }
 
 interface TopRevenueSourcesResponse {
@@ -56,7 +57,8 @@ const Dashboard: React.FC = () => {
     const [topRevenueSources, setTopRevenueSources] = useState<TopRevenueSourcesResponse>({
         transaction: [
             {
-                category: "",
+                company: "",
+                shipments: "",
                 total: "",
             },
         ],
@@ -184,7 +186,7 @@ const Dashboard: React.FC = () => {
                         <div className="space-y-2">
                             {topRevenueSources.transaction.map((item, key) => {
                                 const percent = (Number(item.total) / Number(totals.transaction[0].payment_received)) * 100;
-                                const displayPercent = !isFinite(percent) || isNaN(percent) ? 0 : percent;
+                                const displayPercent = !isFinite(percent) || isNaN(percent) ? 0 : percent.toFixed(2);
                                 const colors = [
                                     "bg-blue-500",
                                     "bg-green-500",
@@ -201,7 +203,7 @@ const Dashboard: React.FC = () => {
                                 return (
                                     <TransactionItem
                                         key={key}
-                                        label={item.category}
+                                        label={item.company}
                                         percentage={`${displayPercent}%`}
                                         colorClass={randomColor}
                                     />
