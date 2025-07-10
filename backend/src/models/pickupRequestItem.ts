@@ -1,4 +1,5 @@
 import db from "../config/database";
+import { ItemDefinitionWithName } from "../types";
 
 export const findUnshippedItems = async () => {
     const sql = `
@@ -30,3 +31,16 @@ export const findUnshippedItems = async () => {
 
     return unshippedItems.rows;
 };
+
+export const getItemDefinitions = async (): Promise<ItemDefinitionWithName[]> => {
+    const sql = `SELECT
+        item_definitions.item_definition_id,
+        item_definitions.item_name,
+        capacity_type.name as "capacity_type_name"
+        FROM
+        item_definitions
+        JOIN
+        capacity_type ON item_definitions.capacity_type_id = capacity_type.capacity_type_id`;
+    const itemDefinitions = await db.query(sql);
+    return itemDefinitions.rows;
+}

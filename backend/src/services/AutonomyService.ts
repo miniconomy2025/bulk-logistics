@@ -64,6 +64,7 @@ export default class AutonomyService {
         this.isRunning = true;
 
         // Immediately perform the first day's tick, then set the interval.
+        this._onInitOperations();
         this._performDailyTick();
         // This is how we keep track of time. The "cron" job waits on this interval rather than acting on actual system time.
         this.tickIntervalId = setInterval(() => this._performDailyTick(), SIMULATION_TICK_INTERVAL_MS);
@@ -133,23 +134,6 @@ export default class AutonomyService {
     // ========================================================================
 
     private async _onInitOperations(): Promise<void> {
-        /* 
-            1. Create bank account (assume instant) -> bank account created (bankClient). update company table with our account number.
-            2. Provide bank with our notification endpoint url either in the creation request or that dubious notification endpoint
-            3. Figure out cost of [3 large, 3 medium, 3 small] vehicles from the hand (handClient) -> we have our needed loan amount.
-            4. We request a loan. If we get a success then -> update transaction ledger + loan table.  (bank will debit us)
-            RESPONSE WILL LOOK LIKE THIS FOR LOAN:
-                ========interface LoanResult {
-                ============loan_number: string;
-                ============initial_transaction_id: number;
-                ============interest_rate: number;
-                ============started_at: string;
-                ============write_off: boolean;
-                ========}
-            5. We purchase our trucks-> for now we assume that they will delivered instantly (info in the response) but we can only use them on the next day.
-                    Create trucks, set active to false, until they are "eligible", then we set active to true. 
-        */
-
         //3. Figure out cost of [3 large, 3 medium, 3 small] vehicles from the hand (handClient) -> we have our needed loan amount.
         const requiredTrucks: TruckPurchaseRequest[] = [
             { truckName: "large_truck", quantity: 3 },
@@ -240,7 +224,7 @@ export default class AutonomyService {
 
             // --- Condition-Based Setup Tasks ---
             // These now run at the start of each day to check if they are needed.
-            await this._checkAndSecureLoan(); // Insert logic for first day operations.
+            // await this._checkAndSecureLoan(); // Insert logic for first day operations.
 
             const response = await reactivateVehicle();
             console.log(`---${response.message}---`);
