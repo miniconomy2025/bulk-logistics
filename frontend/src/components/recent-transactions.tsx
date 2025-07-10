@@ -28,7 +28,7 @@ export const RecentTransaction: React.FC<RecentTransactionProps> = ({ item }) =>
             </div>
             <div className="text-right">
                 <p className={`text-sm font-semibold ${transactionType === "credit" ? "text-green-600" : "text-red-600"}`}>
-                    {transactionType === "credit" ?"+ ":"- "}Ð {item.amount}
+                    {transactionType === "credit" ? "+ " : "- "}Ð {item.amount}
                 </p>
                 <p className="text-xs text-gray-500">{formatDate(item.transaction_date)}</p>
             </div>
