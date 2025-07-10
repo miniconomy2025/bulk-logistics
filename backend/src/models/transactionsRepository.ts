@@ -1,6 +1,6 @@
 import db from "../config/database";
 import { TransactionCategory, TransactionStatus } from "../enums";
-import { BankNotificationPayload, Result, LoanInfoResponse } from "../types";
+import { BankNotificationPayload, Loan, Result, LoanInfoResponse } from "../types";
 import { findAccountNumberByCompanyName } from "./companyRepository";
 import { getTransactionStatusByName } from "./transactionStatus";
 
@@ -290,6 +290,47 @@ export const createLedgerEntry = async (transaction: BankNotificationPayload & {
         console.error("Transaction processing error:", error);
         return 500;
     }
+};
+
+export const getAllLoans = async () : Promise<Loan[]> => {
+   const result = await db.query(
+        `SELECT * FROM loans`,
+    );
+
+    if (!result || result.rows.length < 1) {
+      return [];
+    }
+
+    return result.rows.map((loan) => ({
+      id: loan.loan_id,
+      loanAmount: loan.loan_amount,
+      interestRate: loan.interest_rate,
+      loanNumber: loan.loan_number,
+    }))
+}
+
+export const updatePaymentStatusForPickupRequest = async (transaction: BankNotificationPayload): Promise<number | null> => {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(transaction.description);
+
+    const paymentReferenceId = isUuid ? transaction.description : null;
+    const pickupRequestId = !isUuid ? parseInt(transaction.description, 10) : null;
+
+    const query = `
+        UPDATE bank_transactions_ledger
+        SET 
+            transaction_status_id = (
+                SELECT transaction_status_id 
+                FROM transaction_status 
+                WHERE status = 'COMPLETED'
+            )
+        WHERE 
+            payment_reference_id = $1 
+            OR related_pickup_request_id = $2;
+    `;
+
+    const result = await db.query(query, [paymentReferenceId, pickupRequestId]);
+
+    return result.rowCount;
 };
 
 export const saveLoanDetails = async (loanDetails: Partial<LoanInfoResponse>, commercialBankTransactionId: string): Promise<Result<any>> => {
