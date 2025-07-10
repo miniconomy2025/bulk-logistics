@@ -97,10 +97,46 @@ INSERT INTO shipment_status (name) VALUES
 -- ('2024-06-04', (SELECT vehicle_id FROM vehicle WHERE vehicle_type_id = (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'small_truck') AND is_active = TRUE LIMIT 1), (SELECT shipment_status_id FROM shipment_status WHERE name = 'PICKED_UP'));
 
 -- Insert data into bank_transactions_ledger (updated with new transaction categories and company references)
--- INSERT INTO bank_transactions_ledger (commercial_bank_transaction_id, payment_reference_id, transaction_category_id, amount, transaction_date, transaction_status_id, related_pickup_request_id, related_loan_id, related_thoh_order_id) VALUES
--- ('BANK-TXN-001', 'a1b2c3d4-e5f6-7890-1234-567890abcdef', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PAYMENT_RECEIVED'), 500.00, '2024-06-02', (SELECT transaction_status_id FROM transaction_status WHERE status = 'Completed'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-001'), NULL, NULL),
--- ('BANK-TXN-002', 'b2c3d4e5-f6a7-8901-2345-67890abcdef0', (SELECT transaction_category_id FROM transaction_category WHERE name = 'EXPENSE'), 75.50, '2024-06-03', (SELECT transaction_status_id FROM transaction_status WHERE status = 'Completed'), NULL, NULL, NULL),
--- ('BANK-TXN-003', 'c3d4e5f6-a7b8-9012-3456-7890abcdef01', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PAYMENT_RECEIVED'), 150.00, '2024-06-02', (SELECT transaction_status_id FROM transaction_status WHERE status = 'Pending'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'BETA-ORDER-002'), NULL, NULL),
--- ('BANK-TXN-004', 'd4e5f6a7-b8c9-0123-4567-890abcdef012', (SELECT transaction_category_id FROM transaction_category WHERE name = 'EXPENSE'), 200.00, '2024-06-04', (SELECT transaction_status_id FROM transaction_status WHERE status = 'Completed'), NULL, NULL, NULL);
+INSERT INTO bank_transactions_ledger (
+    commercial_bank_transaction_id, 
+    payment_reference_id, 
+    transaction_category_id, 
+    amount, 
+    transaction_date, 
+    transaction_status_id, 
+    related_pickup_request_id, 
+    loan_id, 
+    related_thoh_order_id
+) VALUES
+('BANK-TXN-001', 'a1b2c3d4-e5f6-7890-1234-567890abcdef', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PAYMENT_RECEIVED'), 500.00, '2024-06-02', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-002', 'b1c2d3e4-f5a6-7890-2345-678901bcdef0', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PURCHASE'), 250.00, '2024-06-03', (SELECT transaction_status_id FROM transaction_status WHERE status = 'PENDING'), NULL, NULL, NULL),
+('BANK-TXN-003', 'c1d2e3f4-a5b6-7890-3456-789012cdef12', (SELECT transaction_category_id FROM transaction_category WHERE name = 'LOAN'), 1000.00, '2024-06-04', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-004', 'd1e2f3a4-b5c6-7890-4567-890123def123', (SELECT transaction_category_id FROM transaction_category WHERE name = 'EXPENSE'), 120.50, '2024-06-05', (SELECT transaction_status_id FROM transaction_status WHERE status = 'FAILED'), NULL, NULL, NULL),
+('BANK-TXN-005', 'e1f2a3b4-c5d6-7890-5678-901234ef1234', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PAYMENT_RECEIVED'), 750.00, '2024-06-06', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-006', 'f1a2b3c4-d5e6-7890-6789-012345f12345', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PURCHASE'), 310.00, '2024-06-07', (SELECT transaction_status_id FROM transaction_status WHERE status = 'PENDING'), NULL, NULL, NULL),
+('BANK-TXN-007', 'a1b2c3d4-e5f6-7890-7890-123456012345', (SELECT transaction_category_id FROM transaction_category WHERE name = 'LOAN'), 2000.00, '2024-06-08', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-008', 'b1c2d3e4-f5a6-7890-8901-234560123456', (SELECT transaction_category_id FROM transaction_category WHERE name = 'EXPENSE'), 85.75, '2024-06-09', (SELECT transaction_status_id FROM transaction_status WHERE status = 'FAILED'), NULL, NULL, NULL),
+('BANK-TXN-009', 'c1d2e3f4-a5b6-7890-9012-345601234567', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PAYMENT_RECEIVED'), 950.00, '2024-06-10', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-010', 'd1e2f3a4-b5c6-7890-0123-456012345678', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PURCHASE'), 400.00, '2024-06-11', (SELECT transaction_status_id FROM transaction_status WHERE status = 'PENDING'), NULL, NULL, NULL),
+('BANK-TXN-011', 'e1f2a3b4-c5d6-7890-1234-560123456789', (SELECT transaction_category_id FROM transaction_category WHERE name = 'LOAN'), 1500.00, '2024-06-12', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-012', 'f1a2b3c4-d5e6-7890-2345-601234567890', (SELECT transaction_category_id FROM transaction_category WHERE name = 'EXPENSE'), 60.00, '2024-06-13', (SELECT transaction_status_id FROM transaction_status WHERE status = 'FAILED'), NULL, NULL, NULL),
+('BANK-TXN-013', 'a1b2c3d4-e5f6-7890-3456-012345678901', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PAYMENT_RECEIVED'), 825.00, '2024-06-14', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-014', 'b1c2d3e4-f5a6-7890-4567-123456789012', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PURCHASE'), 275.00, '2024-06-15', (SELECT transaction_status_id FROM transaction_status WHERE status = 'PENDING'), NULL, NULL, NULL),
+('BANK-TXN-015', 'c1d2e3f4-a5b6-7890-5678-234567890123', (SELECT transaction_category_id FROM transaction_category WHERE name = 'LOAN'), 1750.00, '2024-06-16', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-016', 'd1e2f3a4-b5c6-7890-6789-345678901234', (SELECT transaction_category_id FROM transaction_category WHERE name = 'EXPENSE'), 90.25, '2024-06-17', (SELECT transaction_status_id FROM transaction_status WHERE status = 'FAILED'), NULL, NULL, NULL),
+('BANK-TXN-017', 'e1f2a3b4-c5d6-7890-7890-456789012345', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PAYMENT_RECEIVED'), 650.00, '2024-06-18', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-018', 'f1a2b3c4-d5e6-7890-8901-567890123456', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PURCHASE'), 325.00, '2024-06-19', (SELECT transaction_status_id FROM transaction_status WHERE status = 'PENDING'), NULL, NULL, NULL),
+('BANK-TXN-019', 'a1b2c3d4-e5f6-7890-9012-678901234567', (SELECT transaction_category_id FROM transaction_category WHERE name = 'LOAN'), 2200.00, '2024-06-20', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-020', 'b1c2d3e4-f5a6-7890-0123-789012345678', (SELECT transaction_category_id FROM transaction_category WHERE name = 'EXPENSE'), 45.00, '2024-06-21', (SELECT transaction_status_id FROM transaction_status WHERE status = 'FAILED'), NULL, NULL, NULL),
+('BANK-TXN-021', 'c1d2e3f4-a5b6-7890-1234-890123456789', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PAYMENT_RECEIVED'), 575.00, '2024-06-22', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-022', 'd1e2f3a4-b5c6-7890-2345-901234567890', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PURCHASE'), 500.00, '2024-06-23', (SELECT transaction_status_id FROM transaction_status WHERE status = 'PENDING'), NULL, NULL, NULL),
+('BANK-TXN-023', 'e1f2a3b4-c5d6-7890-3456-012345678901', (SELECT transaction_category_id FROM transaction_category WHERE name = 'LOAN'), 1850.00, '2024-06-24', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-024', 'f1a2b3c4-d5e6-7890-4567-123456789012', (SELECT transaction_category_id FROM transaction_category WHERE name = 'EXPENSE'), 95.00, '2024-06-25', (SELECT transaction_status_id FROM transaction_status WHERE status = 'FAILED'), NULL, NULL, NULL),
+('BANK-TXN-025', 'a1b2c3d4-e5f6-7890-5678-234567890123', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PAYMENT_RECEIVED'), 880.00, '2024-06-26', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-026', 'b1c2d3e4-f5a6-7890-6789-345678901234', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PURCHASE'), 365.00, '2024-06-27', (SELECT transaction_status_id FROM transaction_status WHERE status = 'PENDING'), NULL, NULL, NULL),
+('BANK-TXN-027', 'c1d2e3f4-a5b6-7890-7890-456789012345', (SELECT transaction_category_id FROM transaction_category WHERE name = 'LOAN'), 1950.00, '2024-06-28', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-028', 'd1e2f3a4-b5c6-7890-8901-567890123456', (SELECT transaction_category_id FROM transaction_category WHERE name = 'EXPENSE'), 105.00, '2024-06-29', (SELECT transaction_status_id FROM transaction_status WHERE status = 'FAILED'), NULL, NULL, NULL),
+('BANK-TXN-029', 'e1f2a3b4-c5d6-7890-9012-678901234567', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PAYMENT_RECEIVED'), 920.00, '2024-06-30', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),
+('BANK-TXN-030', 'f1a2b3c4-d5e6-7890-0123-789012345678', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PURCHASE'), 420.00, '2024-07-01', (SELECT transaction_status_id FROM transaction_status WHERE status = 'PENDING'), NULL, NULL, NULL);
 
 COMMIT;

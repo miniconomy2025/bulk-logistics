@@ -1,5 +1,5 @@
 import { getCompanyByName } from "../models/companyRepository";
-import { PickupRequestRequest } from "../types/PickupRequest";
+import { ItemRequest, PickupRequestRequest } from "../types/PickupRequest";
 
 export const validatePickupRequest = async (pickupRequest: PickupRequestRequest) => {
     const destinationCompanyResult = await getCompanyByName(pickupRequest.destinationCompany);
@@ -11,7 +11,7 @@ export const validatePickupRequest = async (pickupRequest: PickupRequestRequest)
 
     //todo: refactor
     const items = pickupRequest.items;
-    items.forEach((item) => {
+    items.forEach((item: ItemRequest) => {
         const { itemName, quantity, measurementType } = item;
         if (
             [

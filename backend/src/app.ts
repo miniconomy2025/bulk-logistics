@@ -2,6 +2,8 @@ import express from "express";
 
 import { init } from "express-oas-generator";
 
+import cors from "cors";
+
 import bankRoutes from "./routes/bankNotification";
 import companyRoutes from "./routes/companyRoutes";
 import health from "./routes/health";
@@ -34,6 +36,13 @@ init(app, {
 
 const PORT = 3000;
 
+app.use(
+    cors({
+        credentials: true,
+        origin: "*",
+    }),
+);
+
 app.use(express.json());
 
 app.use("", thohRoutes);
@@ -44,9 +53,9 @@ app.use("/api/company", companyRoutes);
 app.use("/api/pickup-request", pickupRequestRoutes);
 app.use("/api/shipments", shipmentRoutes);
 
-app.all("*", (req, res, next) => {
-    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
-});
+// app.all("*", (req, res, next) => {
+//     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+// });
 
 app.use(globalErrorHandler); // error handler middleware.
 
