@@ -8,8 +8,10 @@ import IncomeExpensesChart from "../../components/income-expense-chart";
 import type { IncomeExpensesChartProps } from "../../types";
 
 interface TransactionItem {
-    total_revenue: string;
-    total_expenses: string;
+    purchase: string;
+    expense: string;
+    payment_received: string;
+    loan: string;
 }
 
 interface TransactionResponse {
@@ -37,8 +39,10 @@ const Dashboard: React.FC = () => {
     const [totals, setTotals] = useState<TransactionResponse>({
         transaction: [
             {
-                total_revenue: "0",
-                total_expenses: "0",
+                expense: "",
+                loan: "",
+                payment_received: "",
+                purchase: "",
             },
         ],
     });
@@ -112,6 +116,8 @@ const Dashboard: React.FC = () => {
             .catch((error) => console.error(error));
     }, []);
 
+    const total_money_out = Number(totals.transaction[0].loan) + Number(totals.transaction[0].expense) + Number(totals.transaction[0].purchase);
+
     return (
         <DashboardLayout>
             <main className="w-full flex-1 overflow-y-auto p-8 pt-[4.5rem] lg:ml-64 lg:pt-8">
@@ -126,7 +132,7 @@ const Dashboard: React.FC = () => {
                 <section className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     <MetricCard
                         title="Total Revenues"
-                        value={`R${totals.transaction[0].total_revenue}`}
+                        value={Number(totals.transaction[0].payment_received)}
                         change=""
                         changeType="increase"
                         bgColor="bg-green-100"
@@ -135,7 +141,7 @@ const Dashboard: React.FC = () => {
                     />
                     <MetricCard
                         title="Total Expenses"
-                        value={`R${totals.transaction[0].total_expenses}`}
+                        value={Number(total_money_out)}
                         change=""
                         changeType="decrease"
                         bgColor="bg-red-100"
@@ -144,7 +150,7 @@ const Dashboard: React.FC = () => {
                     />
                     <MetricCard
                         title="Net Profit"
-                        value={`R${Number(totals.transaction[0].total_revenue) - Number(totals.transaction[0].total_revenue)}`}
+                        value={Number(totals.transaction[0].payment_received) - Number(total_money_out)}
                         change=""
                         changeType="increase"
                         bgColor="bg-blue-100"
@@ -153,7 +159,7 @@ const Dashboard: React.FC = () => {
                     />
                     <MetricCard
                         title="Active Shipments"
-                        value={`R${activeShipments.transaction[0].count}`}
+                        value={Number(activeShipments.transaction[0].count)}
                         change=""
                         changeType="increase"
                         bgColor="bg-orange-100"
@@ -177,7 +183,7 @@ const Dashboard: React.FC = () => {
                         <p className="mb-6 text-sm text-gray-500">Distribution of income sources</p>
                         <div className="space-y-2">
                             {topRevenueSources.transaction.map((item, key) => {
-                                const percent = (Number(item.total) / Number(totals.transaction[0].total_revenue)) * 100;
+                                const percent = (Number(item.total) / Number(totals.transaction[0].payment_received)) * 100;
                                 const displayPercent = !isFinite(percent) || isNaN(percent) ? 0 : percent;
                                 const colors = [
                                     "bg-blue-500",

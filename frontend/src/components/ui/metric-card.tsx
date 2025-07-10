@@ -1,6 +1,6 @@
 interface MetricCardProps {
     title: string;
-    value: string;
+    value: number;
     change: string;
     changeType: "increase" | "decrease";
     icon: React.ReactNode;
@@ -14,7 +14,12 @@ export const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, ch
         <div className="ml-4">
             <p className="text-sm text-gray-500">{title}</p>
             <div className="mt-1 flex items-baseline">
-                <p className="text-xl font-semibold text-gray-900">{value}</p>
+                <p className="text-xl font-semibold text-gray-900">
+                    {new Intl.NumberFormat("en-ZA", {
+                        style: "currency",
+                        currency: "ZAR",
+                    }).format(value)}
+                </p>
                 <span className={`ml-2 text-xs font-medium ${changeType === "increase" ? "text-green-600" : "text-red-600"}`}>{change}</span>
             </div>
         </div>

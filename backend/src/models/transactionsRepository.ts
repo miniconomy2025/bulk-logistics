@@ -116,8 +116,10 @@ export const insertIntoTransactionLedger = async (options: InsertIntoTransaction
 export const getTotals = async (): Promise<Result<any>> => {
     const query = `
     SELECT
-      COALESCE(SUM(CASE WHEN tc.name = 'Revenue' THEN amount END),0) AS total_revenue,
-      COALESCE(SUM(CASE WHEN tc.name = 'Expense' THEN amount END),0) AS total_expenses
+      SUM(CASE WHEN tc.name = 'PURCHASE' THEN amount END) AS purchase,
+      SUM(CASE WHEN tc.name = 'EXPENSE' THEN amount END) AS expense,
+      SUM(CASE WHEN tc.name = 'PAYMENT_RECEIVED' THEN amount END) AS payment_received,
+      SUM(CASE WHEN tc.name = 'LOAN' THEN amount END) AS loan
     FROM bank_transactions_ledger t
     JOIN transaction_category tc ON t.transaction_category_id = tc.transaction_category_id;
   `;
@@ -150,8 +152,10 @@ export const getMonthlyRevenueExpenses = async (): Promise<Result<any>> => {
     SELECT
       EXTRACT(YEAR FROM transaction_date) AS year,
       EXTRACT(MONTH FROM transaction_date) AS month,
-      SUM(CASE WHEN tc.name = 'Revenue' THEN amount END) AS revenue,
-      SUM(CASE WHEN tc.name = 'Expense' THEN amount END) AS expenses
+      SUM(CASE WHEN tc.name = 'PURCHASE' THEN amount END) AS purchase,
+      SUM(CASE WHEN tc.name = 'EXPENSE' THEN amount END) AS expense,
+      SUM(CASE WHEN tc.name = 'PAYMENT_RECEIVED' THEN amount END) AS payment_received,
+      SUM(CASE WHEN tc.name = 'LOAN' THEN amount END) AS loan
     FROM bank_transactions_ledger t
     JOIN transaction_category tc ON t.transaction_category_id = tc.transaction_category_id
     WHERE transaction_date >= (current_date - INTERVAL '12 month')
