@@ -36,12 +36,12 @@ const PORT = 3000;
 
 app.use(express.json());
 
+app.use("", thohRoutes);
 app.use("/api/health", health);
 app.use("/api/bank", bankRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/pickup-request", pickupRequestRoutes);
-app.use("/api/thoh", thohRoutes);
 app.use("/api/shipments", shipmentRoutes);
 
 app.all("*", (req, res, next) => {

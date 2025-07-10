@@ -37,3 +37,9 @@ export const ThohEvents = {
     TruckDelivery: "TRUCK_DELIVERY",
     Config: "CONFIG",
 };
+
+export const TransactionStatus = {
+    Pending: "PENDING",
+    Failed: "FAILED",
+    Completed: "COMPLETED",
+};

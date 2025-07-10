@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { validatePickupRequest } from "../validation/pickupRequestValidator";
 import { PickupRequestCreationResult, PickupRequestRequest, PickupRequestCreateResponse, PickupRequestGetEntity } from "../types/PickupRequest";
 import { calculateDeliveryCost } from "../services/DeliveryCostCalculatorService";
-import { findPickupRequestById, findPickupRequestsByCompanyId, savePickupRequest } from "../models/pickupRequestRepository";
+import { findPickupRequestById, findPickupRequestsByCompanyName, savePickupRequest } from "../models/pickupRequestRepository";
 import catchAsync from "../utils/errorHandlingMiddleware/catchAsync";
 import AppError from "../utils/errorHandlingMiddleware/appError";
 import { SimulatedClock } from "../utils";
@@ -12,7 +12,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
     const pickupRequestDetails: PickupRequestRequest = req.body;
 
     try {
-        validatePickupRequest(pickupRequestDetails);
+        await validatePickupRequest(pickupRequestDetails);
     } catch (validationError: any) {
         return next(new AppError(`Invalid input data: ${validationError.message}`, 400));
     }
@@ -21,7 +21,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
 
     const result: PickupRequestCreationResult = await savePickupRequest({
         ...pickupRequestDetails,
-        requestingCompanyId: pickupRequestDetails.destinationCompanyId,
+        requestingCompany: pickupRequestDetails.destinationCompany,
         cost: cost,
         requestDate: SimulatedClock.getSimulatedTime(),
     });
@@ -66,9 +66,9 @@ export const getPickupRequest = catchAsync(async (req: Request, res: Response, n
 });
 
 export const getPickupRequestsByCompany = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { companyId } = req.params;
+    const { companyName } = req.params;
 
-    const pickupRequests: PickupRequestGetEntity[] | null = await findPickupRequestsByCompanyId(companyId);
+    const pickupRequests: PickupRequestGetEntity[] | null = await findPickupRequestsByCompanyName(companyName);
 
     let pickupRequestsResponse: PickupRequestGetEntity[] = [];
     pickupRequests?.forEach((pickupRequest) => {
