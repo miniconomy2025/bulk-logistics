@@ -23,7 +23,7 @@ class BankClient extends BaseApiClient {
     }
 
     public async createAccount(notificationUrl: string): Promise<CreateAccountResponse> {
-        const response = await this.client.post<CreateAccountResponse>("/account", { notificationUrl });
+        const response = await this.client.post<CreateAccountResponse>("/account", { notificationUrl: notificationUrl });
         return response.data;
     }
 

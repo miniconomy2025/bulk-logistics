@@ -4,8 +4,8 @@ import { rateLimiter } from "../utils";
 
 const router = express.Router();
 
-router.post("/truck/failure",rateLimiter(), truckFailure);
-router.post("/truck/delivery",rateLimiter(), truckDelivery);
+router.post("/trucks/failure",rateLimiter(), truckFailure);
+router.post("/trucks/delivery",rateLimiter(), truckDelivery);
 router.post("/simulation",rateLimiter(), startSimulation);
 
 export default router;
