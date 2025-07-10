@@ -8,16 +8,15 @@ class NotificationApiClient extends BaseApiClient {
 
     private readonly NotificationEndpoint = "/logistics";
 
-    public async sendLogisticsNotification(notification: LogisticsNotification): Promise<LogisticsNotificationResponse>{
-        
-      try {
-        return await this.client.post<LogisticsNotificationResponse>(`${notification.notificationURL}${this.NotificationEndpoint}`, notification);
-      } catch{
-        return {
-          status: 418,
+    public async sendLogisticsNotification(notification: LogisticsNotification): Promise<LogisticsNotificationResponse> {
+        try {
+            return await this.client.post<LogisticsNotificationResponse>(`${notification.notificationURL}${this.NotificationEndpoint}`, notification);
+        } catch {
+            return {
+                status: 418,
+            };
+            //Ignore Error
         }
-        //Ignore Error
-      }
     }
 }
 // Export a single instance so the rest of your app reuses the same client.

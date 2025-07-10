@@ -292,22 +292,20 @@ export const createLedgerEntry = async (transaction: BankNotificationPayload & {
     }
 };
 
-export const getAllLoans = async () : Promise<Loan[]> => {
-   const result = await db.query(
-        `SELECT * FROM loans`,
-    );
+export const getAllLoans = async (): Promise<Loan[]> => {
+    const result = await db.query(`SELECT * FROM loans`);
 
     if (!result || result.rows.length < 1) {
-      return [];
+        return [];
     }
 
     return result.rows.map((loan) => ({
-      id: loan.loan_id,
-      loanAmount: loan.loan_amount,
-      interestRate: loan.interest_rate,
-      loanNumber: loan.loan_number,
-    }))
-}
+        id: loan.loan_id,
+        loanAmount: loan.loan_amount,
+        interestRate: loan.interest_rate,
+        loanNumber: loan.loan_number,
+    }));
+};
 
 export const updatePaymentStatusForPickupRequest = async (transaction: BankNotificationPayload): Promise<number | null> => {
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(transaction.description);
