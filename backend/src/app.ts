@@ -63,7 +63,7 @@ app.use(globalErrorHandler); // error handler middleware.
 
 const options = {
   key: fs.readFileSync('/etc/ssl/bulk-logistics/bulk-logistics-server.key'),
-  cert: fs.readFileSync('/etc/ssl/bulk-logistics/bulk-logistics-server.cert'),
+  cert: fs.readFileSync('/etc/ssl/bulk-logistics/bulk-logistics-server.crt'),
   ca: fs.readFileSync('/etc/ssl/bulk-logistics/root-ca.crt'),
   requestCert: true,
   rejectUnauthorized: true,  // Enforce client certificate validation
