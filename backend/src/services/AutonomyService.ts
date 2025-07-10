@@ -113,7 +113,7 @@ export default class AutonomyService {
                 operational_cost: truckDelivery.operatingCostPerDay,
                 load_capacity: truckDelivery.maximumLoad,
             });
-        } else{
+        } else {
             console.error("Truck delivery cannot be fulfilled:", truckDelivery.message);
             // Handle the case where the truck delivery cannot be fulfilled.
             // This could involve logging, notifying the user, or taking other actions.
