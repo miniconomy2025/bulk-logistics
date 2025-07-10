@@ -18,6 +18,7 @@ export class ShipmentPlannerService {
 
         const allPendingRequests = await findPaidAndUnshippedRequests();
         console.log("all pending requests",allPendingRequests)
+        allPendingRequests.forEach(request => console.log(request.items));
         console.log("sim clock date",simulatedClock.getCurrentDate());
         const vehicleData = await findAvailableVehicles(simulatedClock.getCurrentDate().toISOString());
         console.log("vehicleData",vehicleData)
