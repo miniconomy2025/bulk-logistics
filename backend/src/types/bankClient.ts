@@ -9,7 +9,6 @@ export interface LoanApplicationResponse {
 
 export interface CreateAccountResponse {
     account_number: string;
-    net_balance: number;
 }
 
 export interface GetBalanceResponse {
