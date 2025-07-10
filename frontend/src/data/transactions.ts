@@ -12,7 +12,7 @@ interface CreateTransctionProps {
     transaction_date: Date;
     transaction_status_id: string;
     related_pickup_request_id?: string;
-    related_loan_id?: string;
+    loan_id?: string;
     related_thoh_order_id?: string;
 }
 

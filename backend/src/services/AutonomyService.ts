@@ -1,13 +1,16 @@
 import { ShipmentPlannerService } from "./ShipmentPlannerService";
 import { shipmentModel } from "../models/shipment";
 import { updateCompletionDate, updatePickupRequestStatuses } from "../models/pickupRequestRepository";
-import { PickupToShipmentItemDetails } from "../types";
+import { PickupToShipmentItemDetails, TransactionResponse, TruckDelivery } from "../types";
 import { Item, LogisticNotificationsGrouped, LogisticsNotification } from "../types/notifications";
 import { notificationApiClient } from "../client/notificationClient";
 import { thohApiClient } from "../client/thohClient";
 import { addVehicle } from "../models/vehicle";
 import type { TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
 import { lastValueFrom, timer } from "rxjs";
+import { bankApiClient } from "../client/bankClient";
+import { TransactionCategory } from "../enums";
+import { reactivateVehicle } from "./vehicleService";
 
 const SIMULATION_TICK_INTERVAL_MS = 15000; // should be set to 2 minutes, is on 15 seconds for testing
 
@@ -103,6 +106,23 @@ export default class AutonomyService {
         );
     }
 
+    public async handleTruckDelivery(truckDelivery: TruckDelivery): Promise<void> {
+        if (truckDelivery && truckDelivery.canFulfill) {
+            for (let i = 0; i < truckDelivery.quantity; i++) {
+                await addVehicle({
+                    type: truckDelivery.itemName,
+                    purchase_date: this.currentSimulatedDate.toISOString().split("T")[0], // we can not put the actual purchase date unless if the HAND API provides it
+                    operational_cost: truckDelivery.operatingCostPerDay,
+                    load_capacity: truckDelivery.maximumLoad,
+                });
+            }
+        } else {
+            console.error("Truck delivery cannot be fulfilled:", truckDelivery.message);
+            // Handle the case where the truck delivery cannot be fulfilled.
+            // This could involve logging, notifying the user, or taking other actions.
+        }
+    }
+
     // ========================================================================
     // PRIVATE HELPER METHODS (The "Cron Job" Logic)
     // ========================================================================
@@ -129,7 +149,7 @@ export default class AutonomyService {
         const requiredTrucks: TruckPurchaseRequest[] = [
             { truckName: "large_truck", quantity: 3 },
             { truckName: "medium_truck", quantity: 3 },
-            { truckName: "small", quantity: 3 },
+            { truckName: "small_truck", quantity: 3 },
         ];
 
         const truckPriceMap: { [key: string]: number } = {};
@@ -140,10 +160,6 @@ export default class AutonomyService {
             truckPriceMap[truck.truckName] = truck.price;
         });
 
-        const trucksCost = requiredTrucks.reduce((overallCost, truck) => {
-            return (overallCost += truckPriceMap[truck.truckName] * truck.quantity);
-        }, 0);
-
         //4. Request Loan
 
         //5. Purchase trucks
@@ -152,20 +168,37 @@ export default class AutonomyService {
             truckPurchasePromises.push(this._checkAndPurchaseTrucks(truckInfo));
         });
 
-        // Wait for all the started operations to complete
-        const purchasedTrucks = await Promise.all(truckPurchasePromises);
+        const trucksPurchaseResponse = await Promise.all(truckPurchasePromises);
 
-        for (const truck of purchasedTrucks) {
-            // Make sure the truck data is valid before saving
-            if (truck) {
-                await addVehicle({
-                    type: truck.truckName,
-                    purchase_date: this.currentSimulatedDate.toISOString(),
-                    operational_cost: Number(truck.operatingCostPerDay.split("/")[0]), // THOH should change this to a number
-                    load_capacity: truck.maximumLoad,
-                });
+        const trucksPurchasePaymentsPromises: Promise<TransactionResponse>[] = [];
+
+        trucksPurchaseResponse.forEach((response) => {
+            if (response && response.orderId) {
+                trucksPurchasePaymentsPromises.push(
+                    bankApiClient.makePayment({
+                        paymentDetails: {
+                            to_account_number: response.bankAccount,
+                            to_bank_name: "commercial-bank",
+                            amount: response.price * response.quantity, // THOH to provide the overall price in the response
+                            description: String(response.orderId),
+                        },
+                        transactionCategory: TransactionCategory.Purchase,
+                    }),
+                );
+            } else {
+                console.log("Truck purchase response was undefined or missing orderId. Skipping payment.");
             }
-        }
+        });
+
+        const paymentResults = await Promise.all(trucksPurchasePaymentsPromises);
+
+        paymentResults.forEach((result) => {
+            if (result.success) {
+                console.log(`Payment successful for transaction: ${result.transaction_number}`);
+            } else {
+                console.error("Payment failed:", result);
+            }
+        });
     }
     /**
      * The main "cron job" that runs on every interval.
@@ -192,6 +225,10 @@ export default class AutonomyService {
             // --- Condition-Based Setup Tasks ---
             // These now run at the start of each day to check if they are needed.
             await this._checkAndSecureLoan(); // Insert logic for first day operations.
+
+            const response = await reactivateVehicle();
+            console.log(`---${response.message}---`);
+            console.log(`${response.success && response.data}`);
 
             // --- Regular Daily Operations ---
             const dropOffDetails = await this._planAndDispatchShipments();

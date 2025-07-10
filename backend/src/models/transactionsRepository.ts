@@ -70,9 +70,9 @@ interface InsertIntoTransactionLedgerParams {
     transaction_category_id: string;
     amount: string;
     transaction_date: string;
-    transaction_status_id: string;
-    related_pickup_request_id: string;
-    related_loan_id: string;
+    transaction_status_id: number | null;
+    related_pickup_request_id: string | null; // should be a number | null
+    loan_id: string | null; // should be a number | null
     related_thoh_order_id: string;
 }
 
@@ -87,7 +87,7 @@ export const insertIntoTransactionLedger = async (options: InsertIntoTransaction
       transaction_date,
       transaction_status_id,
       related_pickup_request_id,
-      related_loan_id,
+      loan_id,
       related_thoh_order_id
     )
   VALUES
@@ -104,7 +104,7 @@ export const insertIntoTransactionLedger = async (options: InsertIntoTransaction
             options.transaction_date,
             options.transaction_status_id,
             options.related_pickup_request_id,
-            options.related_loan_id,
+            options.loan_id,
             options.related_thoh_order_id,
         ]);
         return { ok: true, value: result };
