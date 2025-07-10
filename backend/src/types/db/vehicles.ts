@@ -25,3 +25,15 @@ export interface GetVehicleResult {
     vehicles?: VehicleWithType[];
     reason?: string;
 }
+
+export interface TruckDelivery {
+    orderId: number;
+    itemName: string;
+    quantity: number;
+    totalPrice: string;
+    status: string;
+    message: string;
+    canFulfill: boolean;
+    maximumLoad: number;
+    operatingCostPerDay: number;
+}

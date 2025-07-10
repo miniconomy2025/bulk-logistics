@@ -55,17 +55,17 @@ INSERT INTO item_definitions (item_name, capacity_type_id) VALUES
 
 -- Insert data into vehicle_type
 INSERT INTO vehicle_type (name, capacity_type_id, maximum_capacity, max_pickups_per_day, max_dropoffs_per_day) VALUES
-('LARGE', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG'), 5000, 1, 1),
-('MEDIUM', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'), 2000, 5, 100 ),
-('SMALL', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'), 500, 250, 500);
+('large_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG'), 5000, 1, 1),
+('medium_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'), 2000, 5, 100 ),
+('small_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'), 500, 250, 500);
 
 -- Insert data into vehicle
 INSERT INTO vehicle (is_active, daily_operational_cost, vehicle_type_id, purchase_date) VALUES
-(TRUE, 150.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'LARGE'), '2022-01-15'),
-(TRUE, 100.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'MEDIUM'), '2023-03-01'),
-(TRUE, 75.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'SMALL'), '2023-06-10'),
-(TRUE, 160.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'LARGE'), '2022-07-20'),
-(FALSE, 90.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'MEDIUM'), '2021-11-05');
+(TRUE, 150.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'large_truck'), '2022-01-15'),
+(TRUE, 100.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'medium_truck'), '2023-03-01'),
+(TRUE, 75.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'small_truck'), '2023-06-10'),
+(TRUE, 160.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'large_truck'), '2022-07-20'),
+(FALSE, 90.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'medium_truck'), '2021-11-05');
 
 -- Insert data into pickup_requests (updated with new company references)
 -- INSERT INTO pickup_requests (requesting_company_id, origin_company_id, destination_company_id, original_external_order_id, cost, request_date, completion_date) VALUES
@@ -78,7 +78,7 @@ INSERT INTO vehicle (is_active, daily_operational_cost, vehicle_type_id, purchas
 -- INSERT INTO pickup_request_item (shipment_id,item_definition_id, pickup_request_id, quantity) VALUES
 -- (1, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'Heavy Machinery Part'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-001'), 3000),
 -- (1, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'Pallet of Goods'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-001'), 2000),
--- (3, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'Small Parcel'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'BETA-ORDER-002'), 100),
+-- (3, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'small_truck Parcel'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'BETA-ORDER-002'), 100),
 -- (3, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'Electronics Box'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'BETA-ORDER-002'), 50),
 -- (2, (SELECT item_definition_id FROM item_definitions WHERE item_name = 'Screens'), (SELECT pickup_request_id FROM pickup_requests WHERE original_external_order_id = 'ACME-ORDER-003'), 2000);
 
@@ -92,9 +92,9 @@ INSERT INTO shipment_status (name) VALUES
 -- Note: The original script used 'Delivered' and 'Pending' which are now 'DELIVERED' and 'PENDING'.
 -- Also, 'Dispatched' is no longer a status, using 'PICKED_UP' instead.
 -- INSERT INTO shipments (dispatch_date, vehicle_id, shipment_status_id) VALUES
--- ('2024-06-02', (SELECT vehicle_id FROM vehicle WHERE vehicle_type_id = (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'LARGE') AND is_active = TRUE LIMIT 1), (SELECT shipment_status_id FROM shipment_status WHERE name = 'DELIVERED')),
--- ('2024-06-02', (SELECT vehicle_id FROM vehicle WHERE vehicle_type_id = (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'MEDIUM') AND is_active = TRUE LIMIT 1), (SELECT shipment_status_id FROM shipment_status WHERE name = 'PENDING')),
--- ('2024-06-04', (SELECT vehicle_id FROM vehicle WHERE vehicle_type_id = (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'SMALL') AND is_active = TRUE LIMIT 1), (SELECT shipment_status_id FROM shipment_status WHERE name = 'PICKED_UP'));
+-- ('2024-06-02', (SELECT vehicle_id FROM vehicle WHERE vehicle_type_id = (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'large_truck') AND is_active = TRUE LIMIT 1), (SELECT shipment_status_id FROM shipment_status WHERE name = 'DELIVERED')),
+-- ('2024-06-02', (SELECT vehicle_id FROM vehicle WHERE vehicle_type_id = (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'medium_truck') AND is_active = TRUE LIMIT 1), (SELECT shipment_status_id FROM shipment_status WHERE name = 'PENDING')),
+-- ('2024-06-04', (SELECT vehicle_id FROM vehicle WHERE vehicle_type_id = (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'small_truck') AND is_active = TRUE LIMIT 1), (SELECT shipment_status_id FROM shipment_status WHERE name = 'PICKED_UP'));
 
 -- Insert data into bank_transactions_ledger (updated with new transaction categories and company references)
 -- INSERT INTO bank_transactions_ledger (commercial_bank_transaction_id, payment_reference_id, transaction_category_id, amount, transaction_date, transaction_status_id, related_pickup_request_id, related_loan_id, related_thoh_order_id) VALUES

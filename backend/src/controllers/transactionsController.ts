@@ -47,7 +47,7 @@ export async function createTransaction(req: Request, res: Response): Promise<vo
         transaction_date,
         transaction_status_id,
         related_pickup_request_id,
-        related_loan_id,
+        loan_id,
         related_thoh_order_id,
     } = req.body;
 
@@ -59,7 +59,7 @@ export async function createTransaction(req: Request, res: Response): Promise<vo
         transaction_date,
         transaction_status_id,
         related_pickup_request_id,
-        related_loan_id,
+        loan_id,
         related_thoh_order_id,
     });
 
