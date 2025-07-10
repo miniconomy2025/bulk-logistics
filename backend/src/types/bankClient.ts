@@ -1,11 +1,10 @@
 export interface LoanApplicationRequest {
     amount: number;
-    companyIdentifier: string;
 }
 
 export interface LoanApplicationResponse {
-    loanId: string;
-    status: "APPROVED" | "REJECTED";
+    success: boolean;
+    loan_number: string;
 }
 
 export interface CreateAccountResponse {

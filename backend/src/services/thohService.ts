@@ -8,32 +8,22 @@
 import db from "../config/database";
 import { ThohEvents } from "../enums";
 import { getAllVehiclesWithType, updateVehicleStatus } from "../models/vehicle";
-import { ThohEvent, TruckFailureInfo } from "../types/thoh";
+import { TruckDelivery } from "../types";
+import { TruckDeliveryRequest, TruckFailureRequest, TruckFailureInfo } from "../types/thoh";
 import { SimulatedClock } from "../utils";
 import AppError from "../utils/errorHandlingMiddleware/appError";
 import AutonomyService, { autonomyService } from "./AutonomyService";
 
-export const processThohEvent = (thohEvent: ThohEvent) => {
-    switch (thohEvent.type) {
-        case ThohEvents.StartSimulation:
-            autonomyService.start(thohEvent.data);
-            break;
-        case ThohEvents.EndSimulation:
-            autonomyService.stop();
-            break;
-        case ThohEvents.ResetSimulation:
-            autonomyService.reset(thohEvent.data);
-            break;
-        case ThohEvents.VehicleCrash:
-            autonomyService.handleVehicleCrash(/*will likely need data here soon */);
-            break;
-        case ThohEvents.TruckDelivery:
-            autonomyService.handleTruckDelivery(thohEvent.data);
-            break;
-        default:
-            console.log("ERROR: UNACCOUNTED FOR MESSAGE TYPE FROM THOH:", thohEvent);
-            throw new AppError("Thoh Event type has not been accounted for. Please contact bulk-logistics.", 422);
-    }
+export const beginSimulation = (startTime: string) => {
+    autonomyService.start(startTime);
+};
+
+export const processTruckFailure = async (failureRequest: TruckFailureRequest) => {
+    autonomyService.handleVehicleFailure(failureRequest);
+};
+
+export const handleTruckDelivery = async (truckDeliveryInfo: TruckDelivery) => {
+    await autonomyService.handleTruckDelivery(truckDeliveryInfo);
 };
 
 export const handleTruckFailure = async (failureInfo: TruckFailureInfo) => {
