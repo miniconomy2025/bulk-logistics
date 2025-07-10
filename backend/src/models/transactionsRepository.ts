@@ -150,15 +150,12 @@ export const getActiveShipmentsCount = async (): Promise<Result<any>> => {
 export const getMonthlyRevenueExpenses = async (): Promise<Result<any>> => {
     const query = `
     SELECT
-      EXTRACT(YEAR FROM transaction_date) AS year,
-      EXTRACT(MONTH FROM transaction_date) AS month,
-      SUM(CASE WHEN tc.name = 'PURCHASE' THEN amount END) AS purchase,
-      SUM(CASE WHEN tc.name = 'EXPENSE' THEN amount END) AS expense,
-      SUM(CASE WHEN tc.name = 'PAYMENT_RECEIVED' THEN amount END) AS payment_received,
-      SUM(CASE WHEN tc.name = 'LOAN' THEN amount END) AS loan
+        EXTRACT(YEAR FROM transaction_date) AS year,
+        EXTRACT(MONTH FROM transaction_date) AS month,
+        SUM(CASE WHEN tc.name IN ('PURCHASE', 'EXPENSE', 'LOAN') THEN amount END) AS expenses,
+        SUM(CASE WHEN tc.name IN ('PAYMENT_RECEIVED') THEN amount END) AS revenue
     FROM bank_transactions_ledger t
     JOIN transaction_category tc ON t.transaction_category_id = tc.transaction_category_id
-    WHERE transaction_date >= (current_date - INTERVAL '12 month')
     GROUP BY year, month
     ORDER BY year DESC, month DESC;
   `;
