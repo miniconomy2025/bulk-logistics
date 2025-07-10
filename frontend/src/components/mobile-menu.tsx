@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { QuickActions } from "./quick-actions";
 import { NavItems } from "./nav-items";
 import logo from "../assets/logo.svg";
 
