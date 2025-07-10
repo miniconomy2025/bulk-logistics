@@ -1,8 +1,8 @@
 import { ShipmentPlannerService } from "./ShipmentPlannerService";
 import { shipmentModel } from "../models/shipment";
 import { updateCompletionDate, updatePickupRequestStatuses } from "../models/pickupRequestRepository";
-import { PickupToShipmentItemDetails, TransactionResponse, TruckDelivery, type LoanApplicationResponse } from "../types";
-import { Item, LogisticNotificationsGrouped, LogisticsNotification } from "../types/notifications";
+import {  TransactionResponse, TruckDelivery } from "../types";
+import {  LogisticsNotification } from "../types/notifications";
 import { notificationApiClient } from "../client/notificationClient";
 import { thohApiClient } from "../client/thohClient";
 import { addVehicle } from "../models/vehicle";
@@ -12,8 +12,9 @@ import { bankApiClient } from "../client/bankClient";
 import { TransactionCategory } from "../enums";
 import { reactivateVehicle } from "./vehicleService";
 import { updateCompanyDetails } from "../models/companyRepository";
+import { simulatedClock } from "../utils";
 
-const SIMULATION_TICK_INTERVAL_MS = 15000; // should be set to 2 minutes, is on 15 seconds for testing
+const TICK_CHECK_INTERVAL_MS = 15000;
 
 export default class AutonomyService {
     private static instance: AutonomyService;
@@ -21,11 +22,11 @@ export default class AutonomyService {
     // --- State Properties ---
     private isRunning: boolean = false;
     private isProcessingTick: boolean = false;
-    private currentSimulatedDate: Date = new Date("2050-01-01");
     private tickIntervalId: NodeJS.Timeout | null = null;
-    private hasActiveLoan: boolean = false; // Example state property
-    private funds: number = 0; // Will need an SQL statement for this.
-    private initialTrucksCost: number = 0; // This will be set after calculating the cost of trucks from the HAND.
+    private hasActiveLoan: boolean = false; 
+    private funds: number = 0; 
+    private initialTrucksCost: number = 0; 
+    private lastProcessedSimDate: string | null = null;
 
     private constructor() {
         console.log("AutonomyService instance created.");
@@ -34,14 +35,12 @@ export default class AutonomyService {
     private resetState() {
         this.isRunning = false;
         this.isProcessingTick = false;
-        this.currentSimulatedDate = new Date("2050-01-01");
         this.tickIntervalId = null;
         this.hasActiveLoan = false;
         this.funds = 0;
         this.initialTrucksCost = 0;
     }
 
-    // This is necessary to make it a singleton.
     public static getInstance(): AutonomyService {
         if (!AutonomyService.instance) {
             AutonomyService.instance = new AutonomyService();
@@ -57,15 +56,13 @@ export default class AutonomyService {
             console.warn("Simulation is already running. Start command ignored.");
             return;
         }
-        console.log("--- SIMULATION STARTING ---", "\n Real Time:", startTime, "\nSimulation Time:");
+
+        simulatedClock.initialize(+startTime);
+        console.log("--- SIMULATION STARTING ---", "\n Real Time:", startTime, "\nSimulation Time:", simulatedClock.getCurrentDate());
         this.isRunning = true;
 
-        // Immediately perform the first day's tick, then set the interval.
-        this._performDailyTick();
-        // This is how we keep track of time. The "cron" job waits on this interval rather than acting on actual system time.
-        this.tickIntervalId = setInterval(() => this._performDailyTick(), SIMULATION_TICK_INTERVAL_MS);
-
-        console.log("AutonomyService started. Daily ticks will occur every 2 minutes.");
+        this.tickIntervalId = setInterval(() => this._processTick(), TICK_CHECK_INTERVAL_MS);
+        console.log(`AutonomyService started. Will check for a new day every ${TICK_CHECK_INTERVAL_MS / 1000} seconds.`);
     }
 
     /**
@@ -98,6 +95,60 @@ export default class AutonomyService {
         this.start(initialData);
     }
 
+    private async _processTick(): Promise<void> {
+        if (this.isProcessingTick || !this.isRunning) {
+            return;
+        }
+
+        try {
+            const trueSimulatedDate = simulatedClock.getCurrentDate();
+            const todayStr = trueSimulatedDate.toISOString().split('T')[0];
+
+            if (todayStr !== this.lastProcessedSimDate) {
+                this.isProcessingTick = true;
+                
+                // If this is the very first tick, run the one-time setup.
+                if (this.lastProcessedSimDate === null) {
+                    await this._onInitOperations();
+                }
+
+                // Run all tasks for this new day
+                await this._performDailyTasks(trueSimulatedDate);
+
+                this.lastProcessedSimDate = todayStr;
+                
+                this.isProcessingTick = false;
+            }
+        } catch (error) {
+            console.error("Error during tick processing:", error);
+            this.isProcessingTick = false;
+        }
+    }
+
+    private async _performDailyTasks(forDate: Date): Promise<void> {
+        console.log(`\n--- Starting Daily Tasks for: ${forDate.toISOString().split("T")[0]} ---`);
+        
+
+        try {
+            const response = await reactivateVehicle();
+            console.log(`---${response.message}---`);
+            console.log(`${response.success && response.data}`);
+
+            const dropOffDetails = await this._planAndDispatchShipments();
+
+            const delayedObservable = timer(10000);
+
+            await lastValueFrom(delayedObservable);
+
+            await this._notifyCompletedDeliveries(dropOffDetails);
+
+        } catch (error) {
+            console.error(`FATAL ERROR during daily tasks for ${forDate.toISOString().split("T")[0]}.`, error);
+        } finally {
+            console.log(`--- Finished Daily Tasks for ${forDate.toISOString().split("T")[0]} ---`);
+        }
+    }
+
     public handleVehicleFailure(failureRequest: TruckFailureRequest): void {
         console.log(
             "We have an insurance policy with Hive Insurance Co. Our policy dictates that all lost goods from a failed shipment will be replaced, and delivered on the same day! All surviving goods are thrown away since they were in a crash. Hooray! Everyone wins!!",
@@ -110,7 +161,7 @@ export default class AutonomyService {
                 try {
                     await addVehicle({
                         type: truckDelivery.itemName,
-                        purchase_date: this.currentSimulatedDate.toISOString().split("T")[0], // we can not put the actual purchase date unless if the HAND API provides it
+                        purchase_date: simulatedClock.getCurrentDate().toISOString().split("T")[0], // we can not put the actual purchase date unless if the HAND API provides it
                         operational_cost: truckDelivery.operatingCostPerDay,
                         load_capacity: truckDelivery.maximumLoad,
                     });
@@ -120,8 +171,6 @@ export default class AutonomyService {
             }
         } else {
             console.error("Truck delivery cannot be fulfilled:", truckDelivery.message);
-            // Handle the case where the truck delivery cannot be fulfilled.
-            // This could involve logging, notifying the user, or taking other actions.
         }
     }
 
@@ -207,56 +256,6 @@ export default class AutonomyService {
             }
         });
     }
-    /**
-     * The main "cron job" that runs on every interval.
-     */
-    private async _performDailyTick(): Promise<void> {
-        if (this.isProcessingTick) {
-            console.warn("Previous tick is still processing. Skipping new tick.");
-            return;
-        }
-
-        this.isProcessingTick = true;
-        console.log(`\n--- Starting Daily Tick for: ${this.currentSimulatedDate.toISOString().split("T")[0]} ---`);
-
-        try {
-            /**
-             * 1. Check the account balance and update our funds accordingly.
-             * 2. Check if trucks are available after purchase. check vehicles table for vehicles created the previous day and with is_active FALSE update is_active to true.
-             * 3. Do pick ups (assign pickup request items to shipments)
-             * 4. Assign pickup requests to different shipments
-             * 5. Wait until 30 seconds until 'midnight' and deliver (still under consideration)
-             * 6. based on our shipments (trucks used in the day), we pay operational costs to the hand.
-             */
-
-            // --- Condition-Based Setup Tasks ---
-            // These now run at the start of each day to check if they are needed.
-            // await this._checkAndSecureLoan(); // Insert logic for first day operations.
-
-            const response = await reactivateVehicle();
-            console.log(`---${response.message}---`);
-            console.log(`${response.success && response.data}`);
-
-            // --- Regular Daily Operations ---
-            const dropOffDetails = await this._planAndDispatchShipments();
-
-            // Create an observable that emits after the delay
-            const delayedObservable = timer(10000); // Represents the time until evening
-
-            // Await the completion of the observable
-            await lastValueFrom(delayedObservable);
-
-            // Now that the wait is over, perform the deliveries
-            await this._notifyCompletedDeliveries(dropOffDetails);
-        } catch (error) {
-            console.error("FATAL ERROR during daily tick.", error);
-        } finally {
-            this.isProcessingTick = false;
-            // Advance the simulated day AFTER the tick is complete.
-            this.currentSimulatedDate.setDate(this.currentSimulatedDate.getDate() + 1);
-            console.log(`--- Finished Daily Tick. Next tick will be for ${this.currentSimulatedDate.toISOString().split("T")[0]} ---`);
-        }
-    }
 
     /**
      * Checks if a loan is needed and applies for one if conditions are met.
@@ -310,7 +309,7 @@ export default class AutonomyService {
         console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nMorning Ops: Planning and dispatching shipments...");
         const planner = new ShipmentPlannerService();
         let dropoffEntities: LogisticsNotification[] = [];
-        const { createdShipmentsPlan, plannedRequestIds } = await planner.planDailyShipments(this.currentSimulatedDate);
+        const { createdShipmentsPlan, plannedRequestIds } = await planner.planDailyShipments(simulatedClock.getCurrentDate());
         for (const plan of createdShipmentsPlan) {
             plan.itemsToAssign.forEach(async (item) => {
                 let pickupRequestNotification: LogisticsNotification = {
@@ -327,14 +326,14 @@ export default class AutonomyService {
                 const response = await notificationApiClient.sendLogisticsNotification(pickupRequestNotification);
                 if (response.status >= 200 && response.status < 300) {
                     try {
-                        const newShipment = await shipmentModel.createShipment(plan.vehicle.vehicle_id, this.currentSimulatedDate);
+                        const newShipment = await shipmentModel.createShipment(plan.vehicle.vehicle_id, simulatedClock.getCurrentDate());
 
                         for (const item of plan.itemsToAssign) {
                             await shipmentModel.assignItemToShipmentWithPickupRequestItemId(item.pickup_request_item_id, newShipment.shipment_id);
                         }
 
                         for (const id in plannedRequestIds) {
-                            await updateCompletionDate(+id, this.currentSimulatedDate);
+                            await updateCompletionDate(+id, simulatedClock.getCurrentDate());
                         }
 
                         dropoffEntities.push({
@@ -370,7 +369,7 @@ export default class AutonomyService {
             await notificationApiClient.sendLogisticsNotification(notification);
         });
 
-        await updatePickupRequestStatuses(this.currentSimulatedDate);
+        await updatePickupRequestStatuses(simulatedClock.getCurrentDate());
         console.log("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV");
     }
 }

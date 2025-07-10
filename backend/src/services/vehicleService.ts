@@ -1,12 +1,15 @@
-import { SimulatedClock } from "../utils";
+import { simulatedClock, SimulatedClock } from "../utils";
 import { getVehicleDeliveriesByDateRange, getAllVehiclesWithType, updateVehicleStatus } from "../models/vehicle";
 import { GetVehicleResult, VehicleWithDeliveryCount, VehicleWithType } from "../types";
 import { PickupRequestRequest } from "../types/PickupRequest";
 import { MeasurementType, VehicleType } from "../enums";
 
 export const getTodaysVehicleDeliveries = async (): Promise<VehicleWithDeliveryCount[]> => {
-    const { start, end } = SimulatedClock.getSimulatedStartAndEndOfToday();
-    return await getVehicleDeliveriesByDateRange(start, end);
+    const startOfDay = simulatedClock.getCurrentDate();
+    const endOfDay = new Date(startOfDay);
+    endOfDay.setUTCDate(endOfDay.getUTCDate() + 1);
+
+    return await getVehicleDeliveriesByDateRange(startOfDay, endOfDay);
 };
 
 export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestRequest): Promise<GetVehicleResult> => {
@@ -83,7 +86,7 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
 export const reactivateVehicle = async () => {
     const allVehicles = await getAllVehiclesWithType();
 
-    const simulatedNow = SimulatedClock.getSimulatedTime();
+    const simulatedNow = simulatedClock.getCurrentDate();
 
     const twoDaysAgo = new Date(simulatedNow);
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
