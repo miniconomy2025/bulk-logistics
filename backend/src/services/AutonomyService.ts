@@ -1,8 +1,8 @@
 import { ShipmentPlannerService } from "./ShipmentPlannerService";
 import { shipmentModel } from "../models/shipment";
 import { updateCompletionDate, updatePickupRequestStatuses } from "../models/pickupRequestRepository";
-import {  TransactionResponse, TruckDelivery } from "../types";
-import {  LogisticsNotification } from "../types/notifications";
+import { TransactionResponse, TruckDelivery } from "../types";
+import { LogisticsNotification } from "../types/notifications";
 import { notificationApiClient } from "../client/notificationClient";
 import { thohApiClient } from "../client/thohClient";
 import { addVehicle } from "../models/vehicle";
@@ -23,9 +23,9 @@ export default class AutonomyService {
     private isRunning: boolean = false;
     private isProcessingTick: boolean = false;
     private tickIntervalId: NodeJS.Timeout | null = null;
-    private hasActiveLoan: boolean = false; 
-    private funds: number = 0; 
-    private initialTrucksCost: number = 0; 
+    private hasActiveLoan: boolean = false;
+    private funds: number = 0;
+    private initialTrucksCost: number = 0;
     private lastProcessedSimDate: string | null = null;
 
     private constructor() {
@@ -102,11 +102,11 @@ export default class AutonomyService {
 
         try {
             const trueSimulatedDate = simulatedClock.getCurrentDate();
-            const todayStr = trueSimulatedDate.toISOString().split('T')[0];
+            const todayStr = trueSimulatedDate.toISOString().split("T")[0];
 
             if (todayStr !== this.lastProcessedSimDate) {
                 this.isProcessingTick = true;
-                
+
                 // If this is the very first tick, run the one-time setup.
                 if (this.lastProcessedSimDate === null) {
                     await this._onInitOperations();
@@ -116,7 +116,7 @@ export default class AutonomyService {
                 await this._performDailyTasks(trueSimulatedDate);
 
                 this.lastProcessedSimDate = todayStr;
-                
+
                 this.isProcessingTick = false;
             }
         } catch (error) {
@@ -127,7 +127,6 @@ export default class AutonomyService {
 
     private async _performDailyTasks(forDate: Date): Promise<void> {
         console.log(`\n--- Starting Daily Tasks for: ${forDate.toISOString().split("T")[0]} ---`);
-        
 
         try {
             const response = await reactivateVehicle();
@@ -141,7 +140,6 @@ export default class AutonomyService {
             await lastValueFrom(delayedObservable);
 
             await this._notifyCompletedDeliveries(dropOffDetails);
-
         } catch (error) {
             console.error(`FATAL ERROR during daily tasks for ${forDate.toISOString().split("T")[0]}.`, error);
         } finally {
