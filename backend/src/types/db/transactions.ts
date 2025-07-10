@@ -15,9 +15,9 @@ export interface BankTransactionLedger {
     transaction_category_id: number;
     amount: number;
     transaction_date: string;
-    transaction_status_id: number;
+    transaction_status_id: number | null;
     related_pickup_request_id?: number | null;
-    related_loan_id?: number | null;
+    loan_id?: number | null;
     related_thoh_order_id?: string | null;
 }
 

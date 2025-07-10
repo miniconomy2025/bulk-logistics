@@ -78,7 +78,8 @@ CREATE TABLE vehicle (
     REFERENCES vehicle_type (vehicle_type_id)
       ON UPDATE CASCADE
       ON DELETE RESTRICT,
-  purchase_date   DATE    NOT NULL
+  purchase_date   DATE    NOT NULL,
+  disabled_date   DATE
 );
 
 CREATE TABLE pickup_requests (

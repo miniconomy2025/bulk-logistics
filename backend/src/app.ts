@@ -4,6 +4,8 @@ import https from "https";
 
 import { init } from "express-oas-generator";
 
+import cors from "cors"
+
 import bankRoutes from "./routes/bankNotification";
 import companyRoutes from "./routes/companyRoutes";
 import health from "./routes/health";
@@ -36,19 +38,26 @@ description: Production server`,
 
 const PORT = 443; // standard HTTPS port
 
+app.use(
+    cors({
+        credentials: true,
+        origin: "*",
+    }),
+);
+
 app.use(express.json());
 
+app.use("", thohRoutes);
 app.use("/api/health", health);
 app.use("/api/bank", bankRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/pickup-request", pickupRequestRoutes);
-app.use("/api/thoh", thohRoutes);
 app.use("/api/shipments", shipmentRoutes);
 
-app.all("*", (req, res, next) => {
-    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
-});
+// app.all("*", (req, res, next) => {
+//     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+// });
 
 app.use(globalErrorHandler); // error handler middleware.
 

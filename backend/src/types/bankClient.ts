@@ -16,3 +16,16 @@ export interface CreateAccountResponse {
 export interface GetBalanceResponse {
     balance: number;
 }
+
+export interface TransactionRequest {
+    to_account_number: string;
+    to_bank_name: string;
+    amount: number;
+    description: string;
+}
+
+export interface TransactionResponse {
+    success: true;
+    transaction_number: string;
+    status: string;
+}

@@ -34,5 +34,12 @@ export const ThohEvents = {
     EndSimulation: "END_SIMULATION",
     ResetSimulation: "RESET_SIMULATION",
     VehicleCrash: "VEHICLE_CRASH",
+    TruckDelivery: "TRUCK_DELIVERY",
     Config: "CONFIG",
+};
+
+export const TransactionStatus = {
+    Pending: "PENDING",
+    Failed: "FAILED",
+    Completed: "COMPLETED",
 };
