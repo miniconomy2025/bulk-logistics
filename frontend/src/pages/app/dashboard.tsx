@@ -74,7 +74,7 @@ const Dashboard: React.FC = () => {
                 amount: "",
                 transaction_date: "",
                 transaction_type: "",
-                pickup_request_id: 0
+                pickup_request_id: 0,
             },
         ],
     });
