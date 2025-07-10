@@ -66,7 +66,7 @@ const IncomeExpensesChart = ({ transaction }: IncomeExpensesChartProps) => {
             y: {
                 beginAtZero: true,
                 ticks: {
-                    callback: (value: any) => `R${value}`,
+                    callback: (value: any) => `Ð${value}`,
                 },
             },
         },
