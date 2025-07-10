@@ -1,18 +1,8 @@
-/*
-================================================================================
-| FILE: /src/services/thohService.ts (CORRECTED)
-| DESC: This file has been corrected to call the proper method names on the
-|       autonomyService singleton instance.
-================================================================================
-*/
-import db from "../config/database";
-import { ThohEvents } from "../enums";
 import { getAllVehiclesWithType, updateVehicleStatus } from "../models/vehicle";
 import { TruckDelivery } from "../types";
-import { TruckDeliveryRequest, TruckFailureRequest, TruckFailureInfo } from "../types/thoh";
-import { SimulatedClock } from "../utils";
-import AppError from "../utils/errorHandlingMiddleware/appError";
-import AutonomyService, { autonomyService } from "./AutonomyService";
+import { TruckFailureRequest, TruckFailureInfo } from "../types/thoh";
+import { simulatedClock } from "../utils";
+import { autonomyService } from "./AutonomyService";
 
 export const beginSimulation = (startTime: string) => {
     autonomyService.start(startTime);
@@ -51,7 +41,7 @@ export const handleTruckFailure = async (failureInfo: TruckFailureInfo) => {
     const disableVehicles = [];
 
     for (const vehicle of vehiclesToFail) {
-        const response = await updateVehicleStatus(vehicle.vehicle_id, false, SimulatedClock.getSimulatedTime().toISOString());
+        const response = await updateVehicleStatus(vehicle.vehicle_id, false, simulatedClock.getCurrentDate().toISOString());
 
         disableVehicles.push(response);
         console.log("----Vehicle Disabled-----");

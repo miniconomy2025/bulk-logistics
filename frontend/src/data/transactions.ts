@@ -35,8 +35,8 @@ export default class Transactions {
         return await API.get(Transactions.baseEndpoint + "totals");
     }
 
-    public static async activeShipments() {
-        return await API.get(Transactions.baseEndpoint + "active-shipments");
+    public static async recent() {
+        return await API.get(Transactions.baseEndpoint + "recent");
     }
 
     public static async monthly() {

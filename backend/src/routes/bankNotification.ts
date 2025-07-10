@@ -5,6 +5,6 @@ import { bankNotification } from "../controllers/bank-notification";
 
 const router = Router();
 
-router.post("/notification", rateLimiter, bankNotification);
+router.post("/notification", rateLimiter(), bankNotification);
 
 export default router;

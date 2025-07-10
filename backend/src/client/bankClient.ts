@@ -9,7 +9,7 @@ import {
     TransactionRequest,
     TransactionResponse,
 } from "../types";
-import { SimulatedClock } from "../utils";
+import { simulatedClock } from "../utils";
 import { BaseApiClient } from "./baseClient";
 
 class BankClient extends BaseApiClient {
@@ -42,7 +42,7 @@ class BankClient extends BaseApiClient {
         const response = await this.client.post<TransactionResponse>("/transaction", paymentDetails);
 
         if (response.data) {
-            const transactionDate = SimulatedClock.getSimulatedTime().toISOString().split("T")[0]; // The date format expected in the DB is YYYY-MM-DD
+            const transactionDate = simulatedClock.getCurrentDate().toISOString().split("T")[0]; // The date format expected in the DB is YYYY-MM-DD
             const transactionStatus = response.data.success ? TransactionStatus.Completed : TransactionStatus.Failed;
             const status = await getTransactionStatusByName(transactionStatus);
 

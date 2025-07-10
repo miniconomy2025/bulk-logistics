@@ -2,6 +2,8 @@ import express from "express";
 
 import { init } from "express-oas-generator";
 
+import cors from "cors";
+
 import bankRoutes from "./routes/bankNotification";
 import companyRoutes from "./routes/companyRoutes";
 import health from "./routes/health";
@@ -36,6 +38,7 @@ const PORT = 3000;
 
 app.use(express.json());
 
+app.use("/api", thohRoutes);
 app.use("/api/health", health);
 app.use("/api/bank", bankRoutes);
 app.use("/api/transactions", transactionRoutes);

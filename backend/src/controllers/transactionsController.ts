@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import {
     findTransactionById,
     findTransactions,
-    getActiveShipmentsCount,
     getMonthlyRevenueExpenses,
+    getRecentTransactionRepo,
     getTopRevenueSourcesRepo,
     getTotals,
     getTransactionBreakdown,
@@ -81,16 +81,6 @@ export async function getTransactionTotals(_: Request, res: Response): Promise<v
     }
 }
 
-export async function getActiveShipments(_: Request, res: Response): Promise<void> {
-    const result = await getActiveShipmentsCount();
-    if (result.ok) {
-        res.status(200).json({ transaction: result.value.rows });
-    } else {
-        console.error(result.error);
-        res.status(500).json({ error: "Internal Server Error" });
-    }
-}
-
 export async function getMonthlyTransactions(_: Request, res: Response): Promise<void> {
     const result = await getMonthlyRevenueExpenses();
 
@@ -115,6 +105,16 @@ export async function getTopRevenueSources(_: Request, res: Response): Promise<v
 
 export async function getCostsBreakdown(_: Request, res: Response): Promise<void> {
     const result = await getTransactionBreakdown();
+    if (result.ok) {
+        res.status(200).json({ transaction: result.value.rows });
+    } else {
+        console.error(result.error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}
+
+export async function getRecentTransactions(_: Request, res: Response): Promise<void> {
+    const result = await getRecentTransactionRepo();
     if (result.ok) {
         res.status(200).json({ transaction: result.value.rows });
     } else {
