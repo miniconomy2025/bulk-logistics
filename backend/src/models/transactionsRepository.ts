@@ -189,14 +189,14 @@ export const getTransactionBreakdown = async (): Promise<Result<any>> => {
 
 export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
     const query = `
-    SELECT c.company_name AS company,
-           SUM(t.amount) AS total,
-           COUNT(DISTINCT t.related_pickup_request_id) AS shipments
+    SELECT 
+        c.company_name AS company,
+        SUM(t.amount) AS total,
+        COUNT(DISTINCT t.related_pickup_request_id) AS shipments
     FROM bank_transactions_ledger t
-    JOIN transaction_category tc ON t.transaction_category_id = tc.transaction_category_id
-    JOIN pickup_requests pr ON t.related_pickup_request_id = pr.pickup_request_id
+    JOIN pickup_requests pr ON pr.pickup_request_id = t.related_pickup_request_id
     JOIN company c ON pr.requesting_company_id = c.company_id
-    WHERE tc.name = 'Revenue'
+    JOIN transaction_category tc ON t.transaction_category_id = tc.transaction_category_id where tc.name = 'PAYMENT_RECEIVED'
     GROUP BY c.company_name
     ORDER BY total DESC;
   `;
