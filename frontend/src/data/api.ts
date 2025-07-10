@@ -15,7 +15,7 @@ export default class API {
 
         if (status >= 200 || status <= 600) {
             const isDev = import.meta.env.VITE_ENV === "dev";
-            API.apiRoot = isDev ? apiRoot : "http://localhost:3000";
+            API.apiRoot = !isDev ? apiRoot : "http://localhost:3000";
         } else {
             API.apiRoot = undefined;
         }
