@@ -4,6 +4,17 @@ interface RecentTransactionProps {
     item: RecentTransactionsItem;
 }
 
+function formatDate(input: string, newYear: number = new Date().getFullYear()): string {
+    const date = new Date(input);
+    date.setFullYear(newYear);
+
+    const monthNumber = String(date.getMonth() + 1).padStart(2, "0");
+    const monthName = date.toLocaleString("default", { month: "long" });
+    const year = date.getFullYear();
+
+    return `${monthNumber} ${monthName} ${year}`;
+}
+
 export const RecentTransaction: React.FC<RecentTransactionProps> = ({ item }) => {
     const transactionType = item.transaction_type === "PAYMENT_RECEIVED" || item.transaction_type === "LOAN" ? "credit" : "debit";
 
@@ -16,8 +27,10 @@ export const RecentTransaction: React.FC<RecentTransactionProps> = ({ item }) =>
                 <p className="text-xs text-gray-500">{transactionType === "credit" ? `Shipment #${item.pickup_request_id}` : "Loan disbursement"}</p>
             </div>
             <div className="text-right">
-                <p className={`text-sm font-semibold ${transactionType === "credit" ? "text-green-600" : "text-red-600"}`}>{item.amount}</p>
-                <p className="text-xs text-gray-500">{item.transaction_date}</p>
+                <p className={`text-sm font-semibold ${transactionType === "credit" ? "text-green-600" : "text-red-600"}`}>
+                    {transactionType === "credit" ?"+ ":"- "}Ð {item.amount}
+                </p>
+                <p className="text-xs text-gray-500">{formatDate(item.transaction_date)}</p>
             </div>
         </div>
     );
