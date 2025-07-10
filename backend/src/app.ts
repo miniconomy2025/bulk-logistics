@@ -2,7 +2,7 @@ import express from "express";
 
 import { init } from "express-oas-generator";
 
-import cors from "cors"
+import cors from "cors";
 
 import bankRoutes from "./routes/bankNotification";
 import companyRoutes from "./routes/companyRoutes";
