@@ -1,8 +1,9 @@
 import database from "../config/database";
 import { PickupRequestEntity, PickupRequestCreationResult, PickupRequestGetEntity } from "../types/PickupRequest";
+import { v4 as uuidv4 } from 'uuid'; // Import the UUID generator
 
 export const savePickupRequest = async (pickupRequest: PickupRequestEntity): Promise<PickupRequestCreationResult> => {
-    const paymentReferenceId = crypto.randomUUID();
+    const paymentReferenceId = uuidv4();
 
     const query = "SELECT * FROM create_pickup_request($1, $2, $3, $4, $5, $6, $7::jsonb, $8)";
     
