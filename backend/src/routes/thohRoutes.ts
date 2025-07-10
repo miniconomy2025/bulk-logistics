@@ -1,9 +1,9 @@
 import express from "express";
-import { handleTruckFailure, startSimulation, truckDelivery } from "../controllers/thohController";
+import { startSimulation, truckDelivery, truckFailure } from "../controllers/thohController";
 
 const router = express.Router();
 
-router.post("/truck/failure", handleTruckFailure);
+router.post("/truck/failure", truckFailure);
 router.post("/truck/delivery", truckDelivery);
 router.post("/simulation", startSimulation);
 

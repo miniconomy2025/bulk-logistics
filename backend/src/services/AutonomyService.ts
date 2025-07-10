@@ -10,6 +10,7 @@ import type { TruckFailureRequest, TruckPurchaseRequest, TruckPurchaseResponse }
 import { lastValueFrom, timer } from "rxjs";
 import { bankApiClient } from "../client/bankClient";
 import { TransactionCategory } from "../enums";
+import { reactivateVehicle } from "./vehicleService";
 
 const SIMULATION_TICK_INTERVAL_MS = 15000; // should be set to 2 minutes, is on 15 seconds for testing
 
@@ -228,6 +229,10 @@ export default class AutonomyService {
             // --- Condition-Based Setup Tasks ---
             // These now run at the start of each day to check if they are needed.
             await this._checkAndSecureLoan(); // Insert logic for first day operations.
+
+            const response = await reactivateVehicle();
+            console.log(`---${response.message}---`);
+            console.log(`${response.success && response.data}`);
 
             // --- Regular Daily Operations ---
             const dropOffDetails = await this._planAndDispatchShipments();

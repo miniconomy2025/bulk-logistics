@@ -1,4 +1,11 @@
 
+export interface TruckFailureInfo {
+    truckName: string;
+    failureQuantity: number;
+    simulationDate: string;
+    simulationTime: string;
+}
+
 export interface TruckPurchaseRequest {
     truckName: string;
     quantity: number;
