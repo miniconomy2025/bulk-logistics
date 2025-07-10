@@ -8,13 +8,13 @@ export default class API {
     private static apiRoot: string | undefined;
 
     private static async pingAPI(): Promise<void> {
-        const apiRoot = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api/health";
+        const apiRoot = import.meta.env.VITE_API_ROOT || "http://localhost:3000";
 
         const response = await fetch(apiRoot, { method: "GET" });
         const { status } = response;
 
         if (status >= 200 || status <= 600) {
-            const isDev = import.meta.env.VITE_DEV === "dev";
+            const isDev = import.meta.env.VITE_ENV === "dev";
             API.apiRoot = isDev ? apiRoot : "http://localhost:3000";
         } else {
             API.apiRoot = undefined;
