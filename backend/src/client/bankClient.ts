@@ -1,5 +1,5 @@
 import { TransactionStatus } from "../enums";
-import { insertIntoTransactionLedger } from "../models/transactionsRepository";
+import { getCategoryIdByName, insertIntoTransactionLedger, saveLoanDetails } from "../models/transactionsRepository";
 import { getTransactionStatusByName } from "../models/transactionStatus";
 import {
     CreateAccountResponse,
@@ -8,6 +8,7 @@ import {
     LoanApplicationResponse,
     TransactionRequest,
     TransactionResponse,
+    type LoanInfoResponse,
 } from "../types";
 import { simulatedClock } from "../utils";
 import { BaseApiClient } from "./baseClient";
@@ -19,6 +20,21 @@ class BankClient extends BaseApiClient {
 
     public async applyForLoan(loanDetails: LoanApplicationRequest): Promise<LoanApplicationResponse> {
         const response = await this.client.post<LoanApplicationResponse>("/loan", loanDetails);
+
+        if (response.data.success) {
+            const loanInfo = await this.client.get<LoanInfoResponse>(`/loan/${response.data.loan_number}`);
+
+            if (loanInfo.data.success) {
+                await saveLoanDetails(
+                    {
+                        loan_number: loanInfo.data.loan_number,
+                        interest_rate: loanInfo.data.interest_rate,
+                        initial_amount: loanInfo.data.initial_amount,
+                    },
+                    response.data.initial_transaction_id.toString(),
+                );
+            }
+        }
         return response.data;
     }
 
@@ -45,14 +61,15 @@ class BankClient extends BaseApiClient {
             const transactionDate = simulatedClock.getCurrentDate().toISOString().split("T")[0]; // The date format expected in the DB is YYYY-MM-DD
             const transactionStatus = response.data.success ? TransactionStatus.Completed : TransactionStatus.Failed;
             const status = await getTransactionStatusByName(transactionStatus);
+            const transactionCategoryId = await getCategoryIdByName(transactionCategory);
 
             await insertIntoTransactionLedger({
                 commercial_bank_transaction_id: response.data.transaction_number,
                 payment_reference_id: response.data.transaction_number,
-                transaction_category_id: transactionCategory,
-                amount: String(paymentDetails.amount),
+                transaction_category_id: transactionCategoryId,
+                amount: paymentDetails.amount,
                 transaction_date: transactionDate,
-                transaction_status_id: status?.transaction_status_id ?? null,
+                transaction_status_id: status?.transaction_status_id!,
                 related_pickup_request_id: null,
                 loan_id: null,
                 related_thoh_order_id: paymentDetails.description,

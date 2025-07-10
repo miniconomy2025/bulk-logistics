@@ -1,6 +1,8 @@
 import db from "../config/database";
-import { BankNotificationPayload, Result } from "../types";
+import { TransactionCategory, TransactionStatus } from "../enums";
+import { BankNotificationPayload, Result, LoanInfoResponse } from "../types";
 import { findAccountNumberByCompanyName } from "./companyRepository";
+import { getTransactionStatusByName } from "./transactionStatus";
 
 export const findTransactions = async (): Promise<Result<any>> => {
     const query = `
@@ -65,15 +67,15 @@ export const findTransactionById = async (id: string): Promise<Result<any>> => {
 };
 
 interface InsertIntoTransactionLedgerParams {
-    commercial_bank_transaction_id: string;
-    payment_reference_id: string;
-    transaction_category_id: string;
-    amount: string;
+    commercial_bank_transaction_id: string | null;
+    payment_reference_id: string | null;
+    transaction_category_id: number;
+    amount: number;
     transaction_date: string;
-    transaction_status_id: number | null;
-    related_pickup_request_id: string | null; // should be a number | null
-    loan_id: string | null; // should be a number | null
-    related_thoh_order_id: string;
+    transaction_status_id: number;
+    related_pickup_request_id: number | null;
+    loan_id: number | null;
+    related_thoh_order_id: string | null;
 }
 
 export const insertIntoTransactionLedger = async (options: InsertIntoTransactionLedgerParams): Promise<Result<any>> => {
@@ -224,6 +226,12 @@ const getCategoryId = async (direction: "in" | "out"): Promise<number> => {
     return result.rows[0]?.transaction_category_id || null;
 };
 
+export const getCategoryIdByName = async (name: string): Promise<number> => {
+    const result = await db.query(`SELECT  transaction_category_id FROM transaction_category WHERE name $1`, [name]);
+
+    return result.rows[0]?.transaction_category_id;
+};
+
 const transactionExists = async (transactionNumber: string): Promise<boolean> => {
     const result = await db.query(
         `SELECT 1 FROM bank_transactions_ledger
@@ -281,5 +289,45 @@ export const createLedgerEntry = async (transaction: BankNotificationPayload & {
         await db.query("ROLLBACK");
         console.error("Transaction processing error:", error);
         return 500;
+    }
+};
+
+export const saveLoanDetails = async (loanDetails: Partial<LoanInfoResponse>, commercialBankTransactionId: string): Promise<Result<any>> => {
+    try {
+        await db.query("BEGIN");
+
+        const loanQuery = `
+            INSERT INTO loans (
+                loan_number,
+                interest_rate,
+                loan_amount
+            ) VALUES ($1, $2, $3)
+            RETURNING *;
+        `;
+        const loanResult = await db.query(loanQuery, [loanDetails.loan_number, loanDetails.interest_rate, loanDetails.initial_amount]);
+        const loanId = loanResult.rows[0].loan_id;
+        const transactionStatus = loanDetails.success ? TransactionStatus.Completed : TransactionStatus.Failed;
+
+        const status = await getTransactionStatusByName(transactionStatus);
+
+        const transactionCategoryId = await getCategoryIdByName(TransactionCategory.Loan);
+
+        await insertIntoTransactionLedger({
+            commercial_bank_transaction_id: commercialBankTransactionId,
+            payment_reference_id: null,
+            transaction_category_id: transactionCategoryId,
+            amount: loanDetails.initial_amount || 0,
+            transaction_date: new Date().toISOString().split("T")[0],
+            transaction_status_id: status?.transaction_status_id!,
+            related_pickup_request_id: null,
+            loan_id: loanId,
+            related_thoh_order_id: null,
+        });
+
+        await db.query("COMMIT");
+        return { ok: true, value: loanResult.rows[0] };
+    } catch (error) {
+        await db.query("ROLLBACK");
+        return { ok: false, error: error as Error };
     }
 };
