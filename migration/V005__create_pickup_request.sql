@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE OR REPLACE FUNCTION get_bulk_logistics_bank_account()
 RETURNS VARCHAR(50) AS $$
 DECLARE
@@ -63,7 +65,7 @@ BEGIN
         RAISE EXCEPTION 'Company not found for name: %', p_destination_company_name;
     END IF;
 
-    v_payment_reference_id := gen_random_uuid();
+    v_payment_reference_id := uuid_generate_v4();
 
     v_bulk_logistics_bank_account := get_bulk_logistics_bank_account();
 
