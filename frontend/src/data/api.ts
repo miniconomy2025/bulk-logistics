@@ -14,7 +14,6 @@ export default class API {
         const { status } = response;
 
         if (status >= 200 || status <= 600) {
-            const isDev = import.meta.env.VITE_ENV === "dev";
             API.apiRoot = apiRoot;
         } else {
             API.apiRoot = undefined;
