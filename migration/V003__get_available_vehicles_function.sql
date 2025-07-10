@@ -24,7 +24,9 @@ BEGIN
         vehicle v
     INNER JOIN
         vehicle_type vt ON v.vehicle_type_id = vt.vehicle_type_id
-    WHERE NOT EXISTS (
+    WHERE
+        v.is_active = TRUE
+    AND NOT EXISTS (
         SELECT 1
         FROM shipments s
         WHERE s.vehicle_id = v.vehicle_id

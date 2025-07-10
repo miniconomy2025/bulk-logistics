@@ -1,7 +1,7 @@
 export interface PickupRequestRequest {
     originalExternalOrderId: string;
-    originCompanyId: string;
-    destinationCompanyId: string;
+    originCompany: string;
+    destinationCompany: string;
     items: [ItemRequest];
 }
 
@@ -12,9 +12,9 @@ export interface ItemRequest {
 }
 
 export interface PickupRequestEntity {
-    requestingCompanyId: string;
-    originCompanyId: string;
-    destinationCompanyId: string;
+    requestingCompany: string;
+    originCompany: string;
+    destinationCompany: string;
     originalExternalOrderId: string;
     cost: number;
     requestDate: Date;

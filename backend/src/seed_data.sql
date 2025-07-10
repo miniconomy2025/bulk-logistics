@@ -14,9 +14,9 @@ INSERT INTO transaction_category (name) VALUES
 
 -- Insert data into transaction_status
 INSERT INTO transaction_status (status) VALUES
-('Pending'),
-('Completed'),
-('Failed');
+('PENDING'),
+('COMPLETED'),
+('FAILED');
 
 -- Insert data into company (updated with new names)
 INSERT INTO company (company_name, company_url, certificate_identifier, bank_account_number) VALUES
@@ -34,14 +34,24 @@ INSERT INTO company (company_name, company_url, certificate_identifier, bank_acc
 
 -- Insert data into item_definitions
 INSERT INTO item_definitions (item_name, capacity_type_id) VALUES
-('Copper', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
-('Silicon', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
-('Sand', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
-('Aluminium', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
-('Plastic', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
-('Electronics', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT')),
-('Screens', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT')),
-('Cases', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'));
+('copper', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('silicon', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('sand', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('aluminium', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('plastic', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('electronics_machine', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('ephone_machine', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('ephone_plus_machine', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('ephone_pro_max_machine', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('cosmos_z25_machine', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('cosmos_z25_ultra_machine', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('cosmos_z25_fe_machine', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('case_machine', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('screen_machine', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('recycling_machine', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG')),
+('electronics', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT')),
+('screens', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT')),
+('cases', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'));
 
 -- Insert data into vehicle_type
 INSERT INTO vehicle_type (name, capacity_type_id, maximum_capacity, max_pickups_per_day, max_dropoffs_per_day) VALUES

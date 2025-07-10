@@ -23,7 +23,7 @@ export const findUnshippedItems = async () => {
             ON p.pickup_request_id = pri.pickup_request_id
         INNER JOIN item_definitions "id"
             ON pri.item_definition_id = id.item_definition_id
-        WHERE p.completion_date IS NULL AND ts.status = 'Completed'
+        WHERE p.completion_date IS NULL AND ts.status = 'COMPLETED'
     `;
 
     const unshippedItems = await db.query(sql);

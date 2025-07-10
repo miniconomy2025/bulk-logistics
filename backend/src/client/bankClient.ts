@@ -1,3 +1,4 @@
+import { TransactionStatus } from "../enums";
 import { insertIntoTransactionLedger } from "../models/transactionsRepository";
 import { getTransactionStatusByName } from "../models/transactionStatus";
 import {
@@ -42,7 +43,7 @@ class BankClient extends BaseApiClient {
 
         if (response.data) {
             const transactionDate = SimulatedClock.getSimulatedTime().toISOString().split("T")[0]; // The date format expected in the DB is YYYY-MM-DD
-            const transactionStatus = response.data.success ? "COMPLETED" : "FAILED";
+            const transactionStatus = response.data.success ? TransactionStatus.Completed : TransactionStatus.Failed;
             const status = await getTransactionStatusByName(transactionStatus);
 
             await insertIntoTransactionLedger({
