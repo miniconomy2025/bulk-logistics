@@ -1,5 +1,5 @@
 import db from "../config/database";
-import { BankNotificationPayload, Result } from "../types";
+import { BankNotificationPayload, Loan, Result } from "../types";
 import { findAccountNumberByCompanyName } from "./companyRepository";
 
 export const findTransactions = async (): Promise<Result<any>> => {
@@ -283,3 +283,20 @@ export const createLedgerEntry = async (transaction: BankNotificationPayload & {
         return 500;
     }
 };
+
+export const getAllLoans = async () : Promise<Loan[]> => {
+   const result = await db.query(
+        `SELECT * FROM loans`,
+    );
+
+    if (!result || result.rows.length < 1) {
+      return [];
+    }
+
+    return result.rows.map((loan) => ({
+      id: loan.loan_id,
+      loanAmount: loan.loan_amount,
+      interestRate: loan.interest_rate,
+      loanNumber: loan.loan_number,
+    }))
+}
