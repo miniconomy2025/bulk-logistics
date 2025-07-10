@@ -21,7 +21,7 @@ interface TransactionResponse {
 
 interface ActiveShipmentsResponse {
     shipments: {
-        active: string
+        active: string;
     };
 }
 
@@ -52,7 +52,7 @@ const Dashboard: React.FC = () => {
     });
     const [activeShipments, setActiveShipments] = useState<ActiveShipmentsResponse>({
         shipments: {
-            active: "0"
+            active: "0",
         },
     });
     const [topRevenueSources, setTopRevenueSources] = useState<TopRevenueSourcesResponse>({
