@@ -240,7 +240,7 @@ export default class AutonomyService {
 
             // --- Condition-Based Setup Tasks ---
             // These now run at the start of each day to check if they are needed.
-            await this._checkAndSecureLoan(); // Insert logic for first day operations.
+            //await this._checkAndSecureLoan(); // Insert logic for first day operations.
 
             const response = await reactivateVehicle();
             console.log(`---${response.message}---`);
