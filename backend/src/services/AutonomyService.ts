@@ -1,12 +1,12 @@
 import { ShipmentPlannerService } from "./ShipmentPlannerService";
 import { shipmentModel } from "../models/shipment";
 import { updateCompletionDate, updatePickupRequestStatuses } from "../models/pickupRequestRepository";
-import { PickupToShipmentItemDetails, TransactionResponse, TruckDelivery } from "../types";
+import { PickupToShipmentItemDetails, TransactionResponse, TruckDelivery, type LoanApplicationResponse } from "../types";
 import { Item, LogisticNotificationsGrouped, LogisticsNotification } from "../types/notifications";
 import { notificationApiClient } from "../client/notificationClient";
 import { thohApiClient } from "../client/thohClient";
 import { addVehicle } from "../models/vehicle";
-import type { TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
+import type { TruckFailureRequest, TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
 import { lastValueFrom, timer } from "rxjs";
 import { bankApiClient } from "../client/bankClient";
 import { TransactionCategory } from "../enums";
@@ -26,6 +26,7 @@ export default class AutonomyService {
     private truckCount: number = 0; // Example state property
     private isFirstDay: boolean = true;
     private funds: number = 0; // Will need an SQL statement for this.
+    private initialTrucksCost: number = 0; // This will be set after calculating the cost of trucks from the HAND.
 
     private constructor() {
         console.log("AutonomyService instance created.");
@@ -40,6 +41,7 @@ export default class AutonomyService {
         this.truckCount = 0;
         this.isFirstDay = true;
         this.funds = 0;
+        this.initialTrucksCost = 0;
     }
 
     // This is necessary to make it a singleton.
@@ -53,13 +55,12 @@ export default class AutonomyService {
     /**
      * Starts the simulation's daily tick timer.
      */
-    public start(initialData: any): void {
+    public start(startTime: string): void {
         if (this.isRunning) {
             console.warn("Simulation is already running. Start command ignored.");
             return;
         }
-
-        console.log("--- SIMULATION STARTING ---", initialData);
+        console.log("--- SIMULATION STARTING ---", "\n Real Time:", startTime, "\nSimulation Time:");
         this.isRunning = true;
 
         // Immediately perform the first day's tick, then set the interval.
@@ -100,7 +101,7 @@ export default class AutonomyService {
         this.start(initialData);
     }
 
-    public handleVehicleCrash(): void {
+    public handleVehicleFailure(failureRequest: TruckFailureRequest): void {
         console.log(
             "We have an insurance policy with Hive Insurance Co. Our policy dictates that all lost goods from a failed shipment will be replaced, and delivered on the same day! All surviving goods are thrown away since they were in a crash. Hooray! Everyone wins!!",
         );
@@ -109,12 +110,16 @@ export default class AutonomyService {
     public async handleTruckDelivery(truckDelivery: TruckDelivery): Promise<void> {
         if (truckDelivery && truckDelivery.canFulfill) {
             for (let i = 0; i < truckDelivery.quantity; i++) {
-                await addVehicle({
-                    type: truckDelivery.itemName,
-                    purchase_date: this.currentSimulatedDate.toISOString().split("T")[0], // we can not put the actual purchase date unless if the HAND API provides it
-                    operational_cost: truckDelivery.operatingCostPerDay,
-                    load_capacity: truckDelivery.maximumLoad,
-                });
+                try {
+                    await addVehicle({
+                        type: truckDelivery.itemName,
+                        purchase_date: this.currentSimulatedDate.toISOString().split("T")[0], // we can not put the actual purchase date unless if the HAND API provides it
+                        operational_cost: truckDelivery.operatingCostPerDay,
+                        load_capacity: truckDelivery.maximumLoad,
+                    });
+                } catch (error) {
+                    throw new Error("There was an error adding the vehicle");
+                }
             }
         } else {
             console.error("Truck delivery cannot be fulfilled:", truckDelivery.message);
@@ -161,6 +166,17 @@ export default class AutonomyService {
         });
 
         //4. Request Loan
+        const totalLoanAmount = requiredTrucks.reduce((total, truckInfo) => {
+            const price = truckPriceMap[truckInfo.truckName];
+            return total + price * truckInfo.quantity;
+        }, 0);
+
+        const isLoanApplicationSuccessful = await this._checkAndSecureLoan(totalLoanAmount * 2);
+
+        if (isLoanApplicationSuccessful) {
+            const accountBalance = await bankApiClient.getBalance();
+            this.funds = accountBalance.balance;
+        }
 
         //5. Purchase trucks
         const truckPurchasePromises: Promise<TruckPurchaseResponse | undefined>[] = [];
@@ -254,21 +270,21 @@ export default class AutonomyService {
     /**
      * Checks if a loan is needed and applies for one if conditions are met.
      */
-    private async _checkAndSecureLoan(): Promise<void> {
-        // TODO: Replace this with our actual business logic.
+    private async _checkAndSecureLoan(amount: number): Promise<boolean> {
         const needsLoan = !this.hasActiveLoan;
 
         if (needsLoan) {
             try {
-                console.log("Condition met: Applying for a loan...");
-                // const loanResult = await BankApiClient.applyForLoan({ amount: 500000 });
-                this.hasActiveLoan = true; // Update state upon success
-                console.log("Loan approved and state updated.");
+                const loanApplicationResponse = await bankApiClient.applyForLoan({ amount });
+
+                this.hasActiveLoan = loanApplicationResponse.success;
+                return this.hasActiveLoan;
             } catch (error) {
                 console.error("Failed to secure a loan.", error);
-                // Decide if this is a critical failure that should stop the tick.
             }
         }
+
+        return false;
     }
 
     /**
@@ -276,24 +292,24 @@ export default class AutonomyService {
      */
     private async _checkAndPurchaseTrucks(truckInfo: TruckPurchaseRequest): Promise<TruckPurchaseResponse | undefined> {
         // This check will only run if we have a loan to pay for the trucks.
-        if (!this.hasActiveLoan) {
-            // should be modified to check available funds as well, assuming we might need to buy trucks from our own funds once accumulated enough
-            const loanRequest = await this._checkAndSecureLoan();
+        if (!this.hasActiveLoan || this.funds === 0) {
+            const isLoanSecured = await this._checkAndSecureLoan(this.initialTrucksCost * 2);
 
-            // if (loanRequest.data && this.hasActiveLoan) {
-            //     // To be updated once loan request has been implemented
-            //     return await this._checkAndPurchaseTrucks(truckInfo); // try purchasing the truck/s again
-            // }
-        }
+            if (isLoanSecured) {
+                return await this._checkAndPurchaseTrucks(truckInfo);
+            } else {
+                console.error("Failed to secure a loan for truck purchase. Cannot proceed.");
+                return;
+            }
+        } else {
+            try {
+                const purchaseResult = await thohApiClient.purchaseTruck(truckInfo);
+                this.truckCount += purchaseResult.quantity; // Update state upon success
 
-        try {
-            console.log("Condition met: Purchasing initial fleet of trucks...");
-            const purchaseResult = await thohApiClient.purchaseTruck(truckInfo);
-            this.truckCount += purchaseResult.quantity; // Update state upon success
-
-            return purchaseResult;
-        } catch (error) {
-            console.error("Failed to purchase trucks.", error);
+                return purchaseResult;
+            } catch (error) {
+                console.error("Failed to purchase trucks.", error);
+            }
         }
     }
 

@@ -2,7 +2,7 @@ export class SimulatedClock {
     static readonly SIMULATED_DAY_IN_REAL_MS = 2 * 60 * 1000; // 2 minutes real = 1 simulated day
     static readonly REAL_DAY_IN_MS = 24 * 60 * 60 * 1000;
 
-    static readonly simulationStartSimulatedEpoch = 1735689600; //seconds, might be milliseconds. We need to get this value from THoH
+    static readonly simulationStartSimulatedEpoch = 2524608000; //seconds, might be milliseconds. We need to get this value from THoH
 
     static readonly simulationStartReal = Date.now();
     static readonly simulationStartSimulated = new Date(this.simulationStartSimulatedEpoch * 1000); //dont multiply by a 1000 if THoH decides to send us the start unix epoch in milliseconds.
