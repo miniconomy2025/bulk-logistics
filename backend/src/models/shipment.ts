@@ -1,4 +1,5 @@
 import db from "../config/database";
+import { Result } from "../types";
 
 class ShipmentModel {
     findAllShipments = async (dispatchDate?: string | null, statusId?: number | null) => {
@@ -70,6 +71,21 @@ class ShipmentModel {
     `;
         const result = await db.query(query, [vehicleId, dispatchDate]);
         return result.rows[0];
+    };
+
+    findActiveShipments = async (): Promise<Result<any>> => {
+        const query = `
+        SELECT 
+            SUM(CASE WHEN ss.name IN ('PENDING', 'PICKED_UP') THEN 1 ELSE 0 END) AS active
+        FROM shipments s 
+        JOIN shipment_status ss ON s.shipment_status_id = ss.shipment_status_id;
+`;
+        try {
+            const result = await db.query(query);
+            return { ok: true, value: result };
+        } catch (error) {
+            return { ok: false, error: error as Error };
+        }
     };
 }
 
