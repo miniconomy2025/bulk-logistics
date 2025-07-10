@@ -107,12 +107,14 @@ export default class AutonomyService {
 
     public async handleTruckDelivery(truckDelivery: TruckDelivery): Promise<void> {
         if (truckDelivery && truckDelivery.canFulfill) {
-            await addVehicle({
-                type: truckDelivery.itemName,
-                purchase_date: this.currentSimulatedDate.toISOString().split("T")[0], // we can not put the actual purchase date unless if the HAND API provides it
-                operational_cost: truckDelivery.operatingCostPerDay,
-                load_capacity: truckDelivery.maximumLoad,
-            });
+            for (let i = 0; i < truckDelivery.quantity; i++) {
+                await addVehicle({
+                    type: truckDelivery.itemName,
+                    purchase_date: this.currentSimulatedDate.toISOString().split("T")[0], // we can not put the actual purchase date unless if the HAND API provides it
+                    operational_cost: truckDelivery.operatingCostPerDay,
+                    load_capacity: truckDelivery.maximumLoad,
+                });
+            }
         } else {
             console.error("Truck delivery cannot be fulfilled:", truckDelivery.message);
             // Handle the case where the truck delivery cannot be fulfilled.
