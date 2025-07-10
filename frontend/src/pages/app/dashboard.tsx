@@ -5,7 +5,7 @@ import { TransactionItem } from "../../components/ui/transaction-item";
 import { DashboardLayout } from "../../layouts/app-layout";
 import Transactions from "../../data/transactions";
 import IncomeExpensesChart from "../../components/income-expense-chart";
-import type { IncomeExpensesChartProps } from "../../types";
+import type { IncomeExpensesChartProps, RecentTransactionsItem } from "../../types";
 
 interface TransactionItem {
     purchase: string;
@@ -36,6 +36,10 @@ interface TopRevenueSourcesResponse {
     transaction: TopRevenueSourceItem[];
 }
 
+interface RecentTransactionsResponse {
+    transaction: RecentTransactionsItem[];
+}
+
 const Dashboard: React.FC = () => {
     const [totals, setTotals] = useState<TransactionResponse>({
         transaction: [
@@ -63,6 +67,17 @@ const Dashboard: React.FC = () => {
             },
         ],
     });
+    const [recentTransactions, setRecentTransactions] = useState<RecentTransactionsResponse>({
+        transaction: [
+            {
+                company: "",
+                amount: "",
+                transaction_date: "",
+                transaction_type: "",
+                pickup_request_id: 0
+            },
+        ],
+    });
     const [incomeBreakdown, setIncomeBreakdown] = useState<IncomeExpensesChartProps>({
         transaction: [
             { year: "2025", month: "6", revenue: 32912, expenses: 8934 },
@@ -80,6 +95,12 @@ const Dashboard: React.FC = () => {
     const fetchTopRevenueSourceData = async (): Promise<TopRevenueSourcesResponse> => {
         const response = await Transactions.topSources();
         const data: TopRevenueSourcesResponse = await response.json();
+        return data;
+    };
+
+    const fetchRecentTransactionsData = async (): Promise<RecentTransactionsResponse> => {
+        const response = await Transactions.recent();
+        const data: RecentTransactionsResponse = await response.json();
         return data;
     };
 
@@ -114,6 +135,11 @@ const Dashboard: React.FC = () => {
         fetchCostsBreakdown()
             .then((result) => {
                 setIncomeBreakdown(result);
+            })
+            .catch((error) => console.error(error));
+        fetchRecentTransactionsData()
+            .then((result) => {
+                setRecentTransactions(result);
             })
             .catch((error) => console.error(error));
     }, []);
@@ -221,41 +247,14 @@ const Dashboard: React.FC = () => {
                     </div>
                     <p className="mb-6 text-sm text-gray-500">Added financial activity</p>
                     <div className="space-y-2">
-                        <RecentTransaction
-                            title="Payment from CasualCorp"
-                            description="New equipment purchase"
-                            amount="+R24,500"
-                            date="May 1, 10:00 AM"
-                            type="credit"
-                        />
-                        <RecentTransaction
-                            title="Fuel Payment"
-                            description="Fleet maintenance"
-                            amount="-R3,420"
-                            date="Today, 11:30 AM"
-                            type="debit"
-                        />
-                        <RecentTransaction
-                            title="Storage Fee - TechCorp"
-                            description="Warehouse storage"
-                            amount="+R8,750"
-                            date="Yesterday, 4:40 PM"
-                            type="credit"
-                        />
-                        <RecentTransaction
-                            title="Insurance Premium"
-                            description="Monthly coverage"
-                            amount="-R12,000"
-                            date="Yesterday, 9:15 AM"
-                            type="debit"
-                        />
-                        <RecentTransaction
-                            title="Payment from MegaHaul"
-                            description="Logistics Dashboard subscription"
-                            amount="+R45,000"
-                            date="3 days ago"
-                            type="credit"
-                        />
+                        {recentTransactions.transaction.map((item, key) => {
+                            return (
+                                <RecentTransaction
+                                    key={key}
+                                    item={item}
+                                />
+                            );
+                        })}
                     </div>
                 </div>
             </main>

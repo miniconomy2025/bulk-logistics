@@ -8,6 +8,7 @@ import {
     getMonthlyTransactions,
     getTopRevenueSources,
     getCostsBreakdown,
+    getRecentTransactions,
 } from "../controllers/transactionsController";
 
 import { rateLimiter } from "../utils";
@@ -21,6 +22,7 @@ router.get("/active-shipments", getActiveShipments);
 router.get("/monthly", getMonthlyTransactions);
 router.get("/top-sources", getTopRevenueSources);
 router.get("/breakdown", getCostsBreakdown);
+router.get("/recent", getRecentTransactions);
 router.get("/:id", getTransactionById);
 
 export default router;

@@ -184,6 +184,30 @@ export const getTransactionBreakdown = async (): Promise<Result<any>> => {
     }
 };
 
+export const getRecentTransactionRepo = async (): Promise<Result<any>> => {
+    const query = `
+    SELECT 
+        t.amount ,
+        t.transaction_date ,
+        tc.name AS transaction_type,
+        c.company_name AS company,
+        pr.pickup_request_id as pickup_request_id 
+    FROM bank_transactions_ledger t
+    JOIN transaction_category tc ON t.transaction_category_id = tc.transaction_category_id
+    JOIN pickup_requests pr ON t.related_pickup_request_id = pr.pickup_request_id
+    JOIN company c ON pr.requesting_company_id = c.company_id 
+    ORDER BY t.transaction_date DESC
+    LIMIT 7;
+  `;
+
+    try {
+        const result = await db.query(query);
+        return { ok: true, value: result };
+    } catch (error) {
+        return { ok: false, error: error as Error };
+    }
+};
+
 export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
     const query = `
     SELECT 
