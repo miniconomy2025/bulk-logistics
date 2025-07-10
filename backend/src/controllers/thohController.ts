@@ -1,12 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import catchAsync from "../utils/errorHandlingMiddleware/catchAsync";
-import { ThohEvent, TruckFailureInfo } from "../types/thoh";
-import { handleTruckFailure, processThohEvent } from "../services/thohService";
+import { beginSimulation, handleTruckDelivery, processTruckFailure } from "../services/thohService";
+import { TruckDelivery } from "../types";
+import { TruckFailureInfo } from "../types/thoh";
+import { handleTruckFailure } from "../services/thohService";
 
-export const postThohEvent = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const thohEvent: ThohEvent = req.body;
+export const startSimulation = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { unixEpochStart } = req.body;
     res.status(200).send();
-    processThohEvent(thohEvent);
+    beginSimulation(unixEpochStart);
 });
 
 export const truckFailure = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -21,4 +23,10 @@ export const truckFailure = catchAsync(async (req: Request, res: Response, next:
     if (!result.success) {
         res.status(418).json(result).send();
     }
+});
+
+export const truckDelivery = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const truckDeliveryInfo: TruckDelivery = req.body;
+    await handleTruckDelivery(truckDeliveryInfo);
+    res.status(200).send();
 });

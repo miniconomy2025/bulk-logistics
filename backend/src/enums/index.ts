@@ -5,9 +5,9 @@ export const ShipmentStatus = {
 };
 
 export const VehicleType = {
-    Large: "LARGE",
-    Medium: "MEDIUM",
-    Small: "SMALL",
+    Large: "large_truck",
+    Medium: "medium_truck",
+    Small: "small_truck",
 };
 
 export const MeasurementType = {
