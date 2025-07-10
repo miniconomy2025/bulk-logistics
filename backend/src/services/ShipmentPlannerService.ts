@@ -6,17 +6,22 @@ import { shipmentModel } from "../models/shipment";
 import { PickupRequestWithDetails, PickupToShipmentItemDetails } from "../types";
 import { VehicleWithType } from "../types";
 import { DailyPlanOutput, PlannableVehicle, ShipmentPlan } from "../types/shipmentPlanning";
+import { simulatedClock } from "../utils";
 
 export class ShipmentPlannerService {
     /**
      * The main entry point for the daily shipment planning process.
      * @param simulatedDate The current date of the simulation.
      */
-    public async planDailyShipments(simulatedDate: Date): Promise<DailyPlanOutput> {
-        console.log(`--- Starting Shipment Planning for ${simulatedDate.toISOString().split("T")[0]} ---`);
+    public async planDailyShipments(): Promise<DailyPlanOutput> {
+        console.log(`--- Starting Shipment Planning for ${simulatedClock.getCurrentDate()} ---`);
 
         const allPendingRequests = await findPaidAndUnshippedRequests();
-        const vehicleData = await findAvailableVehicles(simulatedDate.toISOString());
+        console.log("all pending requests",allPendingRequests)
+        console.log("sim clock date",simulatedClock.getCurrentDate());
+        const vehicleData = await findAvailableVehicles(simulatedClock.getCurrentDate().toISOString());
+        console.log("vehicleData",vehicleData)
+
         const availableFleet: PlannableVehicle[] = vehicleData.map((v) => ({
             ...v,
             capacityRemaining: v.maximum_capacity,
