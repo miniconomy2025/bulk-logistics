@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import { BankNotificationPayload } from "../types";
-import { createLedgerEntry } from "../models/transactionsRepository";
+import { createLedgerEntry, updatePaymentStatusForPickupRequest } from "../models/transactionsRepository";
 import { findAccountNumberByCompanyName } from "../models/companyRepository";
+import AppError from "../utils/errorHandlingMiddleware/appError";
+import catchAsync from "../utils/errorHandlingMiddleware/catchAsync";
 
-export const bankNotification = async (req: Request, res: Response): Promise<void> => {
+export const bankNotification = catchAsync (async (req: Request, res: Response): Promise<void> => {
     const transaction = req.body as BankNotificationPayload;
 
     const bankAccount = await findAccountNumberByCompanyName("bulk-logistics");
@@ -20,7 +22,17 @@ export const bankNotification = async (req: Request, res: Response): Promise<voi
 
     const statusName = transaction.status;
     const categoryId = transaction.status;
-
+    try {
+        const confirmPaymentForPickupRequestResult = await updatePaymentStatusForPickupRequest(transaction);
+        if (confirmPaymentForPickupRequestResult && confirmPaymentForPickupRequestResult > 0 ){
+        res.status(201).json({message: "Transaction recorded"});
+        return;
+    }
+    } catch (error) {
+        throw new AppError("Something went wrong!",500);
+    }
+    
+    
     const response = await createLedgerEntry({ ...transaction, statusName });
 
     switch (response) {
@@ -34,7 +46,7 @@ export const bankNotification = async (req: Request, res: Response): Promise<voi
             res.status(500).json({ error: "Internal server error" });
             break;
     }
-};
+});
 
 function validateTransaction(t: BankNotificationPayload): boolean {
     return !!(t.transaction_number && t.status && t.amount !== undefined && t.timestamp !== undefined && t.from && t.to);

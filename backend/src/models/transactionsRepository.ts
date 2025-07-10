@@ -300,3 +300,27 @@ export const getAllLoans = async () : Promise<Loan[]> => {
       loanNumber: loan.loan_number,
     }))
 }
+
+export const updatePaymentStatusForPickupRequest = async (transaction: BankNotificationPayload): Promise<number | null> => {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(transaction.description);
+
+    const paymentReferenceId = isUuid ? transaction.description : null;
+    const pickupRequestId = !isUuid ? parseInt(transaction.description, 10) : null;
+
+    const query = `
+        UPDATE bank_transactions_ledger
+        SET 
+            transaction_status_id = (
+                SELECT transaction_status_id 
+                FROM transaction_status 
+                WHERE status = 'COMPLETED'
+            )
+        WHERE 
+            payment_reference_id = $1 
+            OR related_pickup_request_id = $2;
+    `;
+
+    const result = await db.query(query, [paymentReferenceId, pickupRequestId]);
+
+    return result.rowCount;
+};
