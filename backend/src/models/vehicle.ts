@@ -202,9 +202,9 @@ export const getAvailableVehiclesWithType = async (): Promise<VehicleWithType[]>
 };
 
 export const updateVehicleStatus = async (
-  vehicleId: number,
-  isActive: boolean,
-  disabledDate: string | null // use ISO date string format (e.g. "2025-07-08")
+    vehicleId: number,
+    isActive: boolean,
+    disabledDate: string | null, // use ISO date string format (e.g. "2025-07-08")
 ) => {
     const query = `
         UPDATE vehicle 

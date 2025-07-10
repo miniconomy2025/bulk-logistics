@@ -228,7 +228,7 @@ export default class AutonomyService {
 
             const response = await reactivateVehicle();
             console.log(`---${response.message}---`);
-            console.log(`${response.success && response.data}`)
+            console.log(`${response.success && response.data}`);
 
             // --- Regular Daily Operations ---
             const dropOffDetails = await this._planAndDispatchShipments();

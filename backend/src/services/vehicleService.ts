@@ -81,44 +81,40 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
 };
 
 export const reactivateVehicle = async () => {
-  const allVehicles = await getAllVehiclesWithType();
+    const allVehicles = await getAllVehiclesWithType();
 
-  const simulatedNow = SimulatedClock.getSimulatedTime();
-  
-  const twoDaysAgo = new Date(simulatedNow);
-  twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const simulatedNow = SimulatedClock.getSimulatedTime();
 
-  const vehiclesToActivate = [];
+    const twoDaysAgo = new Date(simulatedNow);
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
 
-  for (const vehicle of allVehicles) {
+    const vehiclesToActivate = [];
 
-    if (vehicle.disabled_date && !vehicle.is_active && new Date(vehicle.disabled_date) <= twoDaysAgo) {
-
-      vehiclesToActivate.push(vehicle)
+    for (const vehicle of allVehicles) {
+        if (vehicle.disabled_date && !vehicle.is_active && new Date(vehicle.disabled_date) <= twoDaysAgo) {
+            vehiclesToActivate.push(vehicle);
+        }
     }
-  }
 
-  if (!vehiclesToActivate.length) {
+    if (!vehiclesToActivate.length) {
+        return {
+            success: false,
+            message: "No Vehicles to activate",
+        };
+    }
+
+    const activatedVehicles = [];
+    for (const vehicle of vehiclesToActivate) {
+        const response = await updateVehicleStatus(vehicle.vehicle_id, true, null);
+
+        activatedVehicles.push(response);
+        console.log("----Vehicle Reactivate-----");
+        console.log({ response });
+    }
 
     return {
-      success: false,
-      message: 'No Vehicles to activate',
-    }
-  }
-
-  const activatedVehicles = [];
-  for (const vehicle of vehiclesToActivate) {
-  
-      const response = await updateVehicleStatus(vehicle.vehicle_id, true, null);
-  
-      activatedVehicles.push(response);
-      console.log('----Vehicle Reactivate-----');
-      console.log({response});
-  }
-
-  return {
-    success: true,
-    message: 'Found Vehicles to Reactivate',
-    data: activatedVehicles,
-  }
-}
+        success: true,
+        message: "Found Vehicles to Reactivate",
+        data: activatedVehicles,
+    };
+};

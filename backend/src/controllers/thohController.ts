@@ -10,16 +10,15 @@ export const postThohEvent = catchAsync(async (req: Request, res: Response, next
 });
 
 export const truckFailure = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const failureInfo: TruckFailureInfo = req.body;
 
-  const failureInfo: TruckFailureInfo = req.body;
+    const result = await handleTruckFailure(failureInfo);
 
-  const result = await handleTruckFailure(failureInfo);
+    if (result.success) {
+        res.status(204).send();
+    }
 
-  if (result.success) {
-    res.status(204).send();
-  }
-
-  if (!result.success) {
-    res.status(418).json(result).send();
-  }
+    if (!result.success) {
+        res.status(418).json(result).send();
+    }
 });
