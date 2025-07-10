@@ -178,7 +178,7 @@ export default class AutonomyService {
 
         trucksPurchaseResponse.forEach(async (response, index) => {
             if (index === 0 && response && response.orderId) {
-                await updateCompanyDetails("bulk-logistics", {
+                await updateCompanyDetails("thoh", {
                     bankAccountNumber: response.bankAccount,
                 });
                 trucksPurchasePaymentsPromises.push(
