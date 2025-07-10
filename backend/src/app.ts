@@ -45,7 +45,7 @@ app.use(
 
 app.use(express.json());
 
-app.use("", thohRoutes);
+app.use("/api", thohRoutes);
 app.use("/api/health", health);
 app.use("/api/bank", bankRoutes);
 app.use("/api/transactions", transactionRoutes);

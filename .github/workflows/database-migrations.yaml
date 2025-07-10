@@ -37,15 +37,6 @@ jobs:
           set -e
           for file in $(find migration -type f -name '*.sql' | sort); do
             filename=$(basename "$file")
-            echo "Checking migration: $filename"
-            applied=$(psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -tAc \
-              "SELECT 1 FROM schema_migrations WHERE filename = '$filename'")
-            if [ "$applied" != "1" ]; then
-              echo "Applying migration $filename"
-              psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -f "$file"
-              psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -c \
-                "INSERT INTO schema_migrations (filename) VALUES ('$filename');"
-            else
-              echo "Skipping $filename (already applied)"
-            fi
+            echo "Applying migration $filename"
+            psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -f "$file"
           done
