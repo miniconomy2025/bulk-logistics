@@ -11,22 +11,23 @@ export abstract class BaseApiClient {
     protected constructor(baseURL: string, serviceName: string) {
         this.serviceName = serviceName;
 
-        const customCa = fs.readFileSync(process.env.MTLS_CA_CERT_PATH!);
+        // const customCa = fs.readFileSync(process.env.MTLS_CA_CERT_PATH!);
+        const customCa = fs.readFileSync("/etc/ssl/bulk-logistics/root-ca.crt");
 
         const allCAs = [...tls.rootCertificates, customCa];
 
-        // const httpsAgent = new https.Agent({
-        //     key: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.key"),
-        //     cert: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.crt"),
-        //     ca: allCAs,
-        //     rejectUnauthorized: true,
-        // });
         const httpsAgent = new https.Agent({
-            key: fs.readFileSync(process.env.MTLS_PRIVATE_KEY_PATH!),
-            cert: fs.readFileSync(process.env.MTLS_PUBLIC_CERT_PATH!),
+            key: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.key"),
+            cert: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.crt"),
             ca: allCAs,
-            rejectUnauthorized: true, // Ensure we only talk to services we trust
+            rejectUnauthorized: true,
         });
+        // const httpsAgent = new https.Agent({
+        //     key: fs.readFileSync(process.env.MTLS_PRIVATE_KEY_PATH!),
+        //     cert: fs.readFileSync(process.env.MTLS_PUBLIC_CERT_PATH!),
+        //     ca: allCAs,
+        //     rejectUnauthorized: true, // Ensure we only talk to services we trust
+        // });
 
         this.client = axios.create({
             baseURL: baseURL,
