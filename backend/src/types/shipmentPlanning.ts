@@ -6,12 +6,11 @@ export interface PlannableVehicle extends VehicleWithType {
     capacity_type_id: number;
 }
 
-
 export interface ShipmentPlan {
     vehicle: PlannableVehicle;
     itemsToAssign: PickupToShipmentItemDetails[];
-    originCompanyName: string; 
-    destinationCompanyName: string; 
+    originCompanyName: string;
+    destinationCompanyName: string;
 }
 
 export interface DailyPlanOutput {

@@ -135,7 +135,7 @@ export default class AutonomyService {
 
             const dropOffDetails = await this._planAndDispatchShipments();
 
-            const delayedObservable = timer(SimulatedClock.SIMULATED_DAY_IN_REAL_MS * (2/3));
+            const delayedObservable = timer(SimulatedClock.SIMULATED_DAY_IN_REAL_MS * (2 / 3));
 
             await lastValueFrom(delayedObservable);
 

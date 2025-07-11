@@ -39,10 +39,7 @@ export abstract class BaseApiClient {
             (error: AxiosError) => {
                 if (error.response) {
                     console.error(`Error from ${this.serviceName} API:`, error.response.data);
-                    throw new AppError(
-                        `Request to ${this.serviceName} failed with status ${error.response.status}`,
-                        502,
-                    );
+                    throw new AppError(`Request to ${this.serviceName} failed with status ${error.response.status}`, 502);
                 } else if (error.request) {
                     console.error(`No response from ${this.serviceName} API:`, error.message);
                     throw new AppError(`Could not connect to ${this.serviceName} service.`, 503);
