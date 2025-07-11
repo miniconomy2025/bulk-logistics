@@ -58,7 +58,6 @@ export const updateCompanyDetails = async (
     const query = `
         UPDATE company
         SET 
-            certificate_identifier = COALESCE($1, certificate_identifier),
             bank_account_number = COALESCE($2, bank_account_number)
         WHERE 
             company_name = SELECT company_name FROM company WHERE company_name = $3
