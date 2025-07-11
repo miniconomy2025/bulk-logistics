@@ -1,26 +1,55 @@
 export class SimulatedClock {
-    static readonly SIMULATED_DAY_IN_REAL_MS = 2 * 60 * 1000; // 2 minutes real = 1 simulated day
-    static readonly REAL_DAY_IN_MS = 24 * 60 * 60 * 1000;
+    private static instance: SimulatedClock;
 
-    static readonly simulationStartSimulatedEpoch = 2524608000; //seconds, might be milliseconds. We need to get this value from THoH
+    static readonly SIMULATED_DAY_IN_REAL_MS = 20 * 1000;
+    private static readonly SIMULATED_START_DATE = new Date("2050-01-01T00:00:00.000Z");
 
-    static readonly simulationStartReal = Date.now();
-    static readonly simulationStartSimulated = new Date(this.simulationStartSimulatedEpoch * 1000); //dont multiply by a 1000 if THoH decides to send us the start unix epoch in milliseconds.
+    private realStartTimeEpochMs: number | null = null;
 
-    static getSimulatedTime(realTime: Date = new Date()): Date {
-        const scaleFactor = this.REAL_DAY_IN_MS / this.SIMULATED_DAY_IN_REAL_MS;
-        const simulatedElapsed = (realTime.getTime() - this.simulationStartReal) * scaleFactor;
-        return new Date(this.simulationStartSimulated.getTime() + simulatedElapsed);
+    private constructor() {}
+
+    public static getInstance(): SimulatedClock {
+        if (!SimulatedClock.instance) {
+            SimulatedClock.instance = new SimulatedClock();
+        }
+        return SimulatedClock.instance;
     }
 
-    static getSimulatedStartAndEndOfToday(): { start: Date; end: Date } {
-        const now = this.getSimulatedTime();
-        const start = new Date(now);
-        start.setUTCHours(0, 0, 0, 0);
+    /**
+     * Initializes the clock with the real-world start time from Thoh.
+     * @param startTimeEpochMs The real-world start time in MILLISECONDS.
+     */
+    public initialize(startTimeEpochMs: number): void {
+        console.log(`SimulatedClock initialized. Real-world start epoch: ${startTimeEpochMs}`);
+        this.realStartTimeEpochMs = startTimeEpochMs;
+    }
 
-        const end = new Date(start);
-        end.setUTCDate(end.getUTCDate() + 1);
+    /**
+     * Calculates the "true" current simulated date by scaling the elapsed real time.
+     * @returns The current simulated Date object.
+     */
+    public getCurrentDate(): Date {
+        if (this.realStartTimeEpochMs === null) {
+            throw new Error("Cannot get current date: The clock has not been initialized.");
+        }
 
-        return { start, end };
+        const nowMs = Date.now();
+        const realTimeElapsedMs = nowMs - this.realStartTimeEpochMs;
+        const simulatedDaysPassed = Math.floor(realTimeElapsedMs / SimulatedClock.SIMULATED_DAY_IN_REAL_MS);
+
+        const currentDate = new Date(SimulatedClock.SIMULATED_START_DATE.getTime());
+        currentDate.setUTCDate(currentDate.getUTCDate() + simulatedDaysPassed);
+
+        return currentDate;
+    }
+
+    /**
+     * Resets the clock's state for a new simulation run.
+     */
+    public reset(): void {
+        this.realStartTimeEpochMs = null;
+        console.log("SimulatedClock has been reset.");
     }
 }
+
+export const simulatedClock = SimulatedClock.getInstance();

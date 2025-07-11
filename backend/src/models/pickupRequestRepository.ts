@@ -1,18 +1,25 @@
 import database from "../config/database";
 import { PickupRequestEntity, PickupRequestCreationResult, PickupRequestGetEntity } from "../types/PickupRequest";
+import { v4 as uuidv4 } from 'uuid'; // Import the UUID generator
 
 export const savePickupRequest = async (pickupRequest: PickupRequestEntity): Promise<PickupRequestCreationResult> => {
-    const result = await database.query<PickupRequestCreationResult>("SELECT * FROM create_pickup_request($1, $2, $3, $4, $5, $6, $7::jsonb)", [
-        pickupRequest.requestingCompany,
-        pickupRequest.originCompany,
-        pickupRequest.destinationCompany,
-        pickupRequest.originalExternalOrderId,
-        pickupRequest.cost,
-        pickupRequest.requestDate,
-        JSON.stringify(pickupRequest.items),
-    ]);
+    const paymentReferenceId = uuidv4();
 
-    // The result from a function call will be in result.rows[0]
+    const query = "SELECT * FROM create_pickup_request($1, $2, $3, $4, $5, $6, $7::jsonb, $8)";
+    
+    const params = [
+        pickupRequest.requestingCompany,      
+        pickupRequest.originCompany,          
+        pickupRequest.destinationCompany,    
+        pickupRequest.originalExternalOrderId, 
+        pickupRequest.cost,                   
+        pickupRequest.requestDate,            
+        JSON.stringify(pickupRequest.items),  
+        paymentReferenceId                    
+    ];
+
+    const result = await database.query<PickupRequestCreationResult>(query, params);
+
     if (result.rows.length === 0) {
         throw new Error("Failed to create pickup request: No data returned from DB function.");
     }

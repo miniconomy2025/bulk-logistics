@@ -11,10 +11,9 @@ class AppError extends Error {
         super(message);
 
         this.statusCode = statusCode;
-        this.status = `${statusCode}`.startsWith("4") ? "fail" : "error"; // 400+ is failure, 500+ is error
-        this.isOperational = true; // Mark this as an operational error that we created intentionally.
+        this.status = `${statusCode}`.startsWith("4") ? "fail" : "error"; 
+        this.isOperational = true; 
 
-        // Capture the stack trace, excluding this constructor from it.
         Error.captureStackTrace(this, this.constructor);
     }
 }

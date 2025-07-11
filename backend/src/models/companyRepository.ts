@@ -65,18 +65,14 @@ export const updateCompanyDetails = async (
         RETURNING *;
     `;
 
-    // Pass the new details and the company name as parameters.
-    // If a detail is not provided, its value will be 'undefined', which the pg driver converts to NULL.
     const values = [details.certificateIdentifier, details.bankAccountNumber, companyName];
 
     const result = await database.query(query, values);
 
-    // If no rows are returned, it means no company with that name was found.
     if (result.rows.length === 0) return null;
 
     const row = result.rows[0];
 
-    // Map the returned database row to your Company object.
     const company: Company = {
         id: row.company_id,
         companyName: row.company_name,

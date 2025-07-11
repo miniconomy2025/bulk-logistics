@@ -5,7 +5,7 @@ import { calculateDeliveryCost } from "../services/DeliveryCostCalculatorService
 import { findPickupRequestById, findPickupRequestsByCompanyName, savePickupRequest } from "../models/pickupRequestRepository";
 import catchAsync from "../utils/errorHandlingMiddleware/catchAsync";
 import AppError from "../utils/errorHandlingMiddleware/appError";
-import { SimulatedClock } from "../utils";
+import { simulatedClock } from "../utils";
 import { PickupRequestCompletionStatus } from "../enums";
 
 export const createPickupRequest = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -23,7 +23,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
         ...pickupRequestDetails,
         requestingCompany: pickupRequestDetails.destinationCompany,
         cost: cost,
-        requestDate: SimulatedClock.getSimulatedTime(),
+        requestDate: simulatedClock.getCurrentDate(),
     });
 
     res.status(201).json({

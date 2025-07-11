@@ -36,28 +36,22 @@ init(app, {
 
 const PORT = 3000;
 
-app.use(
-    cors({
-        credentials: true,
-        origin: "*",
-    }),
-);
-
 app.use(express.json());
 
-app.use("", thohRoutes);
+app.use("/api", thohRoutes);
 app.use("/api/health", health);
 app.use("/api/bank", bankRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/pickup-request", pickupRequestRoutes);
+app.use("/api/thoh", thohRoutes);
 app.use("/api/shipments", shipmentRoutes);
 
-// app.all("*", (req, res, next) => {
-//     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
-// });
+app.all("*", (req, res, next) => {
+    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
 
-app.use(globalErrorHandler); // error handler middleware.
+app.use(globalErrorHandler); 
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
