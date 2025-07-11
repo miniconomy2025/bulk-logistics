@@ -32,6 +32,10 @@ export interface CreateAccountResponse {
     account_number: string;
 }
 
+export interface AccountDetails {
+    net_balance: number;
+    account_number: string;
+}
 export interface GetBalanceResponse {
     balance: number;
 }

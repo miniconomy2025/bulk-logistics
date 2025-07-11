@@ -8,9 +8,11 @@ import {
     LoanApplicationResponse,
     TransactionRequest,
     TransactionResponse,
+    type AccountDetails,
     type LoanInfoResponse,
 } from "../types";
 import { simulatedClock } from "../utils";
+import AppError from "../utils/errorHandlingMiddleware/appError";
 import { BaseApiClient } from "./baseClient";
 
 class BankClient extends BaseApiClient {
@@ -39,8 +41,21 @@ class BankClient extends BaseApiClient {
     }
 
     public async createAccount(notificationUrl: string): Promise<CreateAccountResponse> {
-        const response = await this.client.post<CreateAccountResponse>("/account", { notification_url: notificationUrl });
-        return response.data;
+        try {
+            const response = await this.client.post<CreateAccountResponse>("/account", { notification_url: notificationUrl });
+            return response.data;
+        } catch (error: any) {
+            throw new AppError(error, 500);
+        }
+    }
+
+    public async getAccountDetails(): Promise<AccountDetails> {
+        try {
+            const response = await this.client.get<AccountDetails>("/account");
+            return response.data;
+        } catch (error: any) {
+            throw new AppError(error, 500);
+        }
     }
 
     public async getBalance(): Promise<GetBalanceResponse> {
