@@ -1,4 +1,5 @@
 import type { TruckInfoResponse, TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
+import AppError from "../utils/errorHandlingMiddleware/appError";
 import { BaseApiClient } from "./baseClient";
 
 class THOHApiClient extends BaseApiClient {
@@ -22,8 +23,12 @@ class THOHApiClient extends BaseApiClient {
      * @returns An array of truck information
      */
     public async getTrucksInformation(): Promise<TruckInfoResponse[]> {
-        const response = await this.client.get("/trucks");
-        return response.data;
+        try {
+            const response = await this.client.get("/trucks");
+            return response.data;
+        } catch (error: any) {
+            throw new AppError(error.error, 500);
+        }
     }
 }
 
