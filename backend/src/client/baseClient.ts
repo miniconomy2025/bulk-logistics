@@ -13,18 +13,18 @@ export abstract class BaseApiClient {
         // --- mTLS Agent Configuration ---
         // This agent will attach your client certificate to every outgoing request.
         // Paths should be stored securely in environment variables.
-        // // const httpsAgent = new https.Agent({
-        // //     key: fs.readFileSync(process.env.MTLS_PRIVATE_KEY_PATH!),
-        // //     cert: fs.readFileSync(process.env.MTLS_PUBLIC_CERT_PATH!),
-        // //     ca: fs.readFileSync(process.env.MTLS_CA_CERT_PATH!),
-        // //     rejectUnauthorized: true, // Ensure we only talk to services we trust
-        // // });
+        const httpsAgent = new https.Agent({
+            key: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.key"),
+            cert: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.crt"),
+            ca: fs.readFileSync("/etc/ssl/bulk-logistics/root-ca.crt"),
+            rejectUnauthorized: true, // Ensure we only talk to services we trust
+        });
 
         // // // ** FIX **
         // // // The https agent should be passed directly to the `httpsAgent` property.
         this.client = axios.create({
             baseURL: baseURL,
-            // httpsAgent: httpsAgent,
+            httpsAgent: httpsAgent,
         });
 
         // --- Standardized Error Handling ---
