@@ -215,12 +215,12 @@ export default class AutonomyService {
             return total + price * truckInfo.quantity;
         }, 0);
 
-        // const isLoanApplicationSuccessful = await this._checkAndSecureLoan(totalLoanAmount * 2);
+        const isLoanApplicationSuccessful = await this._checkAndSecureLoan(totalLoanAmount * 2);
 
-        // if (isLoanApplicationSuccessful) {
-        //     const accountBalance = await bankApiClient.getBalance();
-        //     this.funds = accountBalance.balance;
-        // }
+        if (isLoanApplicationSuccessful) {
+            const accountBalance = await bankApiClient.getBalance();
+            this.funds = accountBalance.balance;
+        }
 
         // //4. Purchase trucks
         // const truckPurchasePromises: Promise<TruckPurchaseResponse | undefined>[] = [];
