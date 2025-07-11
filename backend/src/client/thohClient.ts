@@ -3,7 +3,7 @@ import { BaseApiClient } from "./baseClient";
 
 class THOHApiClient extends BaseApiClient {
     constructor() {
-        super(process.env.THOH_URL!, "THOH");
+        super("https://thoh-api.projects.bbdgrad.com", "THOH");
     }
 
     /**
