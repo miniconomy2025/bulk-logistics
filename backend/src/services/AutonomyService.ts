@@ -220,10 +220,9 @@ export default class AutonomyService {
         if (isLoanApplicationSuccessful) {
             const accountBalance = await bankApiClient.getBalance();
             this.funds = accountBalance.net_balance;
-            console.log(this.funds);
         }
 
-        // //4. Purchase trucks
+        //4. Purchase trucks - can't purchase trucks since we can't get trucks into
         // const truckPurchasePromises: Promise<TruckPurchaseResponse | undefined>[] = [];
         // requiredTrucks.forEach((truckInfo) => {
         //     truckPurchasePromises.push(this._checkAndPurchaseTrucks(truckInfo));
