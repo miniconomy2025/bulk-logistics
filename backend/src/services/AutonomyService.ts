@@ -108,9 +108,9 @@ export default class AutonomyService {
                 this.isProcessingTick = true;
 
                 // If this is the very first tick, run the one-time setup.
-                if (this.lastProcessedSimDate === null) {
-                    await this._onInitOperations();
-                }
+                // if (this.lastProcessedSimDate === null) {
+                //     await this._onInitOperations();
+                // }
 
                 // Run all tasks for this new day
                 await this._performDailyTasks(trueSimulatedDate);
