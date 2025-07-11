@@ -27,7 +27,7 @@ export class ShipmentPlannerService {
             ...v,
             capacityRemaining: v.maximum_capacity,
             pickupsAssignedToday: 0,
-            capacity_type_id: v.capacity_type_id,
+            capacity_type_id: v.capacity_type_id
         }));
 
         const plannedRequestIds = new Set<number>();

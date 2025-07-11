@@ -1,3 +1,5 @@
+DROP FUNCTION get_available_vehicles(date);
+
 CREATE OR REPLACE FUNCTION get_available_vehicles(p_dispatch_date DATE)
 RETURNS TABLE (
     vehicle_id INT,
