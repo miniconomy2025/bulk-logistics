@@ -1,6 +1,7 @@
 import axios, { AxiosInstance, AxiosError } from "axios";
 import https from "https";
 import fs from "fs";
+import tls from "tls"; 
 import AppError from "../utils/errorHandlingMiddleware/appError";
 
 export abstract class BaseApiClient {
@@ -10,18 +11,21 @@ export abstract class BaseApiClient {
     protected constructor(baseURL: string, serviceName: string) {
         this.serviceName = serviceName;
 
+        const customCa = fs.readFileSync("/etc/ssl/bulk-logistics/root-ca.crt");
+
+        // 3. Combine Node's default CAs with your custom one
+        const allCAs = [...tls.rootCertificates, customCa];
+
         // --- mTLS Agent Configuration ---
         // This agent will attach your client certificate to every outgoing request.
         // Paths should be stored securely in environment variables.
         const httpsAgent = new https.Agent({
             key: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.key"),
             cert: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.crt"),
-            ca: fs.readFileSync("/etc/ssl/bulk-logistics/root-ca.crt"),
+            ca: allCAs,
             rejectUnauthorized: true, // Ensure we only talk to services we trust
         });
 
-        // // // ** FIX **
-        // // // The https agent should be passed directly to the `httpsAgent` property.
         this.client = axios.create({
             baseURL: baseURL,
             httpsAgent: httpsAgent,
