@@ -15,7 +15,7 @@ import { BaseApiClient } from "./baseClient";
 
 class BankClient extends BaseApiClient {
     constructor() {
-        super(process.env.BANK_API_BASE_URL!, "Bank");
+        super("https://commercial-bank-api.projects.bbdgrad.com/api", "Bank");
     }
 
     public async applyForLoan(loanDetails: LoanApplicationRequest): Promise<LoanApplicationResponse> {
@@ -39,7 +39,7 @@ class BankClient extends BaseApiClient {
     }
 
     public async createAccount(notificationUrl: string): Promise<CreateAccountResponse> {
-        const response = await this.client.post<CreateAccountResponse>("/account", { notificationUrl: notificationUrl });
+        const response = await this.client.post<CreateAccountResponse>("/account", { notification_url: notificationUrl });
         return response.data;
     }
 
