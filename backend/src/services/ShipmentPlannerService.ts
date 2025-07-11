@@ -17,17 +17,17 @@ export class ShipmentPlannerService {
         console.log(`--- Starting Shipment Planning for ${simulatedClock.getCurrentDate()} ---`);
 
         const allPendingRequests = await findPaidAndUnshippedRequests();
-        console.log("all pending requests",allPendingRequests)
-        allPendingRequests.forEach(request => console.log(request.items));
-        console.log("sim clock date",simulatedClock.getCurrentDate());
+        console.log("all pending requests", allPendingRequests);
+        allPendingRequests.forEach((request) => console.log(request.items));
+        console.log("sim clock date", simulatedClock.getCurrentDate());
         const vehicleData = await findAvailableVehicles(simulatedClock.getCurrentDate().toISOString());
-        console.log("vehicleData",vehicleData)
+        console.log("vehicleData", vehicleData);
 
         const availableFleet: PlannableVehicle[] = vehicleData.map((v) => ({
             ...v,
             capacityRemaining: v.maximum_capacity,
             pickupsAssignedToday: 0,
-            capacity_type_id: v.capacity_type_id
+            capacity_type_id: v.capacity_type_id,
         }));
 
         const plannedRequestIds = new Set<number>();

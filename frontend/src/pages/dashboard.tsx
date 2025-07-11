@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import { RecentTransaction } from "../../components/recent-transactions";
-import { MetricCard } from "../../components/ui/metric-card";
-import { TransactionItem } from "../../components/ui/transaction-item";
-import { DashboardLayout } from "../../layouts/app-layout";
-import Transactions from "../../data/transactions";
-import IncomeExpensesChart from "../../components/income-expense-chart";
-import type { IncomeExpensesChartProps, RecentTransactionsItem } from "../../types";
-import Shipments from "../../data/shipments";
+import { RecentTransaction } from "../components/recent-transactions";
+import { MetricCard } from "../components/ui/metric-card";
+import { TransactionItem } from "../components/ui/transaction-item";
+import { DashboardLayout } from "../layouts/app-layout";
+import Transactions from "../data/transactions";
+import IncomeExpensesChart from "../components/income-expense-chart";
+import type { IncomeExpensesChartProps, RecentTransactionsItem } from "../types";
+import Shipments from "../data/shipments";
 
 interface TransactionItem {
     purchase: string;
