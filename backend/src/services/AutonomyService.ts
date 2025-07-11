@@ -220,6 +220,10 @@ export default class AutonomyService {
         if (isLoanApplicationSuccessful) {
             const accountBalance = await bankApiClient.getBalance();
             this.funds = accountBalance.net_balance;
+            console.log(
+                "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV\nLoan secured successfully. Funds available:\n",
+                this.funds,
+            );
         }
 
         //4. Purchase trucks - can't purchase trucks since we can't get trucks into
