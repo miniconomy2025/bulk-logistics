@@ -193,28 +193,27 @@ export default class AutonomyService {
             await updateCompanyDetails("bulk-logistics", {
                 bankAccountNumber: accountNumber,
             });
-            console.log("account ready", accountNumber);
         }
         //2. Figure out cost of [3 large, 3 medium, 3 small] vehicles from the hand (handClient) -> we have our needed loan amount.
-        // const requiredTrucks: TruckPurchaseRequest[] = [
-        //     { truckName: "large_truck", quantity: 3 },
-        //     { truckName: "medium_truck", quantity: 3 },
-        //     { truckName: "small_truck", quantity: 3 },
-        // ];
+        const requiredTrucks: TruckPurchaseRequest[] = [
+            { truckName: "large_truck", quantity: 3 },
+            { truckName: "medium_truck", quantity: 3 },
+            { truckName: "small_truck", quantity: 3 },
+        ];
 
-        // const truckPriceMap: { [key: string]: number } = {};
+        const truckPriceMap: { [key: string]: number } = {};
 
-        // const trucksInfo = await thohApiClient.getTrucksInformation();
+        const trucksInfo = await thohApiClient.getTrucksInformation();
 
-        // trucksInfo.forEach((truck) => {
-        //     truckPriceMap[truck.truckName] = truck.price;
-        // });
+        trucksInfo.forEach((truck) => {
+            truckPriceMap[truck.truckName] = truck.price;
+        });
 
         // //3. Request Loan
-        // const totalLoanAmount = requiredTrucks.reduce((total, truckInfo) => {
-        //     const price = truckPriceMap[truckInfo.truckName];
-        //     return total + price * truckInfo.quantity;
-        // }, 0);
+        const totalLoanAmount = requiredTrucks.reduce((total, truckInfo) => {
+            const price = truckPriceMap[truckInfo.truckName];
+            return total + price * truckInfo.quantity;
+        }, 0);
 
         // const isLoanApplicationSuccessful = await this._checkAndSecureLoan(totalLoanAmount * 2);
 
