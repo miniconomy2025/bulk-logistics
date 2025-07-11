@@ -1,1 +1,2 @@
 backend/src/seed_data.sql:generic-api-key:30
+migration/V006__seed_data.sql:generic-api-key:30
