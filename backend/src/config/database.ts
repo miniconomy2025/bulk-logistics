@@ -3,9 +3,9 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// Set type parser for DATE to return as string in order to match the expected format from the database
+
 types.setTypeParser(types.builtins.DATE, (value) => {
-    return value; // Returns the date string as 'YYYY-MM-DD'
+    return value;
 });
 
 const db = new Pool({

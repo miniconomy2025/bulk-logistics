@@ -1,7 +1,7 @@
 export class SimulatedClock {
     private static instance: SimulatedClock;
 
-    private static readonly SIMULATED_DAY_IN_REAL_MS = 20 * 1000;
+    static readonly SIMULATED_DAY_IN_REAL_MS = 20 * 1000;
     private static readonly SIMULATED_START_DATE = new Date("2050-01-01T00:00:00.000Z");
 
     private realStartTimeEpochMs: number | null = null;

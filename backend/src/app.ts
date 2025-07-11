@@ -51,7 +51,7 @@ app.all("*", (req, res, next) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
-app.use(globalErrorHandler); // error handler middleware.
+app.use(globalErrorHandler); 
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

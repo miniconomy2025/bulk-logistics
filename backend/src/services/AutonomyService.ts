@@ -12,7 +12,7 @@ import { bankApiClient } from "../client/bankClient";
 import { TransactionCategory } from "../enums";
 import { reactivateVehicle } from "./vehicleService";
 import { updateCompanyDetails } from "../models/companyRepository";
-import { simulatedClock } from "../utils";
+import { SimulatedClock, simulatedClock } from "../utils";
 
 const TICK_CHECK_INTERVAL_MS = 15000;
 
@@ -107,10 +107,10 @@ export default class AutonomyService {
             if (todayStr !== this.lastProcessedSimDate) {
                 this.isProcessingTick = true;
 
-                // // If this is the very first tick, run the one-time setup.
-                // if (this.lastProcessedSimDate === null) {
-                //     await this._onInitOperations();
-                // }
+                // If this is the very first tick, run the one-time setup.
+                if (this.lastProcessedSimDate === null) {
+                    await this._onInitOperations();
+                }
 
                 // Run all tasks for this new day
                 await this._performDailyTasks(trueSimulatedDate);
@@ -135,7 +135,7 @@ export default class AutonomyService {
 
             const dropOffDetails = await this._planAndDispatchShipments();
 
-            const delayedObservable = timer(10000);
+            const delayedObservable = timer(SimulatedClock.SIMULATED_DAY_IN_REAL_MS * (2/3));
 
             await lastValueFrom(delayedObservable);
 
@@ -233,7 +233,7 @@ export default class AutonomyService {
                         paymentDetails: {
                             to_account_number: response.bankAccount,
                             to_bank_name: "commercial-bank",
-                            amount: response.price * response.quantity, // THOH to provide the overall price in the response
+                            amount: response.price * response.quantity,
                             description: String(response.orderId),
                         },
                         transactionCategory: TransactionCategory.Purchase,
@@ -279,7 +279,6 @@ export default class AutonomyService {
      * Checks if new trucks are needed and purchases them if conditions are met.
      */
     private async _checkAndPurchaseTrucks(truckInfo: TruckPurchaseRequest): Promise<TruckPurchaseResponse | undefined> {
-        // This check will only run if we have a loan to pay for the trucks.
         if (!this.hasActiveLoan || this.funds === 0) {
             const isLoanSecured = await this._checkAndSecureLoan(this.initialTrucksCost * 2);
 

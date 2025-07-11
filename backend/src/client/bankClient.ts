@@ -58,7 +58,7 @@ class BankClient extends BaseApiClient {
         const response = await this.client.post<TransactionResponse>("/transaction", paymentDetails);
 
         if (response.data) {
-            const transactionDate = simulatedClock.getCurrentDate().toISOString().split("T")[0]; // The date format expected in the DB is YYYY-MM-DD
+            const transactionDate = simulatedClock.getCurrentDate().toISOString().split("T")[0];
             const transactionStatus = response.data.success ? TransactionStatus.Completed : TransactionStatus.Failed;
             const status = await getTransactionStatusByName(transactionStatus);
             const transactionCategoryId = await getCategoryIdByName(transactionCategory);
