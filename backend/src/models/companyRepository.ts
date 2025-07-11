@@ -58,13 +58,13 @@ export const updateCompanyDetails = async (
     const query = `
         UPDATE company
         SET 
-            bank_account_number = COALESCE($2, bank_account_number)
+            bank_account_number = COALESCE($1, bank_account_number)
         WHERE 
-            company_name = SELECT company_name FROM company WHERE company_name = $3
+            company_name =  $2
         RETURNING *;
     `;
 
-    const values = [details.certificateIdentifier, details.bankAccountNumber, companyName];
+    const values = [details.bankAccountNumber, companyName];
 
     const result = await database.query(query, values);
 

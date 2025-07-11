@@ -190,9 +190,9 @@ export default class AutonomyService {
         //1. Create bank account, send the notification URL to the bank
 
         if (accountNumber) {
-            // await updateCompanyDetails("bulk-logistics", {
-            //     bankAccountNumber: accountNumber,
-            // });
+            await updateCompanyDetails("bulk-logistics", {
+                bankAccountNumber: accountNumber,
+            });
             console.log("account ready", accountNumber);
         }
         //2. Figure out cost of [3 large, 3 medium, 3 small] vehicles from the hand (handClient) -> we have our needed loan amount.
