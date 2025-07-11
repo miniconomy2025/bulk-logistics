@@ -11,7 +11,7 @@ class NotificationApiClient extends BaseApiClient {
     public async sendLogisticsNotification(notification: LogisticsNotification): Promise<LogisticsNotificationResponse>{
         
       try {
-        return await this.client.post<LogisticsNotificationResponse>(`electronics-supplier-api.projects.bbdgrad.com${this.NotificationEndpoint}`, {
+        return await this.client.post<LogisticsNotificationResponse>(`${notification.notificationURL}${this.NotificationEndpoint}`, {
           id: notification.id,
           type: notification.type,
           items: notification.items,

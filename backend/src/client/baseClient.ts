@@ -23,7 +23,7 @@ export abstract class BaseApiClient {
         // // // ** FIX **
         // // // The https agent should be passed directly to the `httpsAgent` property.
         this.client = axios.create({
-            baseURL: "https://bulk-logistics-api.projects.bbdgrad.com/proxy/"+baseURL,
+            baseURL: baseURL,
             // httpsAgent: httpsAgent,
         });
 
