@@ -11,13 +11,6 @@ export const NavItems = () => {
                         icon={<span className="material-symbols-outlined">dashboard</span>}
                     />
                 </li>
-                <li>
-                    <NavLink
-                        href="#"
-                        title="Transactions"
-                        icon={<span className="material-symbols-outlined">contract</span>}
-                    />
-                </li>
             </ul>
         </nav>
     );
