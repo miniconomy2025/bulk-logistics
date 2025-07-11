@@ -3,7 +3,6 @@ import { getCategoryIdByName, insertIntoTransactionLedger, saveLoanDetails } fro
 import { getTransactionStatusByName } from "../models/transactionStatus";
 import {
     CreateAccountResponse,
-    GetBalanceResponse,
     LoanApplicationRequest,
     LoanApplicationResponse,
     TransactionRequest,
@@ -79,26 +78,29 @@ class BankClient extends BaseApiClient {
         transactionCategory: string;
     }): Promise<TransactionResponse> {
         const response = await this.client.post<TransactionResponse>("/transaction", paymentDetails);
+        try {
+            if (response.data) {
+                const transactionDate = simulatedClock.getCurrentDate().toISOString().split("T")[0];
+                const transactionStatus = response.data.success ? TransactionStatus.Completed : TransactionStatus.Failed;
+                const status = await getTransactionStatusByName(transactionStatus);
+                const transactionCategoryId = await getCategoryIdByName(transactionCategory);
 
-        if (response.data) {
-            const transactionDate = simulatedClock.getCurrentDate().toISOString().split("T")[0];
-            const transactionStatus = response.data.success ? TransactionStatus.Completed : TransactionStatus.Failed;
-            const status = await getTransactionStatusByName(transactionStatus);
-            const transactionCategoryId = await getCategoryIdByName(transactionCategory);
-
-            await insertIntoTransactionLedger({
-                commercial_bank_transaction_id: response.data.transaction_number,
-                payment_reference_id: response.data.transaction_number,
-                transaction_category_id: transactionCategoryId,
-                amount: paymentDetails.amount,
-                transaction_date: transactionDate,
-                transaction_status_id: status?.transaction_status_id!,
-                related_pickup_request_id: null,
-                loan_id: null,
-                related_thoh_order_id: paymentDetails.description,
-            });
+                await insertIntoTransactionLedger({
+                    commercial_bank_transaction_id: response.data.transaction_number,
+                    payment_reference_id: response.data.transaction_number,
+                    transaction_category_id: transactionCategoryId,
+                    amount: paymentDetails.amount,
+                    transaction_date: transactionDate,
+                    transaction_status_id: status?.transaction_status_id!,
+                    related_pickup_request_id: null,
+                    loan_id: null,
+                    related_thoh_order_id: paymentDetails.description,
+                });
+            }
+            return response.data;
+        } catch (error: any) {
+            throw new AppError(error, 500);
         }
-        return response.data;
     }
 }
 
