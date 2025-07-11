@@ -203,19 +203,19 @@ export default class AutonomyService {
 
         const truckPriceMap: { [key: string]: number } = {};
 
-        const trucksInfo = await thohApiClient.getTrucksInformation();
+        // const trucksInfo = await thohApiClient.getTrucksInformation(); // not working
 
-        trucksInfo.forEach((truck) => {
-            truckPriceMap[truck.truckName] = truck.price;
-        });
+        // trucksInfo.forEach((truck) => {
+        //     truckPriceMap[truck.truckName] = truck.price;
+        // });
 
         // //3. Request Loan
-        const totalLoanAmount = requiredTrucks.reduce((total, truckInfo) => {
-            const price = truckPriceMap[truckInfo.truckName];
-            return total + price * truckInfo.quantity;
-        }, 0);
+        // const totalLoanAmount = requiredTrucks.reduce((total, truckInfo) => {
+        //     const price = truckPriceMap[truckInfo.truckName];
+        //     return total + price * truckInfo.quantity;
+        // }, 0);
 
-        const isLoanApplicationSuccessful = await this._checkAndSecureLoan(totalLoanAmount * 2);
+        const isLoanApplicationSuccessful = await this._checkAndSecureLoan(20 * 2); // totalLoanAmount * 2
 
         if (isLoanApplicationSuccessful) {
             const accountBalance = await bankApiClient.getBalance();
