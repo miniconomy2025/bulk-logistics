@@ -219,7 +219,8 @@ export default class AutonomyService {
 
         if (isLoanApplicationSuccessful) {
             const accountBalance = await bankApiClient.getBalance();
-            this.funds = accountBalance.balance;
+            this.funds = accountBalance.net_balance;
+            console.log(this.funds);
         }
 
         // //4. Purchase trucks

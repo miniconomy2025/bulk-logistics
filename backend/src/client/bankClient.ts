@@ -21,23 +21,27 @@ class BankClient extends BaseApiClient {
     }
 
     public async applyForLoan(loanDetails: LoanApplicationRequest): Promise<LoanApplicationResponse> {
-        const response = await this.client.post<LoanApplicationResponse>("/loan", loanDetails);
+        try {
+            const response = await this.client.post<LoanApplicationResponse>("/loan", loanDetails);
 
-        if (response.data.success) {
-            const loanInfo = await this.client.get<LoanInfoResponse>(`/loan/${response.data.loan_number}`);
+            if (response.data.success) {
+                const loanInfo = await this.client.get<LoanInfoResponse>(`/loan/${response.data.loan_number}`);
 
-            if (loanInfo.data.success) {
-                await saveLoanDetails(
-                    {
-                        loan_number: loanInfo.data.loan_number,
-                        interest_rate: loanInfo.data.interest_rate,
-                        initial_amount: loanInfo.data.initial_amount,
-                    },
-                    response.data.initial_transaction_id.toString(),
-                );
+                if (loanInfo.data.success) {
+                    await saveLoanDetails(
+                        {
+                            loan_number: loanInfo.data.loan_number,
+                            interest_rate: loanInfo.data.interest_rate,
+                            initial_amount: loanInfo.data.initial_amount,
+                        },
+                        response.data.initial_transaction_id.toString(),
+                    );
+                }
             }
+            return response.data;
+        } catch (error: any) {
+            throw new AppError(error, 500);
         }
-        return response.data;
     }
 
     public async createAccount(notificationUrl: string): Promise<CreateAccountResponse> {
@@ -58,9 +62,9 @@ class BankClient extends BaseApiClient {
         }
     }
 
-    public async getBalance(): Promise<GetBalanceResponse> {
+    public async getBalance(): Promise<AccountDetails> {
         try {
-            const response = await this.client.get<GetBalanceResponse>("/account/me/balance");
+            const response = await this.client.get<AccountDetails>("/account");
             return response.data;
         } catch (error: any) {
             throw new AppError(error, 500);
