@@ -203,19 +203,19 @@ export default class AutonomyService {
 
         const truckPriceMap: { [key: string]: number } = {};
 
-        // const trucksInfo = await thohApiClient.getTrucksInformation(); // not working
+        const trucksInfo = await thohApiClient.getTrucksInformation();
 
-        // trucksInfo.forEach((truck) => {
-        //     truckPriceMap[truck.truckName] = truck.price;
-        // });
+        trucksInfo.forEach((truck) => {
+            truckPriceMap[truck.truckName] = truck.price;
+        });
 
-        // //3. Request Loan
-        // const totalLoanAmount = requiredTrucks.reduce((total, truckInfo) => {
-        //     const price = truckPriceMap[truckInfo.truckName];
-        //     return total + price * truckInfo.quantity;
-        // }, 0);
+        //3. Request Loan
+        const totalLoanAmount = requiredTrucks.reduce((total, truckInfo) => {
+            const price = truckPriceMap[truckInfo.truckName];
+            return total + price * truckInfo.quantity;
+        }, 0);
 
-        const isLoanApplicationSuccessful = await this._checkAndSecureLoan(20 * 2); // totalLoanAmount * 2
+        const isLoanApplicationSuccessful = await this._checkAndSecureLoan(totalLoanAmount * 2);
 
         if (isLoanApplicationSuccessful) {
             const accountBalance = await bankApiClient.getBalance();
@@ -226,46 +226,46 @@ export default class AutonomyService {
             );
         }
 
-        //4. Purchase trucks - can't purchase trucks since we can't get trucks into
-        // const truckPurchasePromises: Promise<TruckPurchaseResponse | undefined>[] = [];
-        // requiredTrucks.forEach((truckInfo) => {
-        //     truckPurchasePromises.push(this._checkAndPurchaseTrucks(truckInfo));
-        // });
+        // 4. Purchase trucks - can't purchase trucks since we can't get trucks into
+        const truckPurchasePromises: Promise<TruckPurchaseResponse | undefined>[] = [];
+        requiredTrucks.forEach((truckInfo) => {
+            truckPurchasePromises.push(this._checkAndPurchaseTrucks(truckInfo));
+        });
 
-        // const trucksPurchaseResponse = await Promise.all(truckPurchasePromises);
+        const trucksPurchaseResponse = await Promise.all(truckPurchasePromises);
 
-        // const trucksPurchasePaymentsPromises: Promise<TransactionResponse>[] = [];
+        const trucksPurchasePaymentsPromises: Promise<TransactionResponse>[] = [];
 
-        // trucksPurchaseResponse.forEach(async (response, index) => {
-        //     if (index === 0 && response && response.orderId) {
-        //         await updateCompanyDetails("thoh", {
-        //             bankAccountNumber: response.bankAccount,
-        //         });
-        //         trucksPurchasePaymentsPromises.push(
-        //             bankApiClient.makePayment({
-        //                 paymentDetails: {
-        //                     to_account_number: response.bankAccount,
-        //                     to_bank_name: "commercial-bank",
-        //                     amount: response.price * response.quantity,
-        //                     description: String(response.orderId),
-        //                 },
-        //                 transactionCategory: TransactionCategory.Purchase,
-        //             }),
-        //         );
-        //     } else {
-        //         console.log("Truck purchase response was undefined or missing orderId. Skipping payment.");
-        //     }
-        // });
+        trucksPurchaseResponse.forEach(async (response, index) => {
+            if (index === 0 && response && response.orderId) {
+                await updateCompanyDetails("thoh", {
+                    bankAccountNumber: response.bankAccount,
+                });
+                trucksPurchasePaymentsPromises.push(
+                    bankApiClient.makePayment({
+                        paymentDetails: {
+                            to_account_number: response.bankAccount,
+                            to_bank_name: "commercial-bank",
+                            amount: response.price * response.quantity,
+                            description: String(response.orderId),
+                        },
+                        transactionCategory: TransactionCategory.Purchase,
+                    }),
+                );
+            } else {
+                console.log("Truck purchase response was undefined or missing orderId. Skipping payment.");
+            }
+        });
 
-        // const paymentResults = await Promise.all(trucksPurchasePaymentsPromises);
+        const paymentResults = await Promise.all(trucksPurchasePaymentsPromises);
 
-        // paymentResults.forEach((result) => {
-        //     if (result.success) {
-        //         console.log(`Payment successful for transaction: ${result.transaction_number}`);
-        //     } else {
-        //         console.error("Payment failed:", result);
-        //     }
-        // });
+        paymentResults.forEach((result) => {
+            if (result.success) {
+                console.log(`Payment successful for transaction: ${result.transaction_number}`);
+            } else {
+                console.error("Payment failed:", result);
+            }
+        });
     }
 
     /**
