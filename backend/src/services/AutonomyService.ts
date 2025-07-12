@@ -134,7 +134,7 @@ export default class AutonomyService {
 
             const dropOffDetails = await this._planAndDispatchShipments();
 
-            await new Promise(resolve => setTimeout(resolve, SimulatedClock.SIMULATED_DAY_IN_REAL_MS * (2 / 3)));
+            await new Promise((resolve) => setTimeout(resolve, SimulatedClock.SIMULATED_DAY_IN_REAL_MS * (2 / 3)));
 
             await this._notifyCompletedDeliveries(dropOffDetails);
         } catch (error) {
