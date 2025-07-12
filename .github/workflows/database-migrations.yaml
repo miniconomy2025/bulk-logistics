@@ -7,6 +7,8 @@ on:
       - main
     paths:
       - 'migration/**'
+  
+  workflow_dispatch:
 
 jobs:
   migrate:
