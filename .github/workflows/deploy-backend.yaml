@@ -3,7 +3,6 @@ name: Deploy Backend to EC2
 on:
   push:
     branches:
-      - terraform
       - main
     paths:
       - 'backend/**'
