@@ -43,4 +43,4 @@ export const getItemDefinitions = async (): Promise<ItemDefinitionWithName[]> =>
         capacity_type ON item_definitions.capacity_type_id = capacity_type.capacity_type_id`;
     const itemDefinitions = await db.query(sql);
     return itemDefinitions.rows;
-}
+};

@@ -32,7 +32,7 @@ export const validatePickupRequest = async (pickupRequest: PickupRequestRequest)
                 "recycling_machine",
                 "cases",
                 "electronics",
-                "screens"
+                "screens",
             ].includes(itemName)
         ) {
             throw new Error(

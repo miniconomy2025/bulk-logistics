@@ -334,7 +334,6 @@ export default class AutonomyService {
                     };
                     const response = await notificationApiClient.sendLogisticsNotification(pickupRequestNotification);
                     if (response.status >= 200 && response.status < 300) {
-                        
                         await shipmentModel.createShipmentAndAssignitems(plan.vehicle.vehicle_id, item.pickup_request_item_id, plannedRequestIds);
 
                         dropoffEntities.push({
@@ -367,9 +366,7 @@ export default class AutonomyService {
     private async _notifyCompletedDeliveries(notifications: LogisticsNotification[]): Promise<void> {
         console.log("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV\nEvening Ops: Notifying completed deliveries...");
 
-        const notificationPromises = notifications.map(notification =>
-            notificationApiClient.sendLogisticsNotification(notification)
-        );
+        const notificationPromises = notifications.map((notification) => notificationApiClient.sendLogisticsNotification(notification));
 
         await Promise.all(notificationPromises);
 
