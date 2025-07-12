@@ -56,7 +56,7 @@ export class ShipmentPlannerService {
             const tempFleetState: PlannableVehicle[] = JSON.parse(JSON.stringify(fleet));
             const dryRunPlan = new Map<number, { items: PickupToShipmentItemDetails[] }>();
             let canFitEntireRequest = true;
-            let usedVehicleIndexes : number[] = [];
+            let usedVehicleIndexes: number[] = [];
 
             for (const item of request.items) {
                 if (item.shipment_id) {
@@ -77,9 +77,9 @@ export class ShipmentPlannerService {
             }
             if (canFitEntireRequest) {
                 console.log(`PASS 1: Planning full request ${request.pickupRequestId}`);
-                usedVehicleIndexes.forEach(index => {
+                usedVehicleIndexes.forEach((index) => {
                     fleet[index].pickupsAssignedToday++;
-                })
+                });
                 this._commitDryRun(dryRunPlan, fleet, plans);
                 plannedIds.add(request.pickupRequestId);
             }

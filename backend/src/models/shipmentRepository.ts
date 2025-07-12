@@ -68,7 +68,7 @@ class ShipmentModel {
     createShipment = async (vehicleId: number, dispatchDate: Date, client: any) => {
         const checkExistenceQuery = `SELECT * from shipments where vehicle_id = $1 AND dispatch_date = $2`;
         const existenceResult = await client.query(checkExistenceQuery, [vehicleId, dispatchDate]);
-        if (existenceResult.rowCount > 0){
+        if (existenceResult.rowCount > 0) {
             return existenceResult.rows[0];
         }
         const query = `
@@ -83,26 +83,25 @@ class ShipmentModel {
     createShipmentAndAssignitems = async (vehicleId: number, pickupRequestItemId: number, plannedRequestIds: number[]) => {
         const client = await db.connect();
         try {
-            await client.query('BEGIN');
+            await client.query("BEGIN");
 
             const newShipment = await this.createShipment(vehicleId, simulatedClock.getCurrentDate(), client);
             console.log(newShipment);
             await this.assignItemToShipmentWithPickupRequestItemId(pickupRequestItemId, newShipment.shipment_id, client);
 
-            for (const id in plannedRequestIds){
-                await updateCompletionDate(+id, simulatedClock.getCurrentDate(), client); 
+            for (const id in plannedRequestIds) {
+                await updateCompletionDate(+id, simulatedClock.getCurrentDate(), client);
             }
 
-            await client.query('COMMIT');
+            await client.query("COMMIT");
         } catch (error) {
-            await client.query('ROLLBACK');
-            console.error('Error in createShipmentAndAssignItem transaction, rolling back.', error);
+            await client.query("ROLLBACK");
+            console.error("Error in createShipmentAndAssignItem transaction, rolling back.", error);
             throw error;
         } finally {
-            client.release(); 
+            client.release();
         }
-        
-    }
+    };
 
     findActiveShipments = async (): Promise<Result<any>> => {
         const query = `

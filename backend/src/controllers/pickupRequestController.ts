@@ -1,6 +1,12 @@
 import { Request, Response, NextFunction } from "express";
 import { validatePickupRequest } from "../validation/pickupRequestValidator";
-import { PickupRequestCreationResult, PickupRequestRequest, PickupRequestCreateResponse, PickupRequestGetEntity, ItemRequest } from "../types/PickupRequest";
+import {
+    PickupRequestCreationResult,
+    PickupRequestRequest,
+    PickupRequestCreateResponse,
+    PickupRequestGetEntity,
+    ItemRequest,
+} from "../types/PickupRequest";
 import { calculateDeliveryCost } from "../services/DeliveryCostCalculatorService";
 import { findPickupRequestById, findPickupRequestsByCompanyName, savePickupRequest } from "../models/pickupRequestRepository";
 import catchAsync from "../utils/errorHandlingMiddleware/catchAsync";
@@ -18,33 +24,31 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
     } catch (validationError: any) {
         return next(new AppError(`Invalid input data: ${validationError.message}`, 400));
     }
-    let newItems : ItemRequest[] = [];
-    const itemDefinition : ItemDefinitionWithName[] = await getItemDefinitions();
+    let newItems: ItemRequest[] = [];
+    const itemDefinition: ItemDefinitionWithName[] = await getItemDefinitions();
     pickupRequestDetails.items.forEach((item) => {
-        const itemMeasurementType:string = itemDefinition.find(i => i.item_name == item.itemName)!.capacity_type_name;
-        const itemMaxCapacity = itemMeasurementType === 'KG' ? 5000 : 2000;
-        if (item.quantity > itemMaxCapacity){
-            const fullTrucks = Math.floor(item.quantity/itemMaxCapacity);
-            for (let i = 0; i< fullTrucks; i++){
+        const itemMeasurementType: string = itemDefinition.find((i) => i.item_name == item.itemName)!.capacity_type_name;
+        const itemMaxCapacity = itemMeasurementType === "KG" ? 5000 : 2000;
+        if (item.quantity > itemMaxCapacity) {
+            const fullTrucks = Math.floor(item.quantity / itemMaxCapacity);
+            for (let i = 0; i < fullTrucks; i++) {
                 newItems.push({
                     itemName: item.itemName,
                     quantity: itemMaxCapacity,
-                })
+                });
             }
-            const remainderQuantity = item.quantity - fullTrucks*itemMaxCapacity;
+            const remainderQuantity = item.quantity - fullTrucks * itemMaxCapacity;
             newItems.push({
-                    itemName: item.itemName,
-                    quantity: remainderQuantity,
-            })
-        }
-        else{
+                itemName: item.itemName,
+                quantity: remainderQuantity,
+            });
+        } else {
             newItems.push(item);
         }
-        
     });
-    const partitionedPickupRequestDetails = {...pickupRequestDetails, items: newItems};
+    const partitionedPickupRequestDetails = { ...pickupRequestDetails, items: newItems };
 
-     const cost = await calculateDeliveryCost(partitionedPickupRequestDetails);
+    const cost = await calculateDeliveryCost(partitionedPickupRequestDetails);
 
     const result: PickupRequestCreationResult = await savePickupRequest({
         ...partitionedPickupRequestDetails,
