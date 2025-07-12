@@ -7,6 +7,7 @@ import { handleTruckFailure } from "../services/thohService";
 
 export const startSimulation = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { epochStartTime } = req.body;
+    console.log(epochStartTime);
     res.status(200).send();
     beginSimulation(epochStartTime);
 });
