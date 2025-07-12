@@ -6,9 +6,9 @@ import { TruckFailureInfo } from "../types/thoh";
 import { handleTruckFailure } from "../services/thohService";
 
 export const startSimulation = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { unixEpochStart } = req.body;
+    const { epochStartTime } = req.body;
     res.status(200).send();
-    beginSimulation(unixEpochStart);
+    beginSimulation(epochStartTime);
 });
 
 export const truckFailure = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
