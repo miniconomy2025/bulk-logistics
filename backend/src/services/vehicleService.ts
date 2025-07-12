@@ -1,17 +1,20 @@
-import { SimulatedClock } from "../utils";
-import { getVehicleDeliveriesByDateRange, getAllVehiclesWithType } from "../repositories/vehicleRepository";
+import { simulatedClock, SimulatedClock } from "../utils";
+import { getVehicleDeliveriesByDateRange, getAllVehiclesWithType, updateVehicleStatus } from "../models/vehicle";
 import { GetVehicleResult, VehicleWithDeliveryCount, VehicleWithType } from "../types";
-import { PickupRequestRequest } from "../models/PickupRequest";
+import { PickupRequestRequest } from "../types/PickupRequest";
 import { MeasurementType, VehicleType } from "../enums";
 
 export const getTodaysVehicleDeliveries = async (): Promise<VehicleWithDeliveryCount[]> => {
-    const { start, end } = SimulatedClock.getSimulatedStartAndEndOfToday();
-    return await getVehicleDeliveriesByDateRange(start, end);
+    const startOfDay = simulatedClock.getCurrentDate();
+    const endOfDay = new Date(startOfDay);
+    endOfDay.setUTCDate(endOfDay.getUTCDate() + 1);
+
+    return await getVehicleDeliveriesByDateRange(startOfDay, endOfDay);
 };
 
 export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestRequest): Promise<GetVehicleResult> => {
     let totalQuantity = 0;
-    let measurementType: string = "";
+    let measurementType: string | undefined = "";
     const selectedVehicles: VehicleWithType[] = [];
 
     const allVehicles = await getAllVehiclesWithType();
@@ -23,9 +26,9 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
         totalQuantity += item.quantity;
     }
 
-    const repeatVehicle = (vehicle: VehicleWithType, count: number) => {
+    const repeatVehicle = (vehicle: VehicleWithType[], count: number) => {
         for (let i = 0; i < count; i++) {
-            selectedVehicles.push(vehicle);
+            selectedVehicles.push(vehicle[i % vehicle.length]);
         }
     };
 
@@ -44,9 +47,8 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
         // Reuse a truck if needed
         const remaining = required - useUnique;
         if (remaining > 0) {
-            repeatVehicle(largeTrucks[0], remaining);
+            repeatVehicle(largeTrucks, remaining);
         }
-
         return { success: true, vehicles: selectedVehicles };
     }
 
@@ -79,4 +81,43 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
     }
 
     return { success: false, reason: "Unsupported measurement type." };
+};
+
+export const reactivateVehicle = async () => {
+    const allVehicles = await getAllVehiclesWithType();
+
+    const simulatedNow = simulatedClock.getCurrentDate();
+
+    const twoDaysAgo = new Date(simulatedNow);
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+
+    const vehiclesToActivate = [];
+
+    for (const vehicle of allVehicles) {
+        if (vehicle.disabled_date && !vehicle.is_active && new Date(vehicle.disabled_date) <= twoDaysAgo) {
+            vehiclesToActivate.push(vehicle);
+        }
+    }
+
+    if (!vehiclesToActivate.length) {
+        return {
+            success: false,
+            message: "No Vehicles to activate",
+        };
+    }
+
+    const activatedVehicles = [];
+    for (const vehicle of vehiclesToActivate) {
+        const response = await updateVehicleStatus(vehicle.vehicle_id, true, null);
+
+        activatedVehicles.push(response);
+        console.log("----Vehicle Reactivate-----");
+        console.log({ response });
+    }
+
+    return {
+        success: true,
+        message: "Found Vehicles to Reactivate",
+        data: activatedVehicles,
+    };
 };

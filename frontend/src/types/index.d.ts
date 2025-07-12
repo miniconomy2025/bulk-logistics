@@ -15,3 +15,11 @@ export type Transaction = {
 export interface IncomeExpensesChartProps {
     transaction: Transaction[];
 }
+
+export interface RecentTransactionsItem {
+    company: string;
+    amount: string;
+    transaction_type: string;
+    transaction_date: string;
+    pickup_request_id: number;
+}

@@ -1,15 +1,20 @@
--- Function to get a dummy bank account number for Bulk Logistics
--- REPLACE LATER WHEN WE HAVE CONFIG SET UP
+-- The CREATE EXTENSION line is no longer needed and has been removed.
+
 CREATE OR REPLACE FUNCTION get_bulk_logistics_bank_account()
 RETURNS VARCHAR(50) AS $$
+DECLARE
+    v_account_number VARCHAR(50);
 BEGIN
-    RETURN 'BL1234567890'; -- Replace with our actual bank account number. How else are we gonna get this? Can pass it in query from config perhaps.
+    SELECT bank_account_number 
+    INTO v_account_number
+    FROM company 
+    WHERE company_name = 'bulk-logistics';
+
+    RETURN v_account_number;
 END;
 $$ LANGUAGE plpgsql;
 
--- ** UPDATED TYPE DEFINITION **
--- Define a composite type for the return value of our creation function.
--- The field names are now quoted and in camelCase to match the desired output.
+
 DROP TYPE IF EXISTS pickup_request_creation_result CASCADE;
 CREATE TYPE pickup_request_creation_result AS (
     "pickupRequestId" INTEGER,
@@ -18,23 +23,22 @@ CREATE TYPE pickup_request_creation_result AS (
     "bulkLogisticsBankAccountNumber" VARCHAR(50)
 );
 
--- ** UPDATED FUNCTION **
--- Function to create a new pickup request and its items,
--- and to atomically create an associated bank transaction ledger entry,
--- returning key details for the application.
+-- The function signature is updated to accept the new parameter
 CREATE OR REPLACE FUNCTION create_pickup_request(
-    p_requesting_company_id INTEGER,
-    p_origin_company_id INTEGER,
-    p_destination_company_id INTEGER,
+    p_requesting_company_name VARCHAR, 
+    p_origin_company_name VARCHAR,      
+    p_destination_company_name VARCHAR,
     p_original_external_order_id VARCHAR,
-    p_cost NUMERIC(10,2), -- Cost of the logistics service
-    p_request_date DATE, -- Simulation date of the request
-    p_items_json JSONB -- Array of items with 'itemName' and 'quantity' at LEAST.
+    p_cost NUMERIC(10,2), 
+    p_request_date DATE, 
+    p_items_json JSONB,
+    p_payment_reference_id UUID 
 )
-RETURNS pickup_request_creation_result -- returns our custom composite type
+RETURNS pickup_request_creation_result 
 LANGUAGE plpgsql AS $$
 DECLARE
     v_pickup_request_id INTEGER;
+    -- The v_payment_reference_id variable is still used internally
     v_payment_reference_id UUID;
     v_item_data JSONB;
     v_bulk_logistics_bank_account VARCHAR(50);
@@ -43,15 +47,31 @@ DECLARE
     v_quantity INTEGER;
     v_transaction_category_id INTEGER;
     v_transaction_status_id INTEGER;
-    v_result pickup_request_creation_result; -- Variable to hold the return value
+    v_result pickup_request_creation_result;
+    
+    v_requesting_company_id INTEGER;
+    v_origin_company_id INTEGER;
+    v_destination_company_id INTEGER;
 BEGIN
-    -- 1. Generate Payment Reference ID for the bank transaction
-    v_payment_reference_id := gen_random_uuid();
+    SELECT company_id INTO v_requesting_company_id FROM company WHERE company_name = p_requesting_company_name;
+    IF v_requesting_company_id IS NULL THEN
+        RAISE EXCEPTION 'Company not found for name: %', p_requesting_company_name;
+    END IF;
 
-    -- 2. Get Bulk Logistics Bank Account Number (for API response)
+    SELECT company_id INTO v_origin_company_id FROM company WHERE company_name = p_origin_company_name;
+    IF v_origin_company_id IS NULL THEN
+        RAISE EXCEPTION 'Company not found for name: %', p_origin_company_name;
+    END IF;
+
+    SELECT company_id INTO v_destination_company_id FROM company WHERE company_name = p_destination_company_name;
+    IF v_destination_company_id IS NULL THEN
+        RAISE EXCEPTION 'Company not found for name: %', p_destination_company_name;
+    END IF;
+
+    v_payment_reference_id := p_payment_reference_id;
+
     v_bulk_logistics_bank_account := get_bulk_logistics_bank_account();
 
-    -- 3. Insert into pickup_requests table
     INSERT INTO pickup_requests (
         requesting_company_id,
         origin_company_id,
@@ -60,15 +80,14 @@ BEGIN
         cost,
         request_date
     ) VALUES (
-        p_requesting_company_id,
-        p_origin_company_id,
-        p_destination_company_id,
+        v_requesting_company_id,
+        v_origin_company_id,
+        v_destination_company_id,
         p_original_external_order_id,
         p_cost,
         p_request_date
     ) RETURNING pickup_request_id INTO v_pickup_request_id;
 
-    -- 4. Insert into pickup_request_item table for each item in the JSONB array
     FOR v_item_data IN SELECT * FROM jsonb_array_elements(p_items_json) LOOP
         v_item_name := v_item_data->>'itemName';
         v_quantity := (v_item_data->>'quantity')::INTEGER;
@@ -92,10 +111,9 @@ BEGIN
         );
     END LOOP;
 
-    -- 5. Create an associated entry in bank_transactions_ledger
     SELECT transaction_category_id INTO v_transaction_category_id
     FROM transaction_category
-    WHERE name = 'INBOUND_LOGISTICS_FEE';
+    WHERE name = 'PAYMENT_RECEIVED';
 
     SELECT transaction_status_id INTO v_transaction_status_id
     FROM transaction_status
@@ -109,7 +127,7 @@ BEGIN
         transaction_date,
         transaction_status_id,
         related_pickup_request_id,
-        related_loan_id,
+        loan_id,
         related_thoh_order_id
     ) VALUES (
         NULL,
@@ -123,13 +141,11 @@ BEGIN
         NULL
     );
 
-    -- 6. ** UPDATED ASSIGNMENTS **
-    -- Prepare the return value using the camelCase field names.
     v_result."pickupRequestId" := v_pickup_request_id;
     v_result."paymentReferenceId" := v_payment_reference_id;
     v_result."cost" := p_cost;
     v_result."bulkLogisticsBankAccountNumber" := v_bulk_logistics_bank_account;
 
-    RETURN v_result; --Return the composite type
+    RETURN v_result;
 END;
 $$;

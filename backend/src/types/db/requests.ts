@@ -15,3 +15,29 @@ export interface PickupRequestItem {
     pickup_request_id: number;
     quantity: number;
 }
+
+export interface PickupRequestWithDetails {
+    pickupRequestId: number;
+    requestingCompanyName: string;
+    originCompanyName: string;
+    destinationCompanyName: string;
+    originalExternalOrderId: string | number;
+    cost: number;
+    requestDate: Date;
+    completionDate: Date;
+    paymentStatus: String;
+    paymentDate: Date;
+    items: PickupToShipmentItemDetails[];
+}
+
+export interface PickupToShipmentItemDetails {
+    pickup_request_id: number;
+    pickup_request_item_id: number;
+    itemName: string;
+    quantity: number;
+    capacity_type_id: number;
+    shipment_id: number;
+    destinationCompanyUrl: string;
+    originCompanyUrl: string;
+    originalExternalOrderId: string;
+}

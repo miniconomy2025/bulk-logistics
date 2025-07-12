@@ -1,5 +1,8 @@
 import db from "../config/database";
-import { Result } from "../types";
+import { TransactionCategory, TransactionStatus } from "../enums";
+import { BankNotificationPayload, Loan, Result, LoanInfoResponse } from "../types";
+import { findAccountNumberByCompanyName } from "./companyRepository";
+import { getTransactionStatusByName } from "./transactionStatus";
 
 export const findTransactions = async (): Promise<Result<any>> => {
     const query = `
@@ -64,15 +67,15 @@ export const findTransactionById = async (id: string): Promise<Result<any>> => {
 };
 
 interface InsertIntoTransactionLedgerParams {
-    commercial_bank_transaction_id: string;
-    payment_reference_id: string;
-    transaction_category_id: string;
-    amount: string;
+    commercial_bank_transaction_id: string | null;
+    payment_reference_id: string | null;
+    transaction_category_id: number;
+    amount: number;
     transaction_date: string;
-    transaction_status_id: string;
-    related_pickup_request_id: string;
-    related_loan_id: string;
-    related_thoh_order_id: string;
+    transaction_status_id: number;
+    related_pickup_request_id: number | null;
+    loan_id: number | null;
+    related_thoh_order_id: string | null;
 }
 
 export const insertIntoTransactionLedger = async (options: InsertIntoTransactionLedgerParams): Promise<Result<any>> => {
@@ -86,7 +89,7 @@ export const insertIntoTransactionLedger = async (options: InsertIntoTransaction
       transaction_date,
       transaction_status_id,
       related_pickup_request_id,
-      related_loan_id,
+      loan_id,
       related_thoh_order_id
     )
   VALUES
@@ -103,7 +106,7 @@ export const insertIntoTransactionLedger = async (options: InsertIntoTransaction
             options.transaction_date,
             options.transaction_status_id,
             options.related_pickup_request_id,
-            options.related_loan_id,
+            options.loan_id,
             options.related_thoh_order_id,
         ]);
         return { ok: true, value: result };
@@ -115,8 +118,10 @@ export const insertIntoTransactionLedger = async (options: InsertIntoTransaction
 export const getTotals = async (): Promise<Result<any>> => {
     const query = `
     SELECT
-      COALESCE(SUM(CASE WHEN tc.name = 'Revenue' THEN amount END),0) AS total_revenue,
-      COALESCE(SUM(CASE WHEN tc.name = 'Expense' THEN amount END),0) AS total_expenses
+      SUM(CASE WHEN tc.name = 'PURCHASE' THEN amount END) AS purchase,
+      SUM(CASE WHEN tc.name = 'EXPENSE' THEN amount END) AS expense,
+      SUM(CASE WHEN tc.name = 'PAYMENT_RECEIVED' THEN amount END) AS payment_received,
+      SUM(CASE WHEN tc.name = 'LOAN' THEN amount END) AS loan
     FROM bank_transactions_ledger t
     JOIN transaction_category tc ON t.transaction_category_id = tc.transaction_category_id;
   `;
@@ -129,31 +134,15 @@ export const getTotals = async (): Promise<Result<any>> => {
     }
 };
 
-export const getActiveShipmentsCount = async (): Promise<Result<any>> => {
-    const query = `
-    SELECT COUNT(*) AS count
-    FROM shipments s
-    JOIN shipment_status st ON s.shipment_status_id = st.shipment_status_id
-    WHERE st.name = 'Active';
-  `;
-    try {
-        const result = await db.query(query);
-        return { ok: true, value: result };
-    } catch (error) {
-        return { ok: false, error: error as Error };
-    }
-};
-
 export const getMonthlyRevenueExpenses = async (): Promise<Result<any>> => {
     const query = `
     SELECT
-      EXTRACT(YEAR FROM transaction_date) AS year,
-      EXTRACT(MONTH FROM transaction_date) AS month,
-      SUM(CASE WHEN tc.name = 'Revenue' THEN amount END) AS revenue,
-      SUM(CASE WHEN tc.name = 'Expense' THEN amount END) AS expenses
+        EXTRACT(YEAR FROM transaction_date) AS year,
+        EXTRACT(MONTH FROM transaction_date) AS month,
+        SUM(CASE WHEN tc.name IN ('PURCHASE', 'EXPENSE', 'LOAN') THEN amount END) AS expenses,
+        SUM(CASE WHEN tc.name IN ('PAYMENT_RECEIVED') THEN amount END) AS revenue
     FROM bank_transactions_ledger t
     JOIN transaction_category tc ON t.transaction_category_id = tc.transaction_category_id
-    WHERE transaction_date >= (current_date - INTERVAL '12 month')
     GROUP BY year, month
     ORDER BY year DESC, month DESC;
   `;
@@ -182,16 +171,40 @@ export const getTransactionBreakdown = async (): Promise<Result<any>> => {
     }
 };
 
-export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
+export const getRecentTransactionRepo = async (): Promise<Result<any>> => {
     const query = `
-    SELECT c.company_name AS company,
-           SUM(t.amount) AS total,
-           COUNT(DISTINCT t.related_pickup_request_id) AS shipments
+    SELECT 
+        t.amount ,
+        t.transaction_date ,
+        tc.name AS transaction_type,
+        c.company_name AS company,
+        pr.pickup_request_id as pickup_request_id 
     FROM bank_transactions_ledger t
     JOIN transaction_category tc ON t.transaction_category_id = tc.transaction_category_id
     JOIN pickup_requests pr ON t.related_pickup_request_id = pr.pickup_request_id
+    JOIN company c ON pr.requesting_company_id = c.company_id 
+    ORDER BY t.transaction_date DESC
+    LIMIT 7;
+  `;
+
+    try {
+        const result = await db.query(query);
+        return { ok: true, value: result };
+    } catch (error) {
+        return { ok: false, error: error as Error };
+    }
+};
+
+export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
+    const query = `
+    SELECT 
+        c.company_name AS company,
+        SUM(t.amount) AS total,
+        COUNT(DISTINCT t.related_pickup_request_id) AS shipments
+    FROM bank_transactions_ledger t
+    JOIN pickup_requests pr ON pr.pickup_request_id = t.related_pickup_request_id
     JOIN company c ON pr.requesting_company_id = c.company_id
-    WHERE tc.name = 'Revenue'
+    JOIN transaction_category tc ON t.transaction_category_id = tc.transaction_category_id where tc.name = 'PAYMENT_RECEIVED'
     GROUP BY c.company_name
     ORDER BY total DESC;
   `;
@@ -200,6 +213,160 @@ export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
         const result = await db.query(query);
         return { ok: true, value: result };
     } catch (error) {
+        return { ok: false, error: error as Error };
+    }
+};
+
+const getCategoryId = async (direction: "in" | "out"): Promise<number> => {
+    const result = await db.query(
+        `
+        SELECT 1 transaction_category_id FROM transaction_category WHERE name $1`,
+        [direction],
+    );
+    return result.rows[0]?.transaction_category_id || null;
+};
+
+export const getCategoryIdByName = async (name: string): Promise<number> => {
+    const result = await db.query(`SELECT  transaction_category_id FROM transaction_category WHERE name $1`, [name]);
+
+    return result.rows[0]?.transaction_category_id;
+};
+
+const transactionExists = async (transactionNumber: string): Promise<boolean> => {
+    const result = await db.query(
+        `SELECT 1 FROM bank_transactions_ledger
+   WHERE commercial_bank_transaction_id = $1`,
+        [transactionNumber],
+    );
+    return new Promise((resolve, _) => {
+        resolve(result.rowCount != null ? result.rowCount > 0 : false);
+    });
+};
+
+const insertTransaction = async (
+    t: BankNotificationPayload & { statusName: string; categoryId: number; transactionDate: Date },
+): Promise<Result<any>> => {
+    const query = `INSERT INTO bank_transactions_ledger (
+     commercial_bank_transaction_id,
+     transaction_category_id,
+     amount,
+     transaction_date,
+     transaction_status_id
+   )
+   VALUES ($1, $2, $3, $4, (SELECT transaction_status_id FROM transaction_status WHERE status = $5))`;
+    try {
+        const result = await db.query(query, [t.transaction_number, t.categoryId, t.amount, t.transactionDate, t.statusName]);
+        return { ok: true, value: result };
+    } catch (error) {
+        return { ok: false, error: error as Error };
+    }
+};
+
+export const createLedgerEntry = async (transaction: BankNotificationPayload & { statusName: string }) => {
+    try {
+        await db.query("BEGIN");
+
+        const direction: "in" | "out" = transaction.to === (await findAccountNumberByCompanyName("bulk-logistics")) ? "in" : "out";
+
+        const categoryId = await getCategoryId(direction);
+
+        const transactionDate = new Date(transaction.timestamp * 1000);
+
+        if (await transactionExists(transaction.transaction_number)) {
+            await db.query("ROLLBACK");
+            return 409;
+        }
+
+        await insertTransaction({
+            ...transaction,
+            categoryId,
+            transactionDate,
+        });
+
+        await db.query("COMMIT");
+        return 201;
+    } catch (error) {
+        await db.query("ROLLBACK");
+        console.error("Transaction processing error:", error);
+        return 500;
+    }
+};
+
+export const getAllLoans = async (): Promise<Loan[]> => {
+    const result = await db.query(`SELECT * FROM loans`);
+
+    if (!result || result.rows.length < 1) {
+        return [];
+    }
+
+    return result.rows.map((loan) => ({
+        id: loan.loan_id,
+        loanAmount: loan.loan_amount,
+        interestRate: loan.interest_rate,
+        loanNumber: loan.loan_number,
+    }));
+};
+
+export const updatePaymentStatusForPickupRequest = async (transaction: BankNotificationPayload): Promise<number | null> => {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(transaction.description);
+
+    const paymentReferenceId = isUuid ? transaction.description : null;
+    const pickupRequestId = !isUuid ? parseInt(transaction.description, 10) : null;
+
+    const query = `
+        UPDATE bank_transactions_ledger
+        SET 
+            transaction_status_id = (
+                SELECT transaction_status_id 
+                FROM transaction_status 
+                WHERE status = 'COMPLETED'
+            )
+        WHERE 
+            payment_reference_id = $1 
+            OR related_pickup_request_id = $2;
+    `;
+
+    const result = await db.query(query, [paymentReferenceId, pickupRequestId]);
+
+    return result.rowCount;
+};
+
+export const saveLoanDetails = async (loanDetails: Partial<LoanInfoResponse>, commercialBankTransactionId: string): Promise<Result<any>> => {
+    try {
+        await db.query("BEGIN");
+
+        const loanQuery = `
+            INSERT INTO loans (
+                loan_number,
+                interest_rate,
+                loan_amount
+            ) VALUES ($1, $2, $3)
+            RETURNING *;
+        `;
+        const loanResult = await db.query(loanQuery, [loanDetails.loan_number, loanDetails.interest_rate, loanDetails.initial_amount]);
+        const loanId = loanResult.rows[0].loan_id;
+        const transactionStatus = loanDetails.success ? TransactionStatus.Completed : TransactionStatus.Failed;
+
+        const status = await getTransactionStatusByName(transactionStatus);
+
+        const transactionCategoryId = await getCategoryIdByName(TransactionCategory.Loan);
+
+        await insertIntoTransactionLedger({
+            commercial_bank_transaction_id: commercialBankTransactionId,
+            payment_reference_id: null,
+            transaction_category_id: transactionCategoryId,
+            amount: loanDetails.initial_amount || 0,
+            transaction_date: new Date().toISOString().split("T")[0],
+            transaction_status_id: status?.transaction_status_id!,
+            related_pickup_request_id: null,
+            loan_id: loanId,
+            related_thoh_order_id: null,
+        });
+
+        await db.query("COMMIT");
+        return { ok: true, value: loanResult.rows[0] };
+    } catch (error) {
+        await db.query("ROLLBACK");
         return { ok: false, error: error as Error };
     }
 };

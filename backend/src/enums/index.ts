@@ -5,9 +5,9 @@ export const ShipmentStatus = {
 };
 
 export const VehicleType = {
-    Large: "LARGE",
-    Medium: "MEDIUM",
-    Small: "SMALL",
+    Large: "large_truck",
+    Medium: "medium_truck",
+    Small: "small_truck",
 };
 
 export const MeasurementType = {
@@ -26,4 +26,20 @@ export const PickupRequestCompletionStatus = {
     PendingDelivery: "PENDING_DELIVERY",
     PendingPayment: "PENDING_PAYMENT",
     Delivered: "DELIVERED",
+};
+
+// To be defined with more detail. We don't know what to expect from them.
+export const ThohEvents = {
+    StartSimulation: "START_SIMULATION",
+    EndSimulation: "END_SIMULATION",
+    ResetSimulation: "RESET_SIMULATION",
+    VehicleCrash: "VEHICLE_CRASH",
+    TruckDelivery: "TRUCK_DELIVERY",
+    Config: "CONFIG",
+};
+
+export const TransactionStatus = {
+    Pending: "PENDING",
+    Failed: "FAILED",
+    Completed: "COMPLETED",
 };

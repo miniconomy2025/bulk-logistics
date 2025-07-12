@@ -2,14 +2,18 @@ import express from "express";
 
 import { init } from "express-oas-generator";
 
-import companyRoutes from "./routes/companyRoutes";
-import transactionRoutes from "./routes/transactionRoutes";
-import health from "./routes/health";
+import cors from "cors";
 
+import bankRoutes from "./routes/bankNotification";
+import companyRoutes from "./routes/companyRoutes";
+import health from "./routes/health";
 import pickupRequestRoutes from "./routes/pickupRequestRoutes";
+import shipmentRoutes from "./routes/shipmentRoutes";
+import thohRoutes from "./routes/thohRoutes";
+import transactionRoutes from "./routes/transactionRoutes";
+
 import AppError from "./utils/errorHandlingMiddleware/appError";
 import globalErrorHandler from "./utils/errorHandlingMiddleware/errorController";
-import shipmentRoutes from "./routes/shipmentRoutes";
 
 const app = express();
 
@@ -34,17 +38,20 @@ const PORT = 3000;
 
 app.use(express.json());
 
+app.use("/api", thohRoutes);
 app.use("/api/health", health);
+app.use("/api/bank", bankRoutes);
 app.use("/api/transactions", transactionRoutes);
 app.use("/api/company", companyRoutes);
 app.use("/api/pickup-request", pickupRequestRoutes);
+app.use("/api/thoh", thohRoutes);
 app.use("/api/shipments", shipmentRoutes);
 
 app.all("*", (req, res, next) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
-app.use(globalErrorHandler); // error handler middleware.
+app.use(globalErrorHandler);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

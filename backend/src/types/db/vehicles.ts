@@ -13,14 +13,28 @@ export interface Vehicle {
     daily_operational_cost: number;
     vehicle_type_id: number;
     purchase_date: string;
+    disabled_date?: string;
     is_in_active_shipment?: boolean;
 }
 export interface VehicleWithType extends Vehicle {
     vehicle_type: VehicleType;
+    max_pickups_per_day: number;
 }
 
 export interface GetVehicleResult {
     success: boolean;
     vehicles?: VehicleWithType[];
     reason?: string;
+}
+
+export interface TruckDelivery {
+    orderId: number;
+    itemName: string;
+    quantity: number;
+    totalPrice: string;
+    status: string;
+    message: string;
+    canFulfill: boolean;
+    maximumLoad: number;
+    operatingCostPerDay: number;
 }

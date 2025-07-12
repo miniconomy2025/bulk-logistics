@@ -1,5 +1,4 @@
 import { NavItems } from "./nav-items";
-import { QuickActions } from "./quick-actions";
 import logo from "../assets/logo.svg";
 
 export const SidebarMenu = () => {
@@ -16,8 +15,6 @@ export const SidebarMenu = () => {
             </div>
 
             <NavItems />
-
-            <QuickActions />
         </aside>
     );
 };
