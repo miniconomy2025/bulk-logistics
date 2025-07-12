@@ -13,6 +13,7 @@ class NotificationApiClient extends BaseApiClient {
             return await this.client.post<LogisticsNotificationResponse>(`${notification.notificationURL}${this.NotificationEndpoint}`, {
                 id: notification.id,
                 type: notification.type,
+                quantity: notification.quantity,
                 items: notification.items,
             });
         } catch {

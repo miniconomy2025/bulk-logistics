@@ -326,6 +326,7 @@ export default class AutonomyService {
                     id: item.originalExternalOrderId,
                     notificationURL: item.originCompanyUrl,
                     type: "PICKUP",
+                    quantity: item.quantity,
                     items: [
                         {
                             name: item.itemName,
@@ -350,6 +351,7 @@ export default class AutonomyService {
                             id: item.pickup_request_id,
                             notificationURL: item.destinationCompanyUrl,
                             type: "DELIVERY",
+                            quantity: item.quantity,
                             items: [
                                 {
                                     name: item.itemName,
