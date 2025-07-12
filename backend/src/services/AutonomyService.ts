@@ -7,7 +7,6 @@ import { notificationApiClient } from "../client/notificationClient";
 import { thohApiClient } from "../client/thohClient";
 import { addVehicle } from "../models/vehicleRepository";
 import type { TruckFailureRequest, TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
-import { lastValueFrom, timer } from "rxjs";
 import { bankApiClient } from "../client/bankClient";
 import { TransactionCategory } from "../enums";
 import { reactivateVehicle } from "./vehicleService";
@@ -135,9 +134,7 @@ export default class AutonomyService {
 
             const dropOffDetails = await this._planAndDispatchShipments();
 
-            const delayedObservable = timer(SimulatedClock.SIMULATED_DAY_IN_REAL_MS * (2 / 3));
-
-            await lastValueFrom(delayedObservable);
+            await new Promise(resolve => setTimeout(resolve, SimulatedClock.SIMULATED_DAY_IN_REAL_MS * (2 / 3)));
 
             await this._notifyCompletedDeliveries(dropOffDetails);
         } catch (error) {
