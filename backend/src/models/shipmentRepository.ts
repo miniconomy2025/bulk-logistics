@@ -1,5 +1,7 @@
 import db from "../config/database";
 import { Result } from "../types";
+import { simulatedClock } from "../utils/SimulatedClock";
+import { updateCompletionDate } from "./pickupRequestRepository";
 
 class ShipmentModel {
     findAllShipments = async (dispatchDate?: string | null, statusId?: number | null) => {
@@ -54,24 +56,53 @@ class ShipmentModel {
         }
     };
 
-    assignItemToShipmentWithPickupRequestItemId = async (pickupRequestItemId: number, shipmentId: number) => {
+    assignItemToShipmentWithPickupRequestItemId = async (pickupRequestItemId: number, shipmentId: number, client: any) => {
         const query = `
         UPDATE pickup_request_item
         SET shipment_id = $2
         WHERE pickup_request_item_id = $1;`;
 
-        await db.query(query, [pickupRequestItemId, shipmentId]);
+        await client.query(query, [pickupRequestItemId, shipmentId]);
     };
 
-    createShipment = async (vehicleId: number, dispatchDate: Date) => {
+    createShipment = async (vehicleId: number, dispatchDate: Date, client: any) => {
+        const checkExistenceQuery = `SELECT * from shipments where vehicle_id = $1 AND dispatch_date = $2`;
+        const existenceResult = await client.query(checkExistenceQuery, [vehicleId, dispatchDate]);
+        if (existenceResult.rowCount > 0){
+            return existenceResult.rows[0];
+        }
         const query = `
         INSERT INTO shipments (vehicle_id, dispatch_date, shipment_status_id)
         VALUES ($1, $2, (SELECT shipment_status_id FROM shipment_status WHERE name = 'PENDING'))
         RETURNING *;
     `;
-        const result = await db.query(query, [vehicleId, dispatchDate]);
+        const result = await client.query(query, [vehicleId, dispatchDate]);
         return result.rows[0];
     };
+
+    createShipmentAndAssignitems = async (vehicleId: number, pickupRequestItemId: number, plannedRequestIds: number[]) => {
+        const client = await db.connect();
+        try {
+            await client.query('BEGIN');
+
+            const newShipment = await this.createShipment(vehicleId, simulatedClock.getCurrentDate(), client);
+            console.log(newShipment);
+            await this.assignItemToShipmentWithPickupRequestItemId(pickupRequestItemId, newShipment.shipment_id, client);
+
+            for (const id in plannedRequestIds){
+                await updateCompletionDate(+id, simulatedClock.getCurrentDate(), client); 
+            }
+
+            await client.query('COMMIT');
+        } catch (error) {
+            await client.query('ROLLBACK');
+            console.error('Error in createShipmentAndAssignItem transaction, rolling back.', error);
+            throw error;
+        } finally {
+            client.release(); 
+        }
+        
+    }
 
     findActiveShipments = async (): Promise<Result<any>> => {
         const query = `

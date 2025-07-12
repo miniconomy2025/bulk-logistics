@@ -1,11 +1,11 @@
 import { ShipmentPlannerService } from "./ShipmentPlannerService";
-import { shipmentModel } from "../models/shipment";
+import { shipmentModel } from "../models/shipmentRepository";
 import { updateCompletionDate, updatePickupRequestStatuses } from "../models/pickupRequestRepository";
 import { TransactionResponse, TruckDelivery } from "../types";
 import { LogisticsNotification } from "../types/notifications";
 import { notificationApiClient } from "../client/notificationClient";
 import { thohApiClient } from "../client/thohClient";
-import { addVehicle } from "../models/vehicle";
+import { addVehicle } from "../models/vehicleRepository";
 import type { TruckFailureRequest, TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
 import { lastValueFrom, timer } from "rxjs";
 import { bankApiClient } from "../client/bankClient";
@@ -159,7 +159,7 @@ export default class AutonomyService {
                 try {
                     await addVehicle({
                         type: truckDelivery.itemName,
-                        purchase_date: simulatedClock.getCurrentDate().toISOString().split("T")[0], // we can not put the actual purchase date unless if the HAND API provides it
+                        purchase_date: simulatedClock.getCurrentDate().toISOString().split("T")[0],
                         operational_cost: truckDelivery.operatingCostPerDay,
                         load_capacity: truckDelivery.maximumLoad,
                     });
@@ -236,27 +236,27 @@ export default class AutonomyService {
 
         const trucksPurchasePaymentsPromises: Promise<TransactionResponse>[] = [];
 
-        trucksPurchaseResponse.forEach(async (response, index) => {
-            if (index === 0 && response && response.orderId) {
-                await updateCompanyDetails("thoh", {
-                    bankAccountNumber: response.bankAccount,
-                });
-                trucksPurchasePaymentsPromises.push(
-                    bankApiClient.makePayment({
-                        paymentDetails: {
-                            to_account_number: response.bankAccount,
-                            to_bank_name: "commercial-bank",
-                            amount: response.price * response.quantity,
-                            description: String(response.orderId),
-                        },
-                        transactionCategory: TransactionCategory.Purchase,
-                    }),
-                );
-            } else {
-                console.log("Truck purchase response was undefined or missing orderId. Skipping payment.");
-            }
-        });
+        const firstResponse = trucksPurchaseResponse[0];
 
+        if (firstResponse && firstResponse.orderId) {
+            await updateCompanyDetails("thoh", {
+                bankAccountNumber: firstResponse.bankAccount,
+            });
+
+            trucksPurchasePaymentsPromises.push(
+                bankApiClient.makePayment({
+                    paymentDetails: {
+                        to_account_number: firstResponse.bankAccount,
+                        to_bank_name: "commercial-bank",
+                        amount: firstResponse.price * firstResponse.quantity,
+                        description: String(firstResponse.orderId),
+                    },
+                    transactionCategory: TransactionCategory.Purchase,
+                }),
+            );
+        } else {
+            console.log("First truck purchase response was undefined or missing orderId. Skipping payment.");
+        }
         const paymentResults = await Promise.all(trucksPurchasePaymentsPromises);
 
         paymentResults.forEach((result) => {
@@ -321,31 +321,24 @@ export default class AutonomyService {
         let dropoffEntities: LogisticsNotification[] = [];
         const { createdShipmentsPlan, plannedRequestIds } = await planner.planDailyShipments();
         for (const plan of createdShipmentsPlan) {
-            plan.itemsToAssign.forEach(async (item) => {
-                let pickupRequestNotification: LogisticsNotification = {
-                    id: item.originalExternalOrderId,
-                    notificationURL: item.originCompanyUrl,
-                    type: "PICKUP",
-                    quantity: item.quantity,
-                    items: [
-                        {
-                            name: item.itemName,
-                            quantity: item.quantity,
-                        },
-                    ],
-                };
-                const response = await notificationApiClient.sendLogisticsNotification(pickupRequestNotification);
-                if (response.status >= 200 && response.status < 300) {
-                    try {
-                        const newShipment = await shipmentModel.createShipment(plan.vehicle.vehicle_id, simulatedClock.getCurrentDate());
-
-                        for (const item of plan.itemsToAssign) {
-                            await shipmentModel.assignItemToShipmentWithPickupRequestItemId(item.pickup_request_item_id, newShipment.shipment_id);
-                        }
-
-                        for (const id in plannedRequestIds) {
-                            await updateCompletionDate(+id, simulatedClock.getCurrentDate());
-                        }
+            try {
+                for (const item of plan.itemsToAssign) {
+                    const pickupRequestNotification: LogisticsNotification = {
+                        id: item.originalExternalOrderId,
+                        notificationURL: item.originCompanyUrl,
+                        type: "PICKUP",
+                        quantity: item.quantity,
+                        items: [
+                            {
+                                name: item.itemName,
+                                quantity: item.quantity,
+                            },
+                        ],
+                    };
+                    const response = await notificationApiClient.sendLogisticsNotification(pickupRequestNotification);
+                    if (response.status >= 200 && response.status < 300) {
+                        
+                        await shipmentModel.createShipmentAndAssignitems(plan.vehicle.vehicle_id, item.pickup_request_item_id, plannedRequestIds);
 
                         dropoffEntities.push({
                             id: item.pickup_request_id,
@@ -359,13 +352,13 @@ export default class AutonomyService {
                                 },
                             ],
                         });
-                    } catch (error) {
-                        console.error(`Failed to commit shipment plan for vehicle ${plan.vehicle.vehicle_id}.`, error);
+                    } else {
+                        console.error(`Notification failed for item ${item.itemName} with status: ${response.status}`);
                     }
-                } else {
-                    return;
                 }
-            });
+            } catch (error) {
+                console.error(`Failed to commit shipment plan for vehicle ${plan.vehicle.vehicle_id}.`, error);
+            }
         }
         console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         return dropoffEntities;
@@ -377,11 +370,14 @@ export default class AutonomyService {
     private async _notifyCompletedDeliveries(notifications: LogisticsNotification[]): Promise<void> {
         console.log("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV\nEvening Ops: Notifying completed deliveries...");
 
-        notifications.forEach(async (notification) => {
-            await notificationApiClient.sendLogisticsNotification(notification);
-        });
+        const notificationPromises = notifications.map(notification =>
+            notificationApiClient.sendLogisticsNotification(notification)
+        );
+
+        await Promise.all(notificationPromises);
 
         await updatePickupRequestStatuses(simulatedClock.getCurrentDate());
+
         console.log("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV");
     }
 }
