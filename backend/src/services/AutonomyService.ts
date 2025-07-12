@@ -180,21 +180,21 @@ export default class AutonomyService {
         const bankAccount = await bankApiClient.getAccountDetails();
         let accountNumber: string;
 
-        if (!bankAccount || !bankAccount.account_number) {
+        //1. Create bank account, send the notification URL to the bank
+        if (!bankAccount.success) {
             const accountCreationResponse = await bankApiClient.createAccount("https://bulk-logistics-api.projects.bbdgrad.com/api/bank");
 
             accountNumber = accountCreationResponse.account_number;
         } else {
             accountNumber = bankAccount.account_number;
         }
-        //1. Create bank account, send the notification URL to the bank
 
         if (accountNumber) {
             await updateCompanyDetails("bulk-logistics", {
                 bankAccountNumber: accountNumber,
             });
         }
-        //2. Figure out cost of [3 large, 3 medium, 3 small] vehicles from the hand (handClient) -> we have our needed loan amount.
+        //2. Figure out cost of [3 large, 3 medium, 3 small] vehicles from the hand
         const requiredTrucks: TruckPurchaseRequest[] = [
             { truckName: "large_truck", quantity: 3 },
             { truckName: "medium_truck", quantity: 3 },
@@ -226,7 +226,7 @@ export default class AutonomyService {
             );
         }
 
-        // 4. Purchase trucks - can't purchase trucks since we can't get trucks into
+        // 4. Purchase trucks
         const truckPurchasePromises: Promise<TruckPurchaseResponse | undefined>[] = [];
         requiredTrucks.forEach((truckInfo) => {
             truckPurchasePromises.push(this._checkAndPurchaseTrucks(truckInfo));
