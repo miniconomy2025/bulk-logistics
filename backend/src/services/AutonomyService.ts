@@ -51,13 +51,13 @@ export default class AutonomyService {
     /**
      * Starts the simulation's daily tick timer.
      */
-    public start(startTime: string): void {
+    public start(startTime: number): void {
         if (this.isRunning) {
             console.warn("Simulation is already running. Start command ignored.");
             return;
         }
 
-        simulatedClock.initialize(+startTime);
+        simulatedClock.initialize(startTime);
         console.log("--- SIMULATION STARTING ---", "\n Real Time:", startTime, "\nSimulation Time:", simulatedClock.getCurrentDate());
         this.isRunning = true;
 
