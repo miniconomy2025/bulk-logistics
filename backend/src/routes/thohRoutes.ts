@@ -7,6 +7,6 @@ const router = express.Router();
 router.post("/trucks/failure", rateLimiter(), truckFailure);
 router.post("/trucks/delivery", rateLimiter(), truckDelivery);
 router.post("/simulation", rateLimiter(), startSimulation);
-router.delete("/simulation/stop", rateLimiter(), stopSimulation);
+router.delete("/simulation", rateLimiter(), stopSimulation);
 
 export default router;
