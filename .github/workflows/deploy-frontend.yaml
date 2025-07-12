@@ -32,7 +32,7 @@ jobs:
             git config --global --add safe.directory /var/www/frontend
             git reset --hard HEAD
             git clean -fd
-            git pull origin terraform
+            git pull origin main
             cd frontend
             npm install
             npm run build
