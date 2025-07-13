@@ -7,7 +7,11 @@ const PROFIT_MARGIN = 0.5;
 
 export const calculateDeliveryCost = async (pickupRequestDetails: PickupRequestRequest): Promise<number> => {
     try {
+        console.log("~~~~~~~~~~~~~~~~~~~~~~~ Checking Vehicles ~~~~~~~~~~~~~~~~~~~~~~~");
+
         const vehicleResult = await getVehicleForPickupRequest(pickupRequestDetails);
+
+        console.log("Vehicles Found:\n ", JSON.stringify(vehicleResult.vehicles, null, 2));
 
         if (!vehicleResult.success || !vehicleResult.vehicles) {
             return 0;

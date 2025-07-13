@@ -50,13 +50,11 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
 
     console.log("~~~~~~~~~~~~~~~~~~~~~~~ Pickup Request Received ~~~~~~~~~~~~~~~~~~~~~~~");
     console.log(JSON.stringify(partitionedPickupRequestDetails, null, 2));
-    console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
     const cost = await calculateDeliveryCost(partitionedPickupRequestDetails);
 
     console.log("~~~~~~~~~~~~~~~~~~~~~~~ Cost Calculation Done ~~~~~~~~~~~~~~~~~~~~~~~");
     console.log("Cost: ", cost);
-    console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
 
     const result: PickupRequestCreationResult = await savePickupRequest({
         ...partitionedPickupRequestDetails,
