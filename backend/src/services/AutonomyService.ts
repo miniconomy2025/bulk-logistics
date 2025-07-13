@@ -12,7 +12,6 @@ import { TransactionCategory } from "../enums";
 import { reactivateVehicle } from "./vehicleService";
 import { updateCompanyDetails } from "../models/companyRepository";
 import { SimulatedClock, simulatedClock } from "../utils";
-import AppError from "../utils/errorHandlingMiddleware/appError";
 
 const TICK_CHECK_INTERVAL_MS = 15000;
 
@@ -228,7 +227,7 @@ export default class AutonomyService {
         if (allLoansInfo!.success && allLoansInfo!.loans.length > 0) {
             this.hasActiveLoan = true;
         }
-        
+
         //
         // IF WE DO NOT HAVE A LOAN YET
         //
