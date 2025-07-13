@@ -35,7 +35,7 @@ class BankClient extends BaseApiClient {
                             interest_rate: loanInfo.data.interest_rate,
                             initial_amount: loanInfo.data.initial_amount,
                         },
-                        response.data.initial_transaction_id.toString(),
+                        response.data.loan_number,
                     );
                 }
             }
