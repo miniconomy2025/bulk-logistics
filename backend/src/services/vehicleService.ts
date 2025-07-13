@@ -32,6 +32,10 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
         totalQuantity += item.quantity;
     }
 
+    console.log("~~~~~~~~~~~~~~~~~~~~~~~ Items Total Quantity ~~~~~~~~~~~~~~~~~~~~~~~");
+    console.log("Quantity: ", totalQuantity);
+    console.log("Measurement Type: ", measurementType);
+
     const repeatVehicle = (vehicle: VehicleWithType[], count: number) => {
         for (let i = 0; i < count; i++) {
             selectedVehicles.push(vehicle[i % vehicle.length]);
