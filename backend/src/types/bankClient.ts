@@ -18,6 +18,20 @@ export interface LoanInfoResponse {
     payments: LoanPaymentResponse[];
 }
 
+export interface AllLoansInfoResponse{
+    success: boolean;
+    total_outstanding_amount: number;
+    loans: InnerLoan[]
+}
+
+export interface InnerLoan {
+    loan_number: string;
+    initial_amount: number;
+    interest_rate: number;
+    write_off: boolean;
+    outstanding_amount: number;
+}
+
 interface LoanPaymentResponse {
     timestamp: string;
     amount: number;
