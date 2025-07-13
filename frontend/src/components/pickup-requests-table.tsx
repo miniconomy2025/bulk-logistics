@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import type { PickupRequestDetails } from "../types/pickup-request";
 import { formatDate } from "../utils/format-date";
 import type { SortConfig } from "../types/sort-config";
+import { formatAsCurrencyStyle } from "../utils/format-currency";
 
 /**
  * Formats a vehicle name string (e.g., "truck_heavy") into "Truck Heavy".
@@ -79,7 +80,7 @@ export const PickupRequestsTable: React.FC<{ requests: PickupRequestDetails[] }>
     return (
         <div className="rounded-md border border-gray-200 bg-white shadow-sm">
             {/* Table Header */}
-            <div className="grid grid-cols-5 items-center bg-gray-50 px-4 py-3 text-left">
+            <div className="grid grid-cols-6 items-center bg-gray-50 px-4 py-3 text-left">
                 {/* Date Dispatched Header */}
                 <button
                     type="button"
@@ -110,6 +111,14 @@ export const PickupRequestsTable: React.FC<{ requests: PickupRequestDetails[] }>
                     {renderSortArrow("destinationCompanyName")}
                 </button>
 
+                {/* Cost Header */}
+                <button
+                    type="button"
+                    className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
+                >
+                    Cost
+                </button>
+
                 {/* Status Header */}
                 <button
                     type="button"
@@ -134,7 +143,7 @@ export const PickupRequestsTable: React.FC<{ requests: PickupRequestDetails[] }>
                 {sortedRequests.map((request, index) => (
                     <div
                         key={index}
-                        className="grid grid-cols-5 items-center border-b border-gray-100 px-4 py-3 last:border-b-0"
+                        className="grid grid-cols-6 items-center border-b border-gray-100 px-4 py-3 last:border-b-0"
                     >
                         {/* Date Column */}
                         <p className="text-xs text-gray-500">{formatDate(request.requestDate)}</p>
@@ -147,6 +156,11 @@ export const PickupRequestsTable: React.FC<{ requests: PickupRequestDetails[] }>
                         {/* Destination Company Column */}
                         <div>
                             <p className="text-xs text-gray-500">{formatCompanyName(request.destinationCompanyName)}</p>
+                        </div>
+
+                        {/* Cost Column */}
+                        <div>
+                            <p className="text-xs text-gray-500">Ð {request.cost && formatAsCurrencyStyle(request.cost)}</p>
                         </div>
 
                         {/* Payment Status Column */}
