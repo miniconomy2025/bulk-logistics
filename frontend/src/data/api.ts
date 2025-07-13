@@ -20,7 +20,7 @@ export default class API {
         }
 
         if (!API.apiRoot) {
-            throw new APIError("Network error or server unreachable", status);
+            throw new APIError("network error or server unreachable", status);
         }
     }
 
