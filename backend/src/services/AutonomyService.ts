@@ -139,7 +139,6 @@ export default class AutonomyService {
             await new Promise((resolve) => setTimeout(resolve, SimulatedClock.SIMULATED_DAY_IN_REAL_MS * (2 / 3)));
 
             await this.notifyCompletedDeliveries(dropOffDetails);
-
         } catch (error) {
             console.error(`FATAL ERROR during daily tasks for ${forDate.toISOString().split("T")[0]}.`, error);
         } finally {
@@ -179,7 +178,7 @@ export default class AutonomyService {
     private async onInitOperations(): Promise<void> {
         //
         // IF WE DO NOT HAVE A BANK ACCOUNT YET.
-        // 
+        //
         if (!this.bankAccountSecured) {
             const bankAccount = await bankApiClient.getAccountDetails();
             let accountNumber: string;
@@ -222,7 +221,7 @@ export default class AutonomyService {
         try {
             allLoansInfo = await bankApiClient.getAllLoanDetails();
         } catch (error) {
-            throw new Error("Error getting all loans: " + error)
+            throw new Error("Error getting all loans: " + error);
         }
         if (allLoansInfo!.success && allLoansInfo!.loans.length > 0) {
             this.hasActiveLoan = true;
@@ -232,7 +231,6 @@ export default class AutonomyService {
         // IF WE DO NOT HAVE A LOAN YET
         //
         if (!this.hasActiveLoan) {
-
             //2. Figure out cost of [4 large, 4 medium] vehicles from the hand
             const truckPriceMap: { [key: string]: number } = {};
 
@@ -269,8 +267,7 @@ export default class AutonomyService {
         if (!this.initialTrucksSecured) {
             if (currentVehicles.length > 0) {
                 this.initialTrucksSecured = true;
-            }
-            else {
+            } else {
                 // If we do, we update initialTrucksSecured to true.
                 // 4. Purchase trucks
                 const truckPurchasePromises: Promise<TruckPurchaseResponse | undefined>[] = [];
@@ -302,7 +299,6 @@ export default class AutonomyService {
                             }),
                         );
                     }
-
                 } else {
                     console.log("First truck purchase response was undefined or missing orderId. Skipping payment.");
                 }
