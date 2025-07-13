@@ -202,6 +202,8 @@ export default class AutonomyService {
 
         const trucksInfo = await thohApiClient.getTrucksInformation();
 
+        console.log("---TRUCK INFO---", trucksInfo);
+
         trucksInfo.forEach((truck) => {
             truckPriceMap[truck.truckName] = truck.price;
         });
@@ -212,6 +214,7 @@ export default class AutonomyService {
             return total + price * truckInfo.quantity;
         }, 0);
 
+        console.log("---TOTAL LOAN AMOUNT---", totalLoanAmount);
         const isLoanApplicationSuccessful = await this._checkAndSecureLoan(totalLoanAmount * 2);
 
         if (isLoanApplicationSuccessful) {
