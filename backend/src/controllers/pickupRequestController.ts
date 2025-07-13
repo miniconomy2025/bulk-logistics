@@ -28,7 +28,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
     const itemDefinition: ItemDefinitionWithName[] = await getItemDefinitions();
     console.log("~~~~~~~~~~~~~~~~~~~~~~~ Pickup Request ~~~~~~~~~~~~~~~~~~~~~~~");
     console.log(JSON.stringify(pickupRequestDetails.items, null, 2));
-    
+
     pickupRequestDetails.items.forEach((item) => {
         const itemMeasurementType: "KG" | "UNIT" = itemDefinition.find((i) => i.item_name == item.itemName)!.capacity_type_name as "KG" | "UNIT";
         console.log(`~~~~~~~~~~~~~~~~~~~~~~~ ${item.itemName} - ${item.quantity} - ${itemMeasurementType} ~~~~~~~~~~~~~~~~~~~~~~~`);
