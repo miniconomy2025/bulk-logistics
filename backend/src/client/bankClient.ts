@@ -58,8 +58,8 @@ class BankClient extends BaseApiClient {
             return response.data;
         } catch {
             return {
-              success: false,
-            }
+                success: false,
+            };
         }
     }
 

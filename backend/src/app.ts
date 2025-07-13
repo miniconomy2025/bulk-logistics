@@ -56,17 +56,15 @@ app.all("*", (req, res, next) => {
 app.use(globalErrorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 
-  try{
-      thohApiClient.getTime().then((response) => {
-      
-      if (typeof response.epochStartTime === 'number') {
-        autonomyService.start(response.epochStartTime);
-      }
-    });
-  } catch {
-    //Ignore error
-  }
-    
+    try {
+        thohApiClient.getTime().then((response) => {
+            if (typeof response.epochStartTime === "number") {
+                autonomyService.start(response.epochStartTime);
+            }
+        });
+    } catch {
+        //Ignore error
+    }
 });

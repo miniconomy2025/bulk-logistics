@@ -18,16 +18,15 @@ class THOHApiClient extends BaseApiClient {
         return response.data;
     }
 
-       public async getTime(): Promise<TimeResponse> {
+    public async getTime(): Promise<TimeResponse> {
         try {
-          const response = await this.client.get("/time");
-          return response.data;
+            const response = await this.client.get("/time");
+            return response.data;
         } catch {
-
-          return {
-            error: "No current time",
-          }
-        }  
+            return {
+                error: "No current time",
+            };
+        }
     }
 
     /**
