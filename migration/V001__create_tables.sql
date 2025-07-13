@@ -26,6 +26,8 @@ DROP TABLE IF EXISTS transaction_category;
 
 DROP TABLE IF EXISTS capacity_type;
 
+DROP TABLE IF EXISTS delivery_notification_queue;
+
 CREATE TABLE capacity_type (
   capacity_type_id SERIAL PRIMARY KEY,
   name              VARCHAR(50)  NOT NULL UNIQUE
@@ -167,6 +169,16 @@ CREATE TABLE bank_transactions_ledger (
       ON UPDATE CASCADE
       ON DELETE SET NULL,
   related_thoh_order_id           VARCHAR(255)
+);
+
+CREATE TABLE delivery_notification_queue (
+    notification_id SERIAL PRIMARY KEY,
+    related_pickup_request_id INTEGER NOT NULL,
+    payload JSONB NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'QUEUED',
+    retry_count INTEGER NOT NULL DEFAULT 1,
+    last_attempt_at DATE,
+    created_at DATE NOT NULL
 );
 
 COMMIT;
