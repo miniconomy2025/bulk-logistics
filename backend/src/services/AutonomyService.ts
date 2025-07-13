@@ -400,10 +400,10 @@ export default class AutonomyService {
     private async notifyCompletedDeliveries(newNotifications: LogisticsNotification[]): Promise<void> {
         console.log("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV\nEvening Ops: Notifying completed deliveries...");
         const queuedNotifications = await getQueuedNotifications();
-        const notificationsToProcess = queuedNotifications.map(qn => qn.payload);
+        const notificationsToProcess = queuedNotifications.map((qn) => qn.payload);
 
-        const allNotificationsMap = new Map<number|string, LogisticsNotification>();
-        [...notificationsToProcess, ...newNotifications].forEach(n => {
+        const allNotificationsMap = new Map<number | string, LogisticsNotification>();
+        [...notificationsToProcess, ...newNotifications].forEach((n) => {
             allNotificationsMap.set(n.id, n);
         });
 

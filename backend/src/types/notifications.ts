@@ -4,7 +4,7 @@ export interface Item {
 }
 
 export interface LogisticsNotification {
-    id: number| string;
+    id: number | string;
     notificationURL: string;
     type: "PICKUP" | "DELIVERY";
     quantity: number;
