@@ -13,7 +13,6 @@ export const calculateDeliveryCost = async (pickupRequestDetails: PickupRequestR
 
         console.log("Vehicles Found:\n ", JSON.stringify(vehicleResult.vehicles, null, 2));
 
-
         if (!vehicleResult.success || !vehicleResult.vehicles) {
             return 0;
         }
