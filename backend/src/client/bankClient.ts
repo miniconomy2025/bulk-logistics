@@ -54,9 +54,9 @@ class BankClient extends BaseApiClient {
             }
             return {
                 success: false,
-                total_outstanding_amount:0,
-                loans: []
-            }
+                total_outstanding_amount: 0,
+                loans: [],
+            };
         } catch (error: any) {
             throw new AppError(error, 500);
         }

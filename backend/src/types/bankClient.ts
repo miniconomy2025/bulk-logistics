@@ -18,10 +18,10 @@ export interface LoanInfoResponse {
     payments: LoanPaymentResponse[];
 }
 
-export interface AllLoansInfoResponse{
+export interface AllLoansInfoResponse {
     success: boolean;
     total_outstanding_amount: number;
-    loans: InnerLoan[]
+    loans: InnerLoan[];
 }
 
 export interface InnerLoan {
