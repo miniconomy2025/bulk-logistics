@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { validatePickupRequest } from "../validation/pickupRequestValidator";
 import { PickupRequestCreationResult, PickupRequestRequest, PickupRequestCreateResponse, PickupRequestGetEntity } from "../types/PickupRequest";
 import { calculateDeliveryCost } from "../services/DeliveryCostCalculatorService";
-import { findPickupRequestById, findPickupRequestsByCompanyName, savePickupRequest } from "../models/pickupRequestRepository";
+import { findAllPickupRequests, findPickupRequestById, findPickupRequestsByCompanyName, savePickupRequest } from "../models/pickupRequestRepository";
 import catchAsync from "../utils/errorHandlingMiddleware/catchAsync";
 import AppError from "../utils/errorHandlingMiddleware/appError";
 import { simulatedClock } from "../utils";
@@ -92,4 +92,14 @@ export const getPickupRequestsByCompany = catchAsync(async (req: Request, res: R
     });
 
     res.status(200).json(pickupRequestsResponse);
+});
+
+export const getAllPickupRequests = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const pickupRequests = await findAllPickupRequests();
+
+    if (!pickupRequests) {
+        return next(new AppError("No pickup requests found", 404));
+    }
+
+    res.status(200).json(pickupRequests);
 });
