@@ -17,7 +17,13 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
     let measurementType: string | undefined = "";
     const selectedVehicles: VehicleWithType[] = [];
 
+    console.log("~~~~~~~~~~~~~~~~~~~~~~~ Checking Vehicles ~~~~~~~~~~~~~~~~~~~~~~~");
+
     const allVehicles = await getAllVehiclesWithType();
+    console.log("Vehicles Found:\n ", JSON.stringify(allVehicles, null, 2));
+
+    console.log("~~~~~~~~~~~~~~~~~~~~~~~ Shipment Items ~~~~~~~~~~~~~~~~~~~~~~~");
+    console.log(JSON.stringify(pickUpRequest.items, null, 2));
 
     for (const item of pickUpRequest.items) {
         if (!measurementType) {
@@ -49,6 +55,9 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
         if (remaining > 0) {
             repeatVehicle(largeTrucks, remaining);
         }
+        console.log("~~~~~~~~~~~~~~~~~~ Selected Large Vehicles ~~~~~~~~~~~~~~~~~~");
+        console.log(selectedVehicles);
+
         return { success: true, vehicles: selectedVehicles };
     }
 
@@ -62,6 +71,9 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
         let smallIndex = 0;
 
         while (remainingItems > 0) {
+            console.log("~~~~~~~~~~~~~~~~~~ Selected M/S Vehicles ~~~~~~~~~~~~~~~~~~~~~~~");
+            console.log(selectedVehicles);
+
             if ((remainingItems > 2000 || remainingItems > 500) && mediumTrucks.length > 0) {
                 const vehicle = mediumTrucks[mediumIndex % mediumTrucks.length];
                 selectedVehicles.push(vehicle);
