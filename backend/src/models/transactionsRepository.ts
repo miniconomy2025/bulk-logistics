@@ -2,7 +2,7 @@ import db from "../config/database";
 import { TransactionCategory, TransactionStatus } from "../enums";
 import { BankNotificationPayload, Loan, Result, LoanInfoResponse } from "../types";
 import { findAccountNumberByCompanyName } from "./companyRepository";
-import { getTransactionStatusByName } from "./transactionStatus";
+import { getTransactionStatusByName } from "./transactionStatusRepository";
 
 export const findTransactions = async (): Promise<Result<any>> => {
     const query = `

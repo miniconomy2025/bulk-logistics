@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { shipmentModel } from "../models/shipment";
+import { shipmentModel } from "../models/shipmentRepository";
 
 class ShipmentController {
     public static getShipments = async (req: Request, res: Response) => {

@@ -19,7 +19,7 @@ export const truckFailure = catchAsync(async (req: Request, res: Response, next:
     const result = await handleTruckFailure(failureInfo);
 
     if (result.success) {
-        res.status(204).send();
+        res.status(204).json(result);
     }
 
     if (!result.success) {

@@ -1,5 +1,5 @@
 import { simulatedClock, SimulatedClock } from "../utils";
-import { getVehicleDeliveriesByDateRange, getAllVehiclesWithType, updateVehicleStatus } from "../models/vehicle";
+import { getVehicleDeliveriesByDateRange, getAllVehiclesWithType, updateVehicleStatus } from "../models/vehicleRepository";
 import { GetVehicleResult, VehicleWithDeliveryCount, VehicleWithType } from "../types";
 import { PickupRequestRequest } from "../types/PickupRequest";
 import { MeasurementType, VehicleType } from "../enums";

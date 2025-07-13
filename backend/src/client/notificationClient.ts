@@ -10,6 +10,7 @@ class NotificationApiClient extends BaseApiClient {
 
     public async sendLogisticsNotification(notification: LogisticsNotification): Promise<LogisticsNotificationResponse> {
         try {
+            console.log("Attempting to deliver", notification);
             return await this.client.post<LogisticsNotificationResponse>(`${notification.notificationURL}${this.NotificationEndpoint}`, {
                 id: notification.id,
                 type: notification.type,

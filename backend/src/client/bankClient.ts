@@ -1,6 +1,6 @@
 import { TransactionStatus } from "../enums";
 import { getCategoryIdByName, insertIntoTransactionLedger, saveLoanDetails } from "../models/transactionsRepository";
-import { getTransactionStatusByName } from "../models/transactionStatus";
+import { getTransactionStatusByName } from "../models/transactionStatusRepository";
 import {
     CreateAccountResponse,
     LoanApplicationRequest,
