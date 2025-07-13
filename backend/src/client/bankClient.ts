@@ -54,10 +54,12 @@ class BankClient extends BaseApiClient {
 
     public async getAccountDetails(): Promise<AccountDetails> {
         try {
-            const response = await this.client.get<AccountDetails>("/account");
+            const response = await this.client.get<AccountDetails>("/account/me");
             return response.data;
-        } catch (error: any) {
-            throw new AppError(error, 500);
+        } catch {
+            return {
+                success: false,
+            };
         }
     }
 

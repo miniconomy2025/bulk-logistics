@@ -23,7 +23,7 @@ export default class AutonomyService {
     private isProcessingTick: boolean = false;
     private tickIntervalId: NodeJS.Timeout | null = null;
     private hasActiveLoan: boolean = false;
-    private funds: number = 0;
+    private funds: number | undefined = 0;
     private initialTrucksCost: number = 0;
     private lastProcessedSimDate: string | null = null;
 
@@ -178,7 +178,7 @@ export default class AutonomyService {
         let accountNumber: string;
 
         //1. Create bank account, send the notification URL to the bank
-        if (!bankAccount.success) {
+        if (!bankAccount.success || !bankAccount.account_number) {
             const accountCreationResponse = await bankApiClient.createAccount("https://bulk-logistics-api.projects.bbdgrad.com/api/bank");
 
             accountNumber = accountCreationResponse.account_number;

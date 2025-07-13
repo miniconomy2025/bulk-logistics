@@ -14,6 +14,8 @@ import transactionRoutes from "./routes/transactionRoutes";
 
 import AppError from "./utils/errorHandlingMiddleware/appError";
 import globalErrorHandler from "./utils/errorHandlingMiddleware/errorController";
+import { thohApiClient } from "./client/thohClient";
+import { autonomyService } from "./services/AutonomyService";
 
 const app = express();
 
@@ -55,4 +57,14 @@ app.use(globalErrorHandler);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
+
+    try {
+        thohApiClient.getTime().then((response) => {
+            if (typeof response.epochStartTime === "number") {
+                autonomyService.start(response.epochStartTime);
+            }
+        });
+    } catch {
+        //Ignore error
+    }
 });
