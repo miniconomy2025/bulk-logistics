@@ -213,8 +213,8 @@ export default class AutonomyService {
             const price = truckPriceMap[truckInfo.truckName];
             return total + price * truckInfo.quantity;
         }, 0);
-        
-        console.log("---TOTAL LOAN AMOUNT---", totalLoanAmount)
+
+        console.log("---TOTAL LOAN AMOUNT---", totalLoanAmount);
         const isLoanApplicationSuccessful = await this._checkAndSecureLoan(totalLoanAmount * 2);
 
         if (isLoanApplicationSuccessful) {
