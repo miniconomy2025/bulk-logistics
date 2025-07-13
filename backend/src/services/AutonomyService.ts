@@ -12,6 +12,7 @@ import { TransactionCategory } from "../enums";
 import { reactivateVehicle } from "./vehicleService";
 import { updateCompanyDetails } from "../models/companyRepository";
 import { SimulatedClock, simulatedClock } from "../utils";
+import { addOrUpdateFailedNotification, getQueuedNotifications, removeSuccessfulNotification } from "../models/notificationsQueueRepository";
 
 const TICK_CHECK_INTERVAL_MS = 15000;
 
@@ -396,12 +397,34 @@ export default class AutonomyService {
     /**
      * Notifies destination companies that their goods have arrived.
      */
-    private async notifyCompletedDeliveries(notifications: LogisticsNotification[]): Promise<void> {
+    private async notifyCompletedDeliveries(newNotifications: LogisticsNotification[]): Promise<void> {
         console.log("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV\nEvening Ops: Notifying completed deliveries...");
+        const queuedNotifications = await getQueuedNotifications();
+        const notificationsToProcess = queuedNotifications.map(qn => qn.payload);
 
-        const notificationPromises = notifications.map((notification) => notificationApiClient.sendLogisticsNotification(notification));
+        const allNotificationsMap = new Map<number|string, LogisticsNotification>();
+        [...notificationsToProcess, ...newNotifications].forEach(n => {
+            allNotificationsMap.set(n.id, n);
+        });
 
-        await Promise.all(notificationPromises);
+        const allUniqueNotifications = Array.from(allNotificationsMap.values());
+        console.log(`Processing ${allUniqueNotifications.length} unique delivery notifications.`);
+
+        for (const notification of allUniqueNotifications) {
+            try {
+                const response = await notificationApiClient.sendLogisticsNotification(notification);
+
+                if (response.status >= 200 && response.status < 300) {
+                    console.log(`Successfully sent delivery notification for request ID: ${notification.id}`);
+                    await removeSuccessfulNotification(+notification.id);
+                } else {
+                    throw new Error(`Received HTTP ${response.status} from notification endpoint.`);
+                }
+            } catch (error) {
+                console.error(`Failed to send delivery notification for request ID: ${notification.id}. Adding to retry queue.`, error);
+                await addOrUpdateFailedNotification(notification, simulatedClock.getCurrentDate());
+            }
+        }
 
         await updatePickupRequestStatuses(simulatedClock.getCurrentDate());
 
