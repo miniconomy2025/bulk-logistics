@@ -26,7 +26,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
             document.removeEventListener("keydown", handleEscape);
             document.body.style.overflow = "";
         };
-    }, [isOpen, onClose]); 
+    }, [isOpen, onClose]);
 
     if (!isOpen) {
         return null;
