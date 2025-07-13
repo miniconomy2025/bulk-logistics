@@ -4,6 +4,11 @@ interface GetTransactionProps {
     transactionId: string;
 }
 
+interface GetAllTransactionsProps {
+    limit: number;
+    page: number;
+}
+
 interface CreateTransctionProps {
     commercial_bank_transaction_id: string;
     payment_reference_id: string;
@@ -19,8 +24,8 @@ interface CreateTransctionProps {
 export default class Transactions {
     private static baseEndpoint = "transactions/";
 
-    public static async getAll() {
-        return await API.get(Transactions.baseEndpoint);
+    public static async getAll(options: GetAllTransactionsProps = { page: 1, limit: 20 }) {
+        return await API.get(Transactions.baseEndpoint + `?page=${options.page}&limit=${options.limit}`);
     }
 
     public static async breakdown() {
@@ -33,10 +38,6 @@ export default class Transactions {
 
     public static async totals() {
         return await API.get(Transactions.baseEndpoint + "totals");
-    }
-
-    public static async recent() {
-        return await API.get(Transactions.baseEndpoint + "recent");
     }
 
     public static async monthly() {

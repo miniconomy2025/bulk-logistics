@@ -57,7 +57,7 @@ const IncomeExpensesChart = ({ transaction }: IncomeExpensesChartProps) => {
                     label: (context: any) => {
                         const label = context.dataset.label || "";
                         const value = context.parsed.y;
-                        return value === null ? `${label}: No data` : `${label}: R${value.toFixed(2)}`;
+                        return value === null ? `${label}: No data` : `${label}: Ð${value.toFixed(2)}`;
                     },
                 },
             },

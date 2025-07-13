@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import { RecentTransaction } from "../components/recent-transactions";
 import { MetricCard } from "../components/ui/metric-card";
 import { TransactionItem } from "../components/ui/transaction-item";
@@ -7,6 +8,8 @@ import Transactions from "../data/transactions";
 import IncomeExpensesChart from "../components/income-expense-chart";
 import type { IncomeExpensesChartProps, RecentTransactionsItem } from "../types";
 import Shipments from "../data/shipments";
+import AllTransactions from "../components/all-transactions";
+import Modal from "../components/ui/modal";
 
 interface TransactionItem {
     purchase: string;
@@ -40,6 +43,7 @@ interface RecentTransactionsResponse {
 }
 
 const Dashboard: React.FC = () => {
+    const [modalIsOpen, setIsOpen] = useState<boolean>(false);
     const [totals, setTotals] = useState<TransactionResponse>({
         transaction: [
             {
@@ -96,7 +100,7 @@ const Dashboard: React.FC = () => {
     };
 
     const fetchRecentTransactionsData = async (): Promise<RecentTransactionsResponse> => {
-        const response = await Transactions.recent();
+        const response = await Transactions.getAll();
         const data: RecentTransactionsResponse = await response.json();
         return data;
     };
@@ -142,6 +146,14 @@ const Dashboard: React.FC = () => {
     }, []);
 
     const total_money_out = Number(totals.transaction[0].loan) + Number(totals.transaction[0].expense) + Number(totals.transaction[0].purchase);
+
+    const openModal = (): void => {
+        setIsOpen(true);
+    };
+
+    const closeModal = (): void => {
+        setIsOpen(false);
+    };
 
     return (
         <DashboardLayout>
@@ -232,7 +244,19 @@ const Dashboard: React.FC = () => {
                 <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                     <div className="mb-4 flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-gray-900">Recent Transactions</h2>
-                        <button className="text-sm font-medium text-blue-600 hover:underline">View all</button>
+                        <button
+                            onClick={openModal}
+                            className="text-sm font-medium text-blue-600 hover:underline"
+                        >
+                            View all
+                        </button>
+                        <Modal
+                            title="Transaction History"
+                            isOpen={modalIsOpen}
+                            onClose={closeModal}
+                        >
+                            <AllTransactions />
+                        </Modal>
                     </div>
                     <p className="mb-6 text-sm text-gray-500">Added financial activity</p>
                     <div className="space-y-2">
