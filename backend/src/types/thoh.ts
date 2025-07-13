@@ -11,8 +11,8 @@ export interface TruckPurchaseRequest {
 }
 
 export interface TimeResponse {
-  epochStartTime?: number;
-  error?: string;
+    epochStartTime?: number;
+    error?: string;
 }
 
 export interface TruckPurchaseResponse {
