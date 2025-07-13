@@ -26,6 +26,9 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
     }
     let newItems: ItemRequest[] = [];
     const itemDefinition: ItemDefinitionWithName[] = await getItemDefinitions();
+    console.log("~~~~~~~~~~~~~~~~~~~~~~~ Pickup Request Received ~~~~~~~~~~~~~~~~~~~~~~~");
+    console.log(JSON.stringify(pickupRequestDetails.items, null, 2));
+
     pickupRequestDetails.items.forEach((item) => {
         const itemMeasurementType: "KG" | "UNIT" = itemDefinition.find((i) => i.item_name == item.itemName)!.capacity_type_name as "KG" | "UNIT";
         const itemMaxCapacity = itemMeasurementType === "KG" ? 5000 : 2000;
@@ -48,9 +51,6 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
         }
     });
     const partitionedPickupRequestDetails = { ...pickupRequestDetails, items: newItems };
-
-    console.log("~~~~~~~~~~~~~~~~~~~~~~~ Pickup Request Received ~~~~~~~~~~~~~~~~~~~~~~~");
-    console.log(JSON.stringify(partitionedPickupRequestDetails, null, 2));
 
     const cost = await calculateDeliveryCost(partitionedPickupRequestDetails);
 
