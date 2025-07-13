@@ -21,6 +21,8 @@ class BankClient extends BaseApiClient {
 
     public async applyForLoan(loanDetails: LoanApplicationRequest): Promise<LoanApplicationResponse> {
         try {
+            console.log("---APPLYING FOR LOAN---");
+            console.log("Loan request: ", loanDetails);
             const response = await this.client.post<LoanApplicationResponse>("/loan", loanDetails);
 
             if (response.data.success) {
