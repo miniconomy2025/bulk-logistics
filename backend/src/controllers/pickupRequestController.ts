@@ -28,10 +28,10 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
     const itemDefinition: ItemDefinitionWithName[] = await getItemDefinitions();
     console.log("~~~~~~~~~~~~~~~~~~~~~~~ Pickup Request ~~~~~~~~~~~~~~~~~~~~~~~");
     console.log(JSON.stringify(pickupRequestDetails.items, null, 2));
-    
+
     pickupRequestDetails.items.forEach((item) => {
         const itemMeasurementType: "KG" | "UNIT" = itemDefinition.find((i) => i.item_name == item.itemName)!.capacity_type_name as "KG" | "UNIT";
-        console.log(`~~~~~~~~~~~~~~~~~~~~~~~ ${item.itemName} - ${item.quantity} - ${itemMeasurementType} ~~~~~~~~~~~~~~~~~~~~~~~`);
+
         const itemMaxCapacity = itemMeasurementType === "KG" ? 5000 : 2000;
         if (item.quantity > itemMaxCapacity) {
             const fullTrucks = Math.floor(item.quantity / itemMaxCapacity);
@@ -45,10 +45,9 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
             newItems.push({
                 itemName: item.itemName,
                 quantity: remainderQuantity,
-                measurementType: itemMeasurementType,
             });
         } else {
-            newItems.push(item);
+            newItems.push({ ...item, measurementType: itemMeasurementType });
         }
     });
     const partitionedPickupRequestDetails = { ...pickupRequestDetails, items: newItems };
