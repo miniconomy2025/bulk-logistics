@@ -5,10 +5,6 @@ export interface LoanApplicationRequest {
 export interface LoanApplicationResponse {
     success: boolean;
     loan_number: string;
-    initial_transaction_id: number;
-    interest_rate: string;
-    started_at: string;
-    write_off: boolean;
 }
 
 export interface LoanInfoResponse {
