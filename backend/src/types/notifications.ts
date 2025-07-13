@@ -7,6 +7,7 @@ export interface LogisticsNotification {
     id: number | string;
     notificationURL: string;
     type: "PICKUP" | "DELIVERY";
+    quantity: number;
     items: Item[];
 }
 

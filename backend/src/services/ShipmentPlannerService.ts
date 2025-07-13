@@ -1,6 +1,5 @@
 import { findPaidAndUnshippedRequests } from "../models/pickupRequestRepository";
-import { findAvailableVehicles } from "../models/vehicle"; // Assuming this returns VehicleWithType[]
-import { shipmentModel } from "../models/shipment";
+import { findAvailableVehicles } from "../models/vehicleRepository";
 
 // Importing the specific types you provided
 import { PickupRequestWithDetails, PickupToShipmentItemDetails } from "../types";
@@ -17,11 +16,11 @@ export class ShipmentPlannerService {
         console.log(`--- Starting Shipment Planning for ${simulatedClock.getCurrentDate()} ---`);
 
         const allPendingRequests = await findPaidAndUnshippedRequests();
-        console.log("all pending requests", allPendingRequests);
+        // console.log("all pending requests", allPendingRequests);
         allPendingRequests.forEach((request) => console.log(request.items));
-        console.log("sim clock date", simulatedClock.getCurrentDate());
+        // console.log("sim clock date", simulatedClock.getCurrentDate());
         const vehicleData = await findAvailableVehicles(simulatedClock.getCurrentDate().toISOString());
-        console.log("vehicleData", vehicleData);
+        // console.log("vehicleData", vehicleData);
 
         const availableFleet: PlannableVehicle[] = vehicleData.map((v) => ({
             ...v,
@@ -57,6 +56,7 @@ export class ShipmentPlannerService {
             const tempFleetState: PlannableVehicle[] = JSON.parse(JSON.stringify(fleet));
             const dryRunPlan = new Map<number, { items: PickupToShipmentItemDetails[] }>();
             let canFitEntireRequest = true;
+            let usedVehicleIndexes: number[] = [];
 
             for (const item of request.items) {
                 if (item.shipment_id) {
@@ -68,6 +68,8 @@ export class ShipmentPlannerService {
                     break;
                 }
                 tempFleetState[vehicleIndex].capacityRemaining -= item.quantity;
+                tempFleetState[vehicleIndex].pickupsAssignedToday++;
+                usedVehicleIndexes.push(vehicleIndex);
                 if (!dryRunPlan.has(tempFleetState[vehicleIndex].vehicle_id)) {
                     dryRunPlan.set(tempFleetState[vehicleIndex].vehicle_id, { items: [] });
                 }
@@ -75,6 +77,9 @@ export class ShipmentPlannerService {
             }
             if (canFitEntireRequest) {
                 console.log(`PASS 1: Planning full request ${request.pickupRequestId}`);
+                usedVehicleIndexes.forEach((index) => {
+                    fleet[index].pickupsAssignedToday++;
+                });
                 this._commitDryRun(dryRunPlan, fleet, plans);
                 plannedIds.add(request.pickupRequestId);
             }
@@ -86,13 +91,11 @@ export class ShipmentPlannerService {
      */
     private _planPartialRequests(requests: PickupRequestWithDetails[], fleet: PlannableVehicle[], plans: Map<number, ShipmentPlan>): void {
         const allRemainingItems = requests.flatMap((req) => req.items.map((item) => ({ ...item, pickupRequestId: req.pickupRequestId })));
-
         for (const item of allRemainingItems) {
             const vehicleIndex = this._findVehicleForItem(item, fleet);
             if (item.shipment_id) {
                 continue;
             }
-
             if (vehicleIndex !== -1) {
                 console.log(`PASS 2: Planning partial item ${item.itemName} from request ${item.pickupRequestId}`);
                 const vehicle = fleet[vehicleIndex];
@@ -108,6 +111,7 @@ export class ShipmentPlannerService {
                 plans.get(vehicle.vehicle_id)!.itemsToAssign.push(item);
 
                 vehicle.capacityRemaining -= item.quantity;
+                vehicle.pickupsAssignedToday++;
             }
         }
     }

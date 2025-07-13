@@ -1,10 +1,10 @@
-import { getAllVehiclesWithType, updateVehicleStatus } from "../models/vehicle";
+import { getAllVehiclesWithType, updateVehicleStatus } from "../models/vehicleRepository";
 import { TruckDelivery } from "../types";
 import { TruckFailureRequest, TruckFailureInfo } from "../types/thoh";
 import { simulatedClock } from "../utils";
 import { autonomyService } from "./AutonomyService";
 
-export const beginSimulation = (startTime: string) => {
+export const beginSimulation = (startTime: number) => {
     autonomyService.start(startTime);
 };
 

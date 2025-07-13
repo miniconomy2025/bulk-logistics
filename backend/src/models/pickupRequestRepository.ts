@@ -151,10 +151,10 @@ export const findPaidAndUnshippedRequests = async () => {
     return result.rows;
 };
 
-export const updateCompletionDate = async (pickup_request_id: number, date: Date) => {
+export const updateCompletionDate = async (pickup_request_id: number, date: Date, client: any) => {
     const query = `UPDATE pickup_requests SET completion_date = $1 WHERE pickup_request_id = $2`;
 
-    const result = await database.query(query, [date, pickup_request_id]);
+    const result = await client.query(query, [date, pickup_request_id]);
 };
 
 export const updatePickupRequestStatuses = async (completionDate: Date): Promise<number> => {

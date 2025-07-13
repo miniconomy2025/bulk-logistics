@@ -4,11 +4,13 @@ import { beginSimulation, handleTruckDelivery, processTruckFailure } from "../se
 import { TruckDelivery } from "../types";
 import { TruckFailureInfo } from "../types/thoh";
 import { handleTruckFailure } from "../services/thohService";
+import { autonomyService } from "../services/AutonomyService";
+import axios from "axios";
 
 export const startSimulation = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { unixEpochStart } = req.body;
+    const { epochStartTime } = req.body;
     res.status(200).send();
-    beginSimulation(unixEpochStart);
+    beginSimulation(epochStartTime);
 });
 
 export const truckFailure = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -17,7 +19,7 @@ export const truckFailure = catchAsync(async (req: Request, res: Response, next:
     const result = await handleTruckFailure(failureInfo);
 
     if (result.success) {
-        res.status(204).send();
+        res.status(204).json(result);
     }
 
     if (!result.success) {
@@ -29,4 +31,29 @@ export const truckDelivery = catchAsync(async (req: Request, res: Response, next
     const truckDeliveryInfo: TruckDelivery = req.body;
     await handleTruckDelivery(truckDeliveryInfo);
     res.status(200).send();
+});
+
+export const stopSimulation = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    autonomyService.stop();
+
+    try {
+        await axios.post(
+            "https://api.github.com/repos/miniconomy2025/bulk-logistics/actions/workflows/database-migrations.yaml/dispatches",
+            {
+                ref: "main",
+            },
+            {
+                headers: {
+                    Accept: "application/vnd.github+json",
+                    Authorization: `Bearer ${process.env.GITHUB_PAT}`,
+                    "X-GitHub-Api-Version": "2022-11-28",
+                },
+            },
+        );
+
+        res.status(200).json({ message: "Simulation stopped and migration job triggered." });
+    } catch (err: any) {
+        console.error("Failed to trigger GitHub workflow", err?.response?.data || err);
+        res.status(500).json({ error: "Simulation stopped but failed to trigger migration job." });
+    }
 });

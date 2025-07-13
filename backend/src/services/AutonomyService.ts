@@ -1,13 +1,12 @@
 import { ShipmentPlannerService } from "./ShipmentPlannerService";
-import { shipmentModel } from "../models/shipment";
+import { shipmentModel } from "../models/shipmentRepository";
 import { updateCompletionDate, updatePickupRequestStatuses } from "../models/pickupRequestRepository";
 import { TransactionResponse, TruckDelivery } from "../types";
 import { LogisticsNotification } from "../types/notifications";
 import { notificationApiClient } from "../client/notificationClient";
 import { thohApiClient } from "../client/thohClient";
-import { addVehicle } from "../models/vehicle";
+import { addVehicle } from "../models/vehicleRepository";
 import type { TruckFailureRequest, TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
-import { lastValueFrom, timer } from "rxjs";
 import { bankApiClient } from "../client/bankClient";
 import { TransactionCategory } from "../enums";
 import { reactivateVehicle } from "./vehicleService";
@@ -24,7 +23,7 @@ export default class AutonomyService {
     private isProcessingTick: boolean = false;
     private tickIntervalId: NodeJS.Timeout | null = null;
     private hasActiveLoan: boolean = false;
-    private funds: number = 0;
+    private funds: number | undefined = 0;
     private initialTrucksCost: number = 0;
     private lastProcessedSimDate: string | null = null;
 
@@ -51,13 +50,13 @@ export default class AutonomyService {
     /**
      * Starts the simulation's daily tick timer.
      */
-    public start(startTime: string): void {
+    public start(startTime: number): void {
         if (this.isRunning) {
             console.warn("Simulation is already running. Start command ignored.");
             return;
         }
 
-        simulatedClock.initialize(+startTime);
+        simulatedClock.initialize(startTime);
         console.log("--- SIMULATION STARTING ---", "\n Real Time:", startTime, "\nSimulation Time:", simulatedClock.getCurrentDate());
         this.isRunning = true;
 
@@ -135,9 +134,7 @@ export default class AutonomyService {
 
             const dropOffDetails = await this._planAndDispatchShipments();
 
-            const delayedObservable = timer(SimulatedClock.SIMULATED_DAY_IN_REAL_MS * (2 / 3));
-
-            await lastValueFrom(delayedObservable);
+            await new Promise((resolve) => setTimeout(resolve, SimulatedClock.SIMULATED_DAY_IN_REAL_MS * (2 / 3)));
 
             await this._notifyCompletedDeliveries(dropOffDetails);
         } catch (error) {
@@ -159,7 +156,7 @@ export default class AutonomyService {
                 try {
                     await addVehicle({
                         type: truckDelivery.itemName,
-                        purchase_date: simulatedClock.getCurrentDate().toISOString().split("T")[0], // we can not put the actual purchase date unless if the HAND API provides it
+                        purchase_date: simulatedClock.getCurrentDate().toISOString().split("T")[0],
                         operational_cost: truckDelivery.operatingCostPerDay,
                         load_capacity: truckDelivery.maximumLoad,
                     });
@@ -181,7 +178,7 @@ export default class AutonomyService {
         let accountNumber: string;
 
         //1. Create bank account, send the notification URL to the bank
-        if (!bankAccount.success) {
+        if (!bankAccount.success || !bankAccount.account_number) {
             const accountCreationResponse = await bankApiClient.createAccount("https://bulk-logistics-api.projects.bbdgrad.com/api/bank");
 
             accountNumber = accountCreationResponse.account_number;
@@ -205,6 +202,8 @@ export default class AutonomyService {
 
         const trucksInfo = await thohApiClient.getTrucksInformation();
 
+        console.log("---TRUCK INFO---", trucksInfo);
+
         trucksInfo.forEach((truck) => {
             truckPriceMap[truck.truckName] = truck.price;
         });
@@ -215,6 +214,7 @@ export default class AutonomyService {
             return total + price * truckInfo.quantity;
         }, 0);
 
+        console.log("---TOTAL LOAN AMOUNT---", totalLoanAmount);
         const isLoanApplicationSuccessful = await this._checkAndSecureLoan(totalLoanAmount * 2);
 
         if (isLoanApplicationSuccessful) {
@@ -236,27 +236,27 @@ export default class AutonomyService {
 
         const trucksPurchasePaymentsPromises: Promise<TransactionResponse>[] = [];
 
-        trucksPurchaseResponse.forEach(async (response, index) => {
-            if (index === 0 && response && response.orderId) {
-                await updateCompanyDetails("thoh", {
-                    bankAccountNumber: response.bankAccount,
-                });
-                trucksPurchasePaymentsPromises.push(
-                    bankApiClient.makePayment({
-                        paymentDetails: {
-                            to_account_number: response.bankAccount,
-                            to_bank_name: "commercial-bank",
-                            amount: response.price * response.quantity,
-                            description: String(response.orderId),
-                        },
-                        transactionCategory: TransactionCategory.Purchase,
-                    }),
-                );
-            } else {
-                console.log("Truck purchase response was undefined or missing orderId. Skipping payment.");
-            }
-        });
+        const firstResponse = trucksPurchaseResponse[0];
 
+        if (firstResponse && firstResponse.orderId) {
+            await updateCompanyDetails("thoh", {
+                bankAccountNumber: firstResponse.bankAccount,
+            });
+
+            trucksPurchasePaymentsPromises.push(
+                bankApiClient.makePayment({
+                    paymentDetails: {
+                        to_account_number: firstResponse.bankAccount,
+                        to_bank_name: "commercial-bank",
+                        amount: firstResponse.price * firstResponse.quantity,
+                        description: String(firstResponse.orderId),
+                    },
+                    transactionCategory: TransactionCategory.Purchase,
+                }),
+            );
+        } else {
+            console.log("First truck purchase response was undefined or missing orderId. Skipping payment.");
+        }
         const paymentResults = await Promise.all(trucksPurchasePaymentsPromises);
 
         paymentResults.forEach((result) => {
@@ -321,35 +321,29 @@ export default class AutonomyService {
         let dropoffEntities: LogisticsNotification[] = [];
         const { createdShipmentsPlan, plannedRequestIds } = await planner.planDailyShipments();
         for (const plan of createdShipmentsPlan) {
-            plan.itemsToAssign.forEach(async (item) => {
-                let pickupRequestNotification: LogisticsNotification = {
-                    id: item.originalExternalOrderId,
-                    notificationURL: item.originCompanyUrl,
-                    type: "PICKUP",
-                    items: [
-                        {
-                            name: item.itemName,
-                            quantity: item.quantity,
-                        },
-                    ],
-                };
-                const response = await notificationApiClient.sendLogisticsNotification(pickupRequestNotification);
-                if (response.status >= 200 && response.status < 300) {
-                    try {
-                        const newShipment = await shipmentModel.createShipment(plan.vehicle.vehicle_id, simulatedClock.getCurrentDate());
-
-                        for (const item of plan.itemsToAssign) {
-                            await shipmentModel.assignItemToShipmentWithPickupRequestItemId(item.pickup_request_item_id, newShipment.shipment_id);
-                        }
-
-                        for (const id in plannedRequestIds) {
-                            await updateCompletionDate(+id, simulatedClock.getCurrentDate());
-                        }
+            try {
+                for (const item of plan.itemsToAssign) {
+                    const pickupRequestNotification: LogisticsNotification = {
+                        id: item.originalExternalOrderId,
+                        notificationURL: item.originCompanyUrl,
+                        type: "PICKUP",
+                        quantity: item.quantity,
+                        items: [
+                            {
+                                name: item.itemName,
+                                quantity: item.quantity,
+                            },
+                        ],
+                    };
+                    const response = await notificationApiClient.sendLogisticsNotification(pickupRequestNotification);
+                    if (response.status >= 200 && response.status < 300) {
+                        await shipmentModel.createShipmentAndAssignitems(plan.vehicle.vehicle_id, item.pickup_request_item_id, plannedRequestIds);
 
                         dropoffEntities.push({
                             id: item.pickup_request_id,
                             notificationURL: item.destinationCompanyUrl,
                             type: "DELIVERY",
+                            quantity: item.quantity,
                             items: [
                                 {
                                     name: item.itemName,
@@ -357,13 +351,13 @@ export default class AutonomyService {
                                 },
                             ],
                         });
-                    } catch (error) {
-                        console.error(`Failed to commit shipment plan for vehicle ${plan.vehicle.vehicle_id}.`, error);
+                    } else {
+                        console.error(`Notification failed for item ${item.itemName} with status: ${response.status}`);
                     }
-                } else {
-                    return;
                 }
-            });
+            } catch (error) {
+                console.error(`Failed to commit shipment plan for vehicle ${plan.vehicle.vehicle_id}.`, error);
+            }
         }
         console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         return dropoffEntities;
@@ -375,11 +369,12 @@ export default class AutonomyService {
     private async _notifyCompletedDeliveries(notifications: LogisticsNotification[]): Promise<void> {
         console.log("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV\nEvening Ops: Notifying completed deliveries...");
 
-        notifications.forEach(async (notification) => {
-            await notificationApiClient.sendLogisticsNotification(notification);
-        });
+        const notificationPromises = notifications.map((notification) => notificationApiClient.sendLogisticsNotification(notification));
+
+        await Promise.all(notificationPromises);
 
         await updatePickupRequestStatuses(simulatedClock.getCurrentDate());
+
         console.log("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV");
     }
 }

@@ -1,4 +1,4 @@
-import type { TruckInfoResponse, TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
+import type { TimeResponse, TruckInfoResponse, TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
 import AppError from "../utils/errorHandlingMiddleware/appError";
 import { BaseApiClient } from "./baseClient";
 
@@ -16,6 +16,17 @@ class THOHApiClient extends BaseApiClient {
     public async purchaseTruck(truckInfo: TruckPurchaseRequest): Promise<TruckPurchaseResponse> {
         const response = await this.client.post("/trucks", truckInfo);
         return response.data;
+    }
+
+    public async getTime(): Promise<TimeResponse> {
+        try {
+            const response = await this.client.get("/time");
+            return response.data;
+        } catch {
+            return {
+                error: "No current time",
+            };
+        }
     }
 
     /**

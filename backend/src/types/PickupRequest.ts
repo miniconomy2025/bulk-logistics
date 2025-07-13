@@ -2,7 +2,7 @@ export interface PickupRequestRequest {
     originalExternalOrderId: string;
     originCompany: string;
     destinationCompany: string;
-    items: [ItemRequest];
+    items: ItemRequest[];
 }
 
 export interface ItemRequest {

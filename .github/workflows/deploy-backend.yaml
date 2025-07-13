@@ -3,7 +3,7 @@ name: Deploy Backend to EC2
 on:
   push:
     branches:
-      - terraform
+      - main
     paths:
       - 'backend/**'
 
@@ -33,7 +33,7 @@ jobs:
           git config --global --add safe.directory /home/ubuntu/bulk-logistics
           git reset --hard HEAD
           git clean -fd
-          git pull origin terraform
+          git pull origin main
           cd backend
           npm install
           npm run build

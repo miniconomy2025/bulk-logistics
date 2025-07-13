@@ -3,9 +3,11 @@ name: Database Migrations
 on:
   push:
     branches:
-      - terraform
+      - main
     paths:
       - 'migration/**'
+
+  workflow_dispatch: 
 
 jobs:
   migrate:

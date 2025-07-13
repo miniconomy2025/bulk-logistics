@@ -5,10 +5,6 @@ export interface LoanApplicationRequest {
 export interface LoanApplicationResponse {
     success: boolean;
     loan_number: string;
-    initial_transaction_id: number;
-    interest_rate: string;
-    started_at: string;
-    write_off: boolean;
 }
 
 export interface LoanInfoResponse {
@@ -34,9 +30,9 @@ export interface CreateAccountResponse {
 
 export interface AccountDetails {
     success: boolean;
-    account_number: string;
-    net_balance: number;
-    notification_url: string;
+    account_number?: string;
+    net_balance?: number;
+    notification_url?: string;
 }
 
 export interface GetBalanceResponse {

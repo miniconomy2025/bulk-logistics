@@ -1,6 +1,6 @@
 import { TransactionStatus } from "../enums";
 import { getCategoryIdByName, insertIntoTransactionLedger, saveLoanDetails } from "../models/transactionsRepository";
-import { getTransactionStatusByName } from "../models/transactionStatus";
+import { getTransactionStatusByName } from "../models/transactionStatusRepository";
 import {
     CreateAccountResponse,
     LoanApplicationRequest,
@@ -21,6 +21,8 @@ class BankClient extends BaseApiClient {
 
     public async applyForLoan(loanDetails: LoanApplicationRequest): Promise<LoanApplicationResponse> {
         try {
+            console.log("---APPLYING FOR LOAN---");
+            console.log("Loan request: ", loanDetails);
             const response = await this.client.post<LoanApplicationResponse>("/loan", loanDetails);
 
             if (response.data.success) {
@@ -33,7 +35,7 @@ class BankClient extends BaseApiClient {
                             interest_rate: loanInfo.data.interest_rate,
                             initial_amount: loanInfo.data.initial_amount,
                         },
-                        response.data.initial_transaction_id.toString(),
+                        response.data.loan_number,
                     );
                 }
             }
@@ -54,10 +56,12 @@ class BankClient extends BaseApiClient {
 
     public async getAccountDetails(): Promise<AccountDetails> {
         try {
-            const response = await this.client.get<AccountDetails>("/account");
+            const response = await this.client.get<AccountDetails>("/account/me");
             return response.data;
-        } catch (error: any) {
-            throw new AppError(error, 500);
+        } catch {
+            return {
+                success: false,
+            };
         }
     }
 
