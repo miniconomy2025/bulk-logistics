@@ -3,7 +3,7 @@ import { MetricCard } from "../components/ui/metric-card";
 import { DashboardLayout } from "../layouts/app-layout";
 import Shipments from "../data/shipments";
 import type { Shipment } from "../types/shipment";
-import { ShipmentTable } from "../components/shipment-item";
+import { ShipmentTable } from "../components/shipment-items";
 import type { ShipmentStatusResponse } from "../types/shipment-status";
 import ShipmentStatus from "../data/shipment-status";
 
@@ -83,6 +83,7 @@ const ShipmentsDashboard: React.FC = () => {
                 <section className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     <MetricCard
                         title="All Shipments"
+                        type="shipment"
                         value={shipments.length}
                         bgColor="bg-green-100"
                         textColor="text-green-600"
@@ -90,6 +91,7 @@ const ShipmentsDashboard: React.FC = () => {
                     />
                     <MetricCard
                         title="Pending"
+                        type="shipment"
                         value={pendingShipments}
                         bgColor="bg-red-100"
                         textColor="text-red-600"
@@ -97,6 +99,7 @@ const ShipmentsDashboard: React.FC = () => {
                     />
                     <MetricCard
                         title="In Transit"
+                        type="shipment"
                         value={shipmentsInTransit}
                         bgColor="bg-orange-100"
                         textColor="text-orange-600"
@@ -104,6 +107,7 @@ const ShipmentsDashboard: React.FC = () => {
                     />
                     <MetricCard
                         title="Completed"
+                        type="shipment"
                         value={completedShipments}
                         bgColor="bg-blue-100"
                         textColor="text-blue-600"
@@ -115,22 +119,6 @@ const ShipmentsDashboard: React.FC = () => {
                     <div className="mb-4 flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-gray-900">Shipments</h2>
                         <div className="flex space-x-4">
-                            <label
-                                htmlFor="statusFilter"
-                                className="sr-only"
-                            >
-                                Filter by Trucks
-                            </label>
-                            <select
-                                id="statusFilter"
-                                aria-labelledby="statusFilter"
-                                className="rounded border border-gray-300 p-2 text-sm"
-                            >
-                                <option>All Trucks</option>
-                                <option>Small</option>
-                                <option>Medium</option>
-                                <option>Large</option>
-                            </select>
                             <label
                                 htmlFor="paymentFilter"
                                 className="sr-only"
@@ -155,6 +143,7 @@ const ShipmentsDashboard: React.FC = () => {
                                 ))}
                             </select>
                             <button
+                                type="button"
                                 className="flex items-center rounded border border-blue-800 bg-blue-800 p-1 text-gray-50 hover:bg-blue-700"
                                 onClick={() => {
                                     fetchAllShipments()

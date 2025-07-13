@@ -1,23 +1,7 @@
 import React, { useState } from "react";
 import type { PickupRequestDetails } from "../types/pickup-request";
-type SortConfig = {
-    key: "dispatch_date" | "status" | "vehicle";
-    order: "asc" | "desc";
-};
-
-/**
- * Formats a date string (YYYY-MM-DD) into "DD Month YYYY".
- * @param date - The date string to format.
- * @returns The formatted date string.
- */
-function formatDate(date: string): string {
-    const dateParts = date.split("-");
-    const day = String(dateParts[2]).padStart(2, "0");
-    const monthName = new Date(date).toLocaleString("default", { month: "long" });
-    const year = dateParts[0];
-
-    return `${day} ${monthName} ${year}`;
-}
+import { formatDate } from "../utils/format-date";
+import type { SortConfig } from "../types/sort-config";
 
 /**
  * Formats a vehicle name string (e.g., "truck_heavy") into "Truck Heavy".
@@ -37,8 +21,8 @@ function formatCompanyName(company: string): string {
 export const PickupRequestsTable: React.FC<{ requests: PickupRequestDetails[] }> = ({ requests }) => {
     // State now holds a configuration object for sorting.
     const [sortConfig, setSortConfig] = useState<SortConfig>({
-        key: "dispatch_date",
-        order: "asc",
+        key: "requestDate",
+        order: "desc",
     });
 
     /**
@@ -46,26 +30,25 @@ export const PickupRequestsTable: React.FC<{ requests: PickupRequestDetails[] }>
      */
     const sortedRequests = React.useMemo(() => {
         const sortableItems = [...requests];
-        // sortableItems.sort((a, b) => {
-        //     let comparison = 0;
-        //     // Logic to compare based on the selected key (date, status, or vehicle)
-        //     if (sortConfig.key === "dispatch_date") {
-        //         const dateA = new Date(a.dispatch_date).getTime();
-        //         const dateB = new Date(b.dispatch_date).getTime();
-        //         comparison = dateA - dateB;
-        //     } else if (sortConfig.key === "status") {
-        //         // Use localeCompare for alphabetical string comparison
-        //         comparison = a.status.statusName.localeCompare(b.status.statusName);
-        //     } else if (sortConfig.key === "vehicle") {
-        //         // Use localeCompare for vehicle name comparison
-        //         comparison = a.vehicle.localeCompare(b.vehicle);
-        //     }
+        sortableItems.sort((a, b) => {
+            let comparison = 0;
 
-        //     // Apply ascending or descending order
-        //     return sortConfig.order === "asc" ? comparison : -comparison;
-        // });
+            if (sortConfig.key === "requestDate") {
+                const dateA = new Date(a.requestDate).getTime();
+                const dateB = new Date(b.requestDate).getTime();
+                comparison = dateA - dateB;
+            } else if (sortConfig.key === "originCompanyName") {
+                comparison = a.originCompanyName.localeCompare(b.originCompanyName);
+            } else if (sortConfig.key === "destinationCompanyName") {
+                comparison = a.destinationCompanyName.localeCompare(b.destinationCompanyName);
+            } else if (sortConfig.key === "paymentStatus") {
+                comparison = a.paymentStatus?.localeCompare(b.paymentStatus ?? "") || 0;
+            }
+
+            return sortConfig.order === "asc" ? comparison : -comparison;
+        });
         return sortableItems;
-    }, [requests]);
+    }, [requests, sortConfig]);
 
     /**
      * Handles requests to sort the table by a specific column.
@@ -99,47 +82,50 @@ export const PickupRequestsTable: React.FC<{ requests: PickupRequestDetails[] }>
             <div className="grid grid-cols-5 items-center bg-gray-50 px-4 py-3 text-left">
                 {/* Date Dispatched Header */}
                 <button
+                    type="button"
                     className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
-                    onClick={() => handleSort("dispatch_date")}
+                    onClick={() => handleSort("requestDate")}
                 >
                     Request Date
-                    {renderSortArrow("dispatch_date")}
+                    {renderSortArrow("requestDate")}
                 </button>
 
                 {/* Origin Company Header */}
                 <button
+                    type="button"
                     className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
-                    onClick={() => handleSort("status")}
+                    onClick={() => handleSort("originCompanyName")}
                 >
                     From
-                    {renderSortArrow("status")}
+                    {renderSortArrow("originCompanyName")}
                 </button>
 
                 {/* Destination Company Header */}
                 <button
+                    type="button"
                     className="flex items-center text-sm font-medium text-gray-600 hover:text-gray-900"
-                    onClick={() => handleSort("status")}
+                    onClick={() => handleSort("destinationCompanyName")}
                 >
                     To
-                    {renderSortArrow("status")}
+                    {renderSortArrow("destinationCompanyName")}
                 </button>
 
                 {/* Status Header */}
                 <button
+                    type="button"
                     className="flex items-center justify-center text-sm font-medium text-gray-600 hover:text-gray-900"
-                    onClick={() => handleSort("status")}
+                    onClick={() => handleSort("paymentStatus")}
                 >
                     Payment
-                    {renderSortArrow("status")}
+                    {renderSortArrow("paymentStatus")}
                 </button>
 
                 {/* Status Header (now sortable) */}
                 <button
+                    type="button"
                     className="flex w-full items-center justify-end text-sm font-medium text-gray-600 hover:text-gray-900"
-                    onClick={() => handleSort("vehicle")}
                 >
                     Status
-                    {renderSortArrow("vehicle")}
                 </button>
             </div>
 

@@ -39,6 +39,7 @@ const PickupRequestDashboard: React.FC = () => {
                 <section className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     <MetricCard
                         title="All Requests"
+                        type="shipment"
                         value={pickupRequests.length}
                         bgColor="bg-green-100"
                         textColor="text-green-600"
@@ -46,6 +47,7 @@ const PickupRequestDashboard: React.FC = () => {
                     />
                     <MetricCard
                         title="In Progress"
+                        type="shipment"
                         value={pendingRequests.length}
                         bgColor="bg-red-100"
                         textColor="text-red-600"
@@ -53,6 +55,7 @@ const PickupRequestDashboard: React.FC = () => {
                     />
                     <MetricCard
                         title="Completed"
+                        type="shipment"
                         value={completedRequests.length}
                         bgColor="bg-blue-100"
                         textColor="text-blue-600"
@@ -63,38 +66,19 @@ const PickupRequestDashboard: React.FC = () => {
                 <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                     <div className="mb-4 flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-gray-900">Pickup Requests</h2>
-                        <div className="space-x-4">
-                            <label
-                                htmlFor="paymentFilter"
-                                className="sr-only"
-                            >
-                                Filter by Payment
-                            </label>
-                            <select
-                                id="paymentFilter"
-                                aria-labelledby="paymentFilter"
-                                className="rounded border border-gray-300 p-2 text-sm"
-                            >
-                                <option>All Payments</option>
-                                <option>Paid</option>
-                                <option>Unpaid</option>
-                            </select>
-                            <label
-                                htmlFor="statusFilter"
-                                className="sr-only"
-                            >
-                                Filter by Status
-                            </label>
-                            <select
-                                id="statusFilter"
-                                aria-labelledby="statusFilter"
-                                className="rounded border border-gray-300 p-2 text-sm"
-                            >
-                                <option>All Statuses</option>
-                                <option>Pending</option>
-                                <option>Completed</option>
-                            </select>
-                        </div>
+                        <button
+                            type="button"
+                            className="flex items-center rounded border border-blue-800 bg-blue-800 p-1 text-gray-50 hover:bg-blue-700"
+                            onClick={() => {
+                                fetchPickupRequests()
+                                    .then((result) => {
+                                        setPickupRequests(result as unknown as PickupRequestDetails[]);
+                                    })
+                                    .catch((error) => console.error(error));
+                            }}
+                        >
+                            <span className="material-symbols-outlined">autorenew</span>
+                        </button>
                     </div>
 
                     {pickupRequests.length === 0 ? (
