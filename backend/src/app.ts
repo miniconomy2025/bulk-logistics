@@ -52,9 +52,9 @@ app.use("/api/thoh", thohRoutes);
 app.use("/api/shipments", shipmentRoutes);
 app.use("/api/shipment-status", shipmentStatusRoutes);
 
-// app.all("*", (req, res, next) => {
-//     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
-// });
+app.all("*", (req, res, next) => {
+    next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
 
 app.use(globalErrorHandler);
 
