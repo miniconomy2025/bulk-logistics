@@ -10,6 +10,11 @@ export interface TruckPurchaseRequest {
     quantity: number;
 }
 
+export interface TimeResponse {
+  epochStartTime?: number;
+  error?: string;
+}
+
 export interface TruckPurchaseResponse {
     orderId: number;
     truckName: string;

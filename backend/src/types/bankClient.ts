@@ -34,9 +34,9 @@ export interface CreateAccountResponse {
 
 export interface AccountDetails {
     success: boolean;
-    account_number: string;
-    net_balance: number;
-    notification_url: string;
+    account_number?: string;
+    net_balance?: number;
+    notification_url?: string;
 }
 
 export interface GetBalanceResponse {
