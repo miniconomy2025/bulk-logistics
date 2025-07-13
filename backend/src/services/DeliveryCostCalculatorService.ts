@@ -11,7 +11,6 @@ export const calculateDeliveryCost = async (pickupRequestDetails: PickupRequestR
 
         const vehicleResult = await getVehicleForPickupRequest(pickupRequestDetails);
 
-
         if (!vehicleResult.success || !vehicleResult.vehicles) {
             return 0;
         }
