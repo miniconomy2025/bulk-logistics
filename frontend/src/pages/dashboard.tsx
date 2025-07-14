@@ -106,7 +106,7 @@ const Dashboard: React.FC = () => {
     };
 
     const fetchRecentTransactionsData = async (): Promise<RecentTransactionsResponse> => {
-        const response = await Transactions.getAll();
+        const response = await Transactions.getAll({ limit: 7, page: 1 });
         const data: RecentTransactionsResponse = await response.json();
         return data;
     };
