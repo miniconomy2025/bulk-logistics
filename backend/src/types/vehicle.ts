@@ -15,5 +15,5 @@ export interface VehicleCreate {
 }
 
 export interface VehicleOperationalCost {
-    operationalCost: number
+    operationalCost: number;
 }

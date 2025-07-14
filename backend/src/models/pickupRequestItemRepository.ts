@@ -36,7 +36,8 @@ export const getItemDefinitions = async (): Promise<ItemDefinitionWithName[]> =>
     const sql = `SELECT
         item_definitions.item_definition_id,
         item_definitions.item_name,
-        capacity_type.name as "capacity_type_name"
+        capacity_type.name as "capacity_type_name",
+        item_definitions.weight_per_unit
         FROM
         item_definitions
         JOIN

@@ -57,7 +57,8 @@ CREATE TABLE item_definitions (
   capacity_type_id   INTEGER     NOT NULL
     REFERENCES capacity_type (capacity_type_id)
       ON UPDATE CASCADE
-      ON DELETE RESTRICT
+      ON DELETE RESTRICT,
+  weight_per_unit    INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE vehicle_type (
