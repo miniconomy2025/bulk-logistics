@@ -39,7 +39,10 @@ interface TopRevenueSourcesResponse {
 }
 
 interface RecentTransactionsResponse {
-    transaction: RecentTransactionsItem[];
+    page: number;
+    limit: number;
+    totalPages: number;
+    transactions: RecentTransactionsItem[];
 }
 
 const Dashboard: React.FC = () => {
@@ -69,7 +72,10 @@ const Dashboard: React.FC = () => {
         ],
     });
     const [recentTransactions, setRecentTransactions] = useState<RecentTransactionsResponse>({
-        transaction: [
+        page: 1,
+        limit: 20,
+        totalPages: 2,
+        transactions: [
             {
                 company: "",
                 amount: "",
@@ -260,7 +266,7 @@ const Dashboard: React.FC = () => {
                     </div>
                     <p className="mb-6 text-sm text-gray-500">Added financial activity</p>
                     <div className="space-y-2">
-                        {recentTransactions.transaction.map((item, key) => {
+                        {recentTransactions.transactions.map((item, key) => {
                             return (
                                 <RecentTransaction
                                     key={key}
