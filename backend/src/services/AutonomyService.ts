@@ -378,29 +378,29 @@ export default class AutonomyService {
         const planner = new ShipmentPlannerService();
         let dropoffEntities: LogisticsNotification[] = [];
         const { createdShipmentsPlan, plannedRequestIds } = await planner.planDailyShipments();
-        const vehiclesWithShipments = await findAllVehiclesWithShipments(currentDate);
+        // const vehiclesWithShipments = await findAllVehiclesWithShipments(currentDate);
 
-        const operationalCosts = vehiclesWithShipments.reduce((totalOperationalCost, vehicle) => {
-            return totalOperationalCost + vehicle.operationalCost;
-        }, 0);
+        // const operationalCosts = vehiclesWithShipments.reduce((totalOperationalCost, vehicle) => {
+        //     return totalOperationalCost + vehicle.operationalCost;
+        // }, 0);
 
-        console.log(`~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nOperational Costs for ${currentDate}...`);
-        console.log(operationalCosts);
+        // console.log(`~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nOperational Costs for ${currentDate}...`);
+        // console.log(operationalCosts);
 
-        const thohDetails = await getCompanyByName("thoh");
+        // const thohDetails = await getCompanyByName("thoh");
 
-        if (thohDetails && thohDetails.bankAccountNumber) {
-            await bankApiClient.makePayment({
-                paymentDetails: {
-                    to_account_number: thohDetails.bankAccountNumber,
-                    amount: operationalCosts,
-                    description: "bulk logistics operational Costs",
-                },
-                transactionCategory: TransactionCategory.Expense,
-            });
-        } else {
-            console.log(`~~~~~~~~~~~~~~~~~~~~~~~~~~~\nOperational Costs for ${currentDate} can not be paid, THOH banking details missing `);
-        }
+        // if (thohDetails && thohDetails.bankAccountNumber) {
+        //     await bankApiClient.makePayment({
+        //         paymentDetails: {
+        //             to_account_number: thohDetails.bankAccountNumber,
+        //             amount: operationalCosts,
+        //             description: "bulk logistics operational Costs",
+        //         },
+        //         transactionCategory: TransactionCategory.Expense,
+        //     });
+        // } else {
+        //     console.log(`~~~~~~~~~~~~~~~~~~~~~~~~~~~\nOperational Costs for ${currentDate} can not be paid, THOH banking details missing `);
+        // }
 
         for (const plan of createdShipmentsPlan) {
             try {
