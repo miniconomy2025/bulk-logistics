@@ -326,8 +326,8 @@ export default class AutonomyService {
             let amount;
 
             if (!!account.net_balance && account.net_balance >= requiredAmount) {
-              this.hasActiveLoan = true;
-              return this.hasActiveLoan;
+                this.hasActiveLoan = true;
+                return this.hasActiveLoan;
             }
 
             amount = requiredAmount - (account.net_balance || 0);
