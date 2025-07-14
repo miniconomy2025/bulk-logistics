@@ -99,7 +99,7 @@ class BankClient extends BaseApiClient {
         paymentDetails: TransactionRequest;
         transactionCategory: string;
     }): Promise<TransactionResponse> {
-        const response = await this.client.post<TransactionResponse>("/transaction", paymentDetails);
+        const response = await this.client.post<TransactionResponse>("/transaction", { ...paymentDetails, to_bank_name: "commercial-bank" });
         try {
             if (response.data) {
                 const transactionDate = simulatedClock.getCurrentDate().toISOString().split("T")[0];

@@ -13,3 +13,7 @@ export interface VehicleCreate {
     operational_cost: number;
     load_capacity: number;
 }
+
+export interface VehicleOperationalCost {
+    operationalCost: number
+}

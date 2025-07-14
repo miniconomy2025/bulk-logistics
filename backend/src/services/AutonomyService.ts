@@ -5,12 +5,12 @@ import { AllLoansInfoResponse, TransactionResponse, TruckDelivery, VehicleWithTy
 import { LogisticsNotification } from "../types/notifications";
 import { notificationApiClient } from "../client/notificationClient";
 import { thohApiClient } from "../client/thohClient";
-import { addVehicle, getAllVehiclesWithType } from "../models/vehicleRepository";
+import { addVehicle, findAllVehiclesWithShipments, getAllVehiclesWithType } from "../models/vehicleRepository";
 import type { TruckFailureRequest, TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
 import { bankApiClient } from "../client/bankClient";
 import { TransactionCategory } from "../enums";
 import { reactivateVehicle } from "./vehicleService";
-import { updateCompanyDetails } from "../models/companyRepository";
+import { getCompanyByName, updateCompanyDetails } from "../models/companyRepository";
 import { SimulatedClock, simulatedClock } from "../utils";
 import { addOrUpdateFailedNotification, getQueuedNotifications, removeSuccessfulNotification } from "../models/notificationsQueueRepository";
 
@@ -135,7 +135,7 @@ export default class AutonomyService {
             console.log(`---${response.message}---`);
             console.log(`${response.success && response.data}`);
 
-            const dropOffDetails = await this.planAndDispatchShipments();
+            const dropOffDetails = await this.planAndDispatchShipments(forDate.toISOString().split("T")[0]);
 
             await new Promise((resolve) => setTimeout(resolve, SimulatedClock.SIMULATED_DAY_IN_REAL_MS * (2 / 3)));
 
@@ -292,7 +292,6 @@ export default class AutonomyService {
                             bankApiClient.makePayment({
                                 paymentDetails: {
                                     to_account_number: purchaseResponse!.bankAccount,
-                                    to_bank_name: "commercial-bank",
                                     amount: purchaseResponse!.price * purchaseResponse!.quantity,
                                     description: String(purchaseResponse!.orderId),
                                 },
@@ -357,11 +356,35 @@ export default class AutonomyService {
     /**
      * Finds paid pickup requests and assigns vehicles to them.
      */
-    private async planAndDispatchShipments(): Promise<LogisticsNotification[]> {
+    private async planAndDispatchShipments(currentDate: string): Promise<LogisticsNotification[]> {
         console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nMorning Ops: Planning and dispatching shipments...");
         const planner = new ShipmentPlannerService();
         let dropoffEntities: LogisticsNotification[] = [];
         const { createdShipmentsPlan, plannedRequestIds } = await planner.planDailyShipments();
+        const vehiclesWithShipments = await findAllVehiclesWithShipments(currentDate);
+
+        const operationalCosts = vehiclesWithShipments.reduce((totalOperationalCost, vehicle) => {
+            return totalOperationalCost + vehicle.operationalCost;
+        }, 0);
+
+        console.log(`~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nOperational Costs for ${currentDate}...`);
+        console.log(operationalCosts);
+
+        const thohDetails = await getCompanyByName("thoh");
+
+        if (thohDetails && thohDetails.bankAccountNumber) {
+            await bankApiClient.makePayment({
+                paymentDetails: {
+                    to_account_number: thohDetails.bankAccountNumber,
+                    amount: operationalCosts,
+                    description: "bulk logistics operational Costs",
+                },
+                transactionCategory: TransactionCategory.Expense,
+            });
+        } else {
+            console.log(`~~~~~~~~~~~~~~~~~~~~~~~~~~~\nOperational Costs for ${currentDate} can not be paid, THOH banking details missing `);
+        }
+
         for (const plan of createdShipmentsPlan) {
             try {
                 for (const item of plan.itemsToAssign) {

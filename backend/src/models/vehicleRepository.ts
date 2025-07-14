@@ -1,5 +1,5 @@
 import db from "../config/database";
-import type { VehicleCreate, VehicleWithDeliveryCount, VehicleWithType } from "../types";
+import type { VehicleCreate, VehicleOperationalCost, VehicleWithDeliveryCount, VehicleWithType } from "../types";
 
 export const findAvailableVehicles = async (dispatchDate: string) => {
     const sql = "SELECT * FROM get_available_vehicles(p_dispatch_date => $1)";
@@ -227,4 +227,12 @@ export const updateVehicleStatus = async (
         disabled_date: result.rows[0].disabled_date,
         message: `Vehicle status successfully updated.`,
     };
+};
+
+export const findAllVehiclesWithShipments = async (dispatchDate: string): Promise<VehicleOperationalCost[]> => {
+    const sql = "SELECT * FROM get_OpCost_For_Vehicles_WithShipments(p_dispatch_date => $1)";
+
+    const result = await db.query(sql, [dispatchDate]);
+
+    return result.rows;
 };
