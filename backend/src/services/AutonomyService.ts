@@ -154,6 +154,17 @@ export default class AutonomyService {
         );
     }
 
+    private extracOperationalCost(cost: string) {
+        let extractedCost = 0;
+
+        if (cost.includes("/")) {
+            extractedCost += Number(cost.split("/")[0]);
+        } else {
+            extractedCost += Number(cost);
+        }
+
+        return extractedCost;
+    }
     public async handleTruckDelivery(truckDelivery: TruckDelivery): Promise<void> {
         if (truckDelivery && truckDelivery.canFulfill) {
             for (let i = 0; i < truckDelivery.quantity; i++) {
@@ -161,13 +172,16 @@ export default class AutonomyService {
                     await addVehicle({
                         type: truckDelivery.itemName,
                         purchase_date: simulatedClock.getCurrentDate().toISOString().split("T")[0],
-                        operational_cost: truckDelivery.operatingCostPerDay,
+                        operational_cost: this.extracOperationalCost(truckDelivery.operatingCostPerDay),
                         load_capacity: truckDelivery.maximumLoad,
                     });
                 } catch (error) {
                     throw new Error("There was an error adding the vehicle");
                 }
             }
+
+            console.log("----------Delivered Trucks:");
+            console.log(truckDelivery.itemName + " : " + truckDelivery.quantity);
         } else {
             console.error("Truck delivery cannot be fulfilled:", truckDelivery.message);
         }
@@ -229,20 +243,21 @@ export default class AutonomyService {
             this.hasActiveLoan = true;
         }
 
+        const truckPriceMap: { [key: string]: number } = {};
+
+        const trucksInfo = await thohApiClient.getTrucksInformation();
+
+        console.log("---TRUCK INFO---", trucksInfo);
+
+        trucksInfo.forEach((truck) => {
+            truckPriceMap[truck.truckName] = truck.price;
+        });
+
         //
         // IF WE DO NOT HAVE A LOAN YET
         //
         if (!this.hasActiveLoan) {
             //2. Figure out cost of [4 large, 4 medium] vehicles from the hand
-            const truckPriceMap: { [key: string]: number } = {};
-
-            const trucksInfo = await thohApiClient.getTrucksInformation();
-
-            console.log("---TRUCK INFO---", trucksInfo);
-
-            trucksInfo.forEach((truck) => {
-                truckPriceMap[truck.truckName] = truck.price;
-            });
 
             //3. Request Loan
             const totalLoanAmount = requiredTrucks.reduce((total, truckInfo) => {
@@ -261,6 +276,7 @@ export default class AutonomyService {
                     this.funds,
                 );
             }
+        } else {
         }
 
         //
@@ -293,8 +309,8 @@ export default class AutonomyService {
                             bankApiClient.makePayment({
                                 paymentDetails: {
                                     to_account_number: purchaseResponse!.bankAccount,
-                                    amount: purchaseResponse!.price * purchaseResponse!.quantity,
-                                    description: String(purchaseResponse!.orderId),
+                                    amount: purchaseResponse!.totalPrice * purchaseResponse!.quantity,
+                                    description: String(purchaseResponse?.truckName + " - purchase:" + purchaseResponse!.orderId),
                                 },
                                 transactionCategory: TransactionCategory.Purchase,
                             }),

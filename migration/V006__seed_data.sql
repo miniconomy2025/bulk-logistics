@@ -60,12 +60,12 @@ INSERT INTO vehicle_type (name, capacity_type_id, maximum_capacity, max_pickups_
 ('small_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'), 500, 250, 500);
 
 -- Insert data into vehicle
-INSERT INTO vehicle (is_active, daily_operational_cost, vehicle_type_id, purchase_date) VALUES
-(TRUE, 150.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'large_truck'), '2022-01-15'),
-(TRUE, 100.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'medium_truck'), '2023-03-01'),
-(TRUE, 75.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'small_truck'), '2023-06-10'),
-(TRUE, 160.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'large_truck'), '2022-07-20'),
-(TRUE, 90.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'medium_truck'), '2021-11-05');
+-- INSERT INTO vehicle (is_active, daily_operational_cost, vehicle_type_id, purchase_date) VALUES
+-- (TRUE, 150.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'large_truck'), '2022-01-15'),
+-- (TRUE, 100.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'medium_truck'), '2023-03-01'),
+-- (TRUE, 75.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'small_truck'), '2023-06-10'),
+-- (TRUE, 160.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'large_truck'), '2022-07-20'),
+-- (TRUE, 90.00, (SELECT vehicle_type_id FROM vehicle_type WHERE name = 'medium_truck'), '2021-11-05');
 
 -- Insert data into pickup_requests (updated with new company references)
 -- INSERT INTO pickup_requests (requesting_company_id, origin_company_id, destination_company_id, original_external_order_id, cost, request_date, completion_date) VALUES

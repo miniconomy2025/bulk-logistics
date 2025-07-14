@@ -36,5 +36,5 @@ export interface TruckDelivery {
     message: string;
     canFulfill: boolean;
     maximumLoad: number;
-    operatingCostPerDay: number;
+    operatingCostPerDay: string;
 }
