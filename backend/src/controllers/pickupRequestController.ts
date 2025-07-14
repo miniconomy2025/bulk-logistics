@@ -22,7 +22,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
     const pickupRequestDetails: PickupRequestRequest = req.body;
     // Check if we already have the weights in the database.
     let machineWeightsInDb = await getMachines();
-    // If we don't have the weights, we need to get them from the hand and update our DB. 
+    // If we don't have the weights, we need to get them from the hand and update our DB.
     if (machineWeightsInDb[0].weight_per_unit === 0) {
         try {
             console.log("fetching the machines and updating the DB");
@@ -31,7 +31,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
             machineWeightsInDb = await getMachines();
             console.log("Machine weights have been updated and re-fetched.");
         } catch (error) {
-            console.error("Issue getting the machine information from thoh OR the db select failed", error)
+            console.error("Issue getting the machine information from thoh OR the db select failed", error);
         }
     }
     // Then we do a young validation here to make sure they're ordering legitimate things.
@@ -62,38 +62,37 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
     console.log("~~~~~~~~~~~~~~~~~~~~~~~ Pickup Request ~~~~~~~~~~~~~~~~~~~~~~~");
     console.log(JSON.stringify(pickupRequestDetails.items, null, 2));
     pickupRequestDetails.items.forEach((item) => {
-
         //
         // For machines we expect units, convert them to their KG counterpart.
         //
         const itemMeasurementType: "KG" | "UNIT" = itemDefinition.find((i) => i.item_name == item.itemName)!.capacity_type_name as "KG" | "UNIT";
         if (machinesWithCount.includes(item.itemName)) {
-            const currentMachinesWeight = machineWeightsInDb.find(machine => machine.item_name === item.itemName).weight_per_unit;
+            const currentMachinesWeight = machineWeightsInDb.find((machine) => machine.item_name === item.itemName).weight_per_unit;
             console.log(currentMachinesWeight);
             for (let i = 0; i < item.quantity; i++) {
                 newItems.push({
                     itemName: item.itemName,
                     quantity: currentMachinesWeight,
-                    measurementType: itemMeasurementType
+                    measurementType: itemMeasurementType,
                 });
             }
         }
         //
         // For the machines we are expecting GROUPED KG. IE A case machine is 250 kg, a PR for 3 machines with look like this:
-        // 
+        //
         // {
         // "itemName": "case_machine",
         // "quantity": "750kg"
         // }
         //
         else if (machinesWithGroupedKg.includes(item.itemName)) {
-            const currentMachinesWeight = machineWeightsInDb.find(machine => machine.item_name === item.itemName).weight_per_unit;
+            const currentMachinesWeight = machineWeightsInDb.find((machine) => machine.item_name === item.itemName).weight_per_unit;
             const numberOfIndividualMachines = Math.floor(item.quantity / currentMachinesWeight);
             for (let i = 0; i < numberOfIndividualMachines; i++) {
                 newItems.push({
                     itemName: item.itemName,
                     quantity: currentMachinesWeight,
-                    measurementType: itemMeasurementType
+                    measurementType: itemMeasurementType,
                 });
             }
         }

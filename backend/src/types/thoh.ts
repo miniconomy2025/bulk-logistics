@@ -57,23 +57,23 @@ export interface TruckDeliveryRequest {
 }
 
 export interface MachinesInformationResponse {
-    machines: MachinesInformation[]
+    machines: MachinesInformation[];
 }
 
 export interface MachinesInformation {
     machineName: string;
     inputs: string;
     quantity: number;
-    inputRatio: MachineInputRatio,
-    productionRate: number,
-    price: number,
-    weight: number
+    inputRatio: MachineInputRatio;
+    productionRate: number;
+    price: number;
+    weight: number;
 }
 
 export interface MachineInputRatio {
     copper?: number;
     plastic?: number;
-    aluminium?:number;
+    aluminium?: number;
     sand?: number;
     silicon?: number;
     cases?: number;

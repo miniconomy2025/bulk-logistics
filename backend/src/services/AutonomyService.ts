@@ -404,7 +404,13 @@ export default class AutonomyService {
                     const response = await notificationApiClient.sendLogisticsNotification(pickupRequestNotification);
                     if (response.status >= 200 && response.status < 300) {
                         await shipmentModel.createShipmentAndAssignitems(plan.vehicle.vehicle_id, item.pickup_request_item_id, plannedRequestIds);
-                        const machinesWithCount = ["screen_machine", "recyling_machine", "ephone_machine", "ephone_plus_machine", "ephone_pro_max_machine"];
+                        const machinesWithCount = [
+                            "screen_machine",
+                            "recyling_machine",
+                            "ephone_machine",
+                            "ephone_plus_machine",
+                            "ephone_pro_max_machine",
+                        ];
                         if (machinesWithCount.includes(item.itemName)) {
                             dropoffEntities.push({
                                 id: item.pickup_request_id,
@@ -418,8 +424,7 @@ export default class AutonomyService {
                                     },
                                 ],
                             });
-                        }
-                        else {
+                        } else {
                             dropoffEntities.push({
                                 id: item.pickup_request_id,
                                 notificationURL: item.destinationCompanyUrl,

@@ -10,10 +10,10 @@ export const getMachines = async () => {
     } catch (error) {
         throw new AppError("Failed to get the item definitions. Please try again later", 500);
     }
-}
+};
 
-export const updateMachineWeights =  async (machineInfo: MachinesInformation[]) => {
-     if (!machineInfo || machineInfo.length === 0) {
+export const updateMachineWeights = async (machineInfo: MachinesInformation[]) => {
+    if (!machineInfo || machineInfo.length === 0) {
         console.log("No machine information provided.");
         return;
     }
@@ -33,7 +33,7 @@ export const updateMachineWeights =  async (machineInfo: MachinesInformation[]) 
     const query = `
         UPDATE item_definitions AS t
         SET weight_per_unit = v.weight
-        FROM (VALUES ${valuePlaceholders.join(', ')}) AS v(machineName, weight)
+        FROM (VALUES ${valuePlaceholders.join(", ")}) AS v(machineName, weight)
         WHERE t.item_name = v.machineName;
     `;
 
@@ -44,4 +44,4 @@ export const updateMachineWeights =  async (machineInfo: MachinesInformation[]) 
         console.error("Failed to update machine weights:", error);
         throw new Error("Database update failed.");
     }
-}
+};
