@@ -337,7 +337,6 @@ export default class AutonomyService {
      */
     private async checkAndSecureLoan(amount: number): Promise<boolean> {
         try {
-
             const loanApplicationResponse = await bankApiClient.applyForLoan({ amount });
 
             this.hasActiveLoan = loanApplicationResponse.success;
