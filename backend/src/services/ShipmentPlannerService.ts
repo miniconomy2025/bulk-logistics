@@ -26,7 +26,10 @@ export class ShipmentPlannerService {
             ...v,
             capacityRemaining: v.maximum_capacity,
             pickupsAssignedToday: 0,
+            dropoffsAssignedToday: 0,
             capacity_type_id: v.capacity_type_id,
+            assignedOrigins: new Set<string>(),
+            assignedDestinations: new Set<string>(),
         }));
 
         const plannedRequestIds = new Set<number>();
@@ -53,34 +56,45 @@ export class ShipmentPlannerService {
         plans: Map<number, ShipmentPlan>,
     ): void {
         for (const request of requests) {
-            const tempFleetState: PlannableVehicle[] = JSON.parse(JSON.stringify(fleet));
+            const tempFleetState: PlannableVehicle[] = fleet.map((v) => ({
+                ...v,
+                assignedOrigins: new Set(v.assignedOrigins),
+                assignedDestinations: new Set(v.assignedDestinations),
+            }));
             const dryRunPlan = new Map<number, { items: PickupToShipmentItemDetails[] }>();
             let canFitEntireRequest = true;
-            let usedVehicleIndexes: number[] = [];
 
             for (const item of request.items) {
                 if (item.shipment_id) {
                     continue;
                 }
-                const vehicleIndex = this._findVehicleForItem(item, tempFleetState);
+                const vehicleIndex = this.findVehicleForItem(item, tempFleetState, request.originCompanyName, request.destinationCompanyName);
+
                 if (vehicleIndex === -1) {
                     canFitEntireRequest = false;
                     break;
                 }
-                tempFleetState[vehicleIndex].capacityRemaining -= item.quantity;
-                tempFleetState[vehicleIndex].pickupsAssignedToday++;
-                usedVehicleIndexes.push(vehicleIndex);
-                if (!dryRunPlan.has(tempFleetState[vehicleIndex].vehicle_id)) {
-                    dryRunPlan.set(tempFleetState[vehicleIndex].vehicle_id, { items: [] });
+
+                const tempVehicle = tempFleetState[vehicleIndex];
+                tempVehicle.capacityRemaining -= item.quantity;
+                if (!tempVehicle.assignedOrigins.has(request.originCompanyName)) {
+                    tempVehicle.assignedOrigins.add(request.originCompanyName);
+                    tempVehicle.pickupsAssignedToday++;
                 }
-                dryRunPlan.get(tempFleetState[vehicleIndex].vehicle_id)!.items.push(item);
+                if (!tempVehicle.assignedDestinations.has(request.destinationCompanyName)) {
+                    tempVehicle.assignedDestinations.add(request.destinationCompanyName);
+                    tempVehicle.dropoffsAssignedToday++;
+                }
+
+                if (!dryRunPlan.has(tempVehicle.vehicle_id)) {
+                    dryRunPlan.set(tempVehicle.vehicle_id, { items: [] });
+                }
+                dryRunPlan.get(tempVehicle.vehicle_id)!.items.push(item);
             }
             if (canFitEntireRequest) {
                 console.log(`PASS 1: Planning full request ${request.pickupRequestId}`);
-                usedVehicleIndexes.forEach((index) => {
-                    fleet[index].pickupsAssignedToday++;
-                });
-                this._commitDryRun(dryRunPlan, fleet, plans);
+                fleet = tempFleetState;
+                this.commitPlan(request, dryRunPlan, plans, fleet);
                 plannedIds.add(request.pickupRequestId);
             }
         }
@@ -90,28 +104,44 @@ export class ShipmentPlannerService {
      * PASS 2: Iterates through remaining items and fits them into any available capacity.
      */
     private _planPartialRequests(requests: PickupRequestWithDetails[], fleet: PlannableVehicle[], plans: Map<number, ShipmentPlan>): void {
-        const allRemainingItems = requests.flatMap((req) => req.items.map((item) => ({ ...item, pickupRequestId: req.pickupRequestId })));
+        const allRemainingItems = requests.flatMap((req) =>
+            req.items.map((item) => ({
+                ...item,
+                originCompanyName: req.originCompanyName,
+                destinationCompanyName: req.destinationCompanyName,
+            })),
+        );
         for (const item of allRemainingItems) {
-            const vehicleIndex = this._findVehicleForItem(item, fleet);
+            const vehicleIndex = this.findVehicleForItem(item, fleet, item.originCompanyName, item.destinationCompanyName);
             if (item.shipment_id) {
                 continue;
             }
             if (vehicleIndex !== -1) {
-                console.log(`PASS 2: Planning partial item ${item.itemName} from request ${item.pickupRequestId}`);
+                console.log(`PASS 2: Planning partial item ${item.itemName} from request ${item.pickup_request_id}`);
                 const vehicle = fleet[vehicleIndex];
+
+                vehicle.capacityRemaining -= item.quantity;
+                if (!vehicle.assignedOrigins.has(item.originCompanyName)) {
+                    vehicle.assignedOrigins.add(item.originCompanyName);
+                    vehicle.pickupsAssignedToday++;
+                }
+                if (!vehicle.assignedDestinations.has(item.destinationCompanyName)) {
+                    vehicle.assignedDestinations.add(item.destinationCompanyName);
+                    vehicle.dropoffsAssignedToday++;
+                }
 
                 if (!plans.has(vehicle.vehicle_id)) {
                     plans.set(vehicle.vehicle_id, {
                         vehicle,
                         itemsToAssign: [],
-                        originCompanyName: "ORIGIN FILLER",
-                        destinationCompanyName: "DESTINATION FILLER",
+                        originCompanyNames: new Set(),
+                        destinationCompanyNames: new Set(),
                     });
                 }
-                plans.get(vehicle.vehicle_id)!.itemsToAssign.push(item);
-
-                vehicle.capacityRemaining -= item.quantity;
-                vehicle.pickupsAssignedToday++;
+                const plan = plans.get(vehicle.vehicle_id)!;
+                plan.itemsToAssign.push(item);
+                plan.originCompanyNames.add(item.originCompanyName);
+                plan.destinationCompanyNames.add(item.destinationCompanyName);
             }
         }
     }
@@ -119,36 +149,61 @@ export class ShipmentPlannerService {
     /**
      * Finds the first available vehicle that can accommodate a given item.
      */
-    private _findVehicleForItem(item: PickupToShipmentItemDetails, fleet: PlannableVehicle[]): number {
-        return fleet.findIndex(
-            (vehicle) =>
-                vehicle.capacity_type_id === item.capacity_type_id &&
-                vehicle.capacityRemaining >= item.quantity &&
-                vehicle.pickupsAssignedToday < vehicle.max_pickups_per_day,
-        );
+    private findVehicleForItem(
+        item: PickupToShipmentItemDetails,
+        fleet: PlannableVehicle[],
+        originCompanyName: string,
+        destinationCompanyName: string,
+    ): number {
+        return fleet.findIndex((vehicle) => {
+            const canTakeItem = vehicle.capacity_type_id === item.capacity_type_id && vehicle.capacityRemaining >= item.quantity;
+
+            if (!canTakeItem) return false;
+
+            // Check if adding this item's origin would exceed the pickup limit
+            const isNewOrigin = !vehicle.assignedOrigins.has(originCompanyName);
+            const hasPickupsLeft = vehicle.pickupsAssignedToday < vehicle.max_pickups_per_day;
+            if (isNewOrigin && !hasPickupsLeft) {
+                return false; // Can't go to a new origin if pickup slots are full
+            }
+
+            // Check if adding this item's destination would exceed the drop-off limit
+            const isNewDestination = !vehicle.assignedDestinations.has(destinationCompanyName);
+            // FIX: This now correctly compares against the vehicle's max_dropoffs_per_day limit
+            const hasDropoffsLeft = vehicle.dropoffsAssignedToday < vehicle.max_pickups_per_day;
+            if (isNewDestination && !hasDropoffsLeft) {
+                return false; // Can't go to a new destination if drop-off slots are full
+            }
+
+            // If we've passed all checks, the vehicle is suitable
+            return true;
+        });
     }
 
     /**
      * Helper to merge a successful dry run plan into the main plan.
      */
-    private _commitDryRun(
+    private commitPlan(
+        request: PickupRequestWithDetails,
         dryRunPlan: Map<number, { items: PickupToShipmentItemDetails[] }>,
-        fleet: PlannableVehicle[],
         plans: Map<number, ShipmentPlan>,
+        fleet: PlannableVehicle[],
     ): void {
         for (const [vehicleId, plan] of dryRunPlan.entries()) {
-            const vehicle = fleet.find((v) => v.vehicle_id === vehicleId)!;
-            vehicle.capacityRemaining -= plan.items.reduce((sum, item) => sum + item.quantity, 0);
-
             if (!plans.has(vehicleId)) {
+                const vehicleForPlan = fleet.find((v) => v.vehicle_id === vehicleId)!;
+
                 plans.set(vehicleId, {
-                    vehicle,
+                    vehicle: vehicleForPlan,
                     itemsToAssign: [],
-                    originCompanyName: "ORIGIN FILLER",
-                    destinationCompanyName: "DESTINATION FILLER",
+                    originCompanyNames: new Set(),
+                    destinationCompanyNames: new Set(),
                 });
             }
-            plans.get(vehicleId)!.itemsToAssign.push(...plan.items);
+            const mainPlan = plans.get(vehicleId)!;
+            mainPlan.itemsToAssign.push(...plan.items);
+            mainPlan.originCompanyNames.add(request.originCompanyName);
+            mainPlan.destinationCompanyNames.add(request.destinationCompanyName);
         }
     }
 }
