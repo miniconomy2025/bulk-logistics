@@ -1,180 +1,164 @@
+import { useEffect, useState, type JSX } from "react";
+import type { TransactionsResponse } from "../types";
+import Transactions from "../data/transactions";
+import { formatDate } from "../utils/format-date";
+
+interface RenderPaginationButtonsProps {
+    totalPages: number;
+    currentPage: number;
+    onPageChange: (page: number) => void;
+}
+
+const renderPaginationButtons = (options: RenderPaginationButtonsProps): JSX.Element[] => {
+    const buttons: JSX.Element[] = [];
+    for (let i = 1; i <= options.totalPages; i++) {
+        const isActive = i === options.currentPage;
+        buttons.push(
+            <button
+                key={i}
+                className={`rounded-md border border-gray-300 px-3 py-1 transition-colors duration-200 ${
+                    isActive ? "bg-blue-500 text-white" : "hover:bg-gray-100"
+                }`}
+                onClick={() => options.onPageChange(i)}
+                disabled={isActive}
+            >
+                {i}
+            </button>,
+        );
+    }
+    return buttons;
+};
+
 const AllTransactions: React.FC = () => {
-    const transactions = [
-        {
-            id: "1",
-            type: "payment",
-            icon: "arrow_upward",
-            name: "John Doe",
-            date: "Today, 2:30 PM",
-            txnId: "#TXN123456",
-            amount: "+1,250.00",
-            status: "Completed",
-            statusColor: "text-green-600",
-            iconBg: "bg-green-100",
-            iconColor: "text-green-600",
-        },
-        {
-            id: "2",
-            type: "transfer",
-            icon: "arrow_downward",
-            name: "Bank Account",
-            date: "Today, 1:45 PM",
-            txnId: "#TXN123457",
-            amount: "-500.00",
-            status: "Completed",
-            statusColor: "text-green-600",
-            iconBg: "bg-red-100",
-            iconColor: "text-red-600",
-        },
-        {
-            id: "3",
-            type: "refund",
-            icon: "refresh",
-            name: "Order #12345",
-            date: "Yesterday, 4:45 PM",
-            txnId: "#TXN123458",
-            amount: "$75.50",
-            status: "Pending",
-            statusColor: "text-yellow-600",
-            iconBg: "bg-blue-100",
-            iconColor: "text-blue-600",
-        },
-        {
-            id: "4",
-            type: "payment",
-            icon: "arrow_upward",
-            name: "Sarah Smith",
-            date: "Yesterday, 11:20 AM",
-            txnId: "#TXN123453",
-            amount: "+2,100.00",
-            status: "Completed",
-            statusColor: "text-green-600",
-            iconBg: "bg-green-100",
-            iconColor: "text-green-600",
-        },
-        {
-            id: "5",
-            type: "failed",
-            icon: "close",
-            name: "Payment Attempt",
-            date: "2 days ago, 3:30 PM",
-            txnId: "#TXN123452",
-            amount: "$350.00",
-            status: "Failed",
-            statusColor: "text-red-600",
-            iconBg: "bg-red-100",
-            iconColor: "text-red-600",
-        },
-        {
-            id: "6",
-            type: "payment",
-            icon: "arrow_upward",
-            name: "Mike Johnson",
-            date: "3 days ago, 9:15 AM",
-            txnId: "#TXN123451",
-            amount: "+890.75",
-            status: "Completed",
-            statusColor: "text-green-600",
-            iconBg: "bg-green-100",
-            iconColor: "text-green-600",
-        },
-        {
-            id: "7",
-            type: "office_supplies",
-            icon: "arrow_downward",
-            name: "Office Supplies Payment",
-            date: "4 days ago, 2:00 PM",
-            txnId: "#TXN123450",
-            amount: "-425.30",
-            status: "Completed",
-            statusColor: "text-green-600",
-            iconBg: "bg-red-100",
-            iconColor: "text-red-600",
-        },
-        {
-            id: "8",
-            type: "payment",
-            icon: "arrow_upward",
-            name: "Lisa Chen",
-            date: "5 days ago, 7:45 PM",
-            txnId: "#TXN123449",
-            amount: "+1,675.00",
-            status: "Completed",
-            statusColor: "text-green-600",
-            iconBg: "bg-green-100",
-            iconColor: "text-green-600",
-        },
-        {
-            id: "9",
-            type: "refund",
-            icon: "refresh",
-            name: "Order #12340",
-            date: "6 days ago, 12:30 PM",
-            txnId: "#TXN123448",
-            amount: "$125.00",
-            status: "Completed",
-            statusColor: "text-green-600",
-            iconBg: "bg-blue-100",
-            iconColor: "text-blue-600",
-        },
-    ];
+    const [transactions, setRecentTransactions] = useState<TransactionsResponse>({
+        page: 1,
+        limit: 20,
+        totalPages: 2,
+        totalTransactions: 0,
+        transactions: [
+            {
+                company: "",
+                amount: "",
+                transaction_date: "",
+                transaction_type: "",
+                pickup_request_id: 0,
+            },
+        ],
+    });
+    const [currentPageIndex, setCurrentPageIndex] = useState<number>(1);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchTransactionsData = async (page: number, limit: number): Promise<TransactionsResponse> => {
+        const response = await Transactions.getAll({ limit, page });
+        const data: TransactionsResponse = await response.json();
+        return data;
+    };
+
+    const handlePageChange = (page: number) => {
+        if (page < 1 || page > transactions.totalPages || page === currentPageIndex) {
+            return; 
+        }
+        setCurrentPageIndex(page);
+        setLoading(true);
+        fetchTransactionsData(page, transactions.limit)
+            .then((result) => {
+                setRecentTransactions(result);
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error("Error fetching transactions:", err);
+                setError("Failed to load transactions.");
+                setLoading(false);
+            });
+    };
+
+    useEffect(() => {
+        setLoading(true);
+        fetchTransactionsData(currentPageIndex, transactions.limit)
+            .then((result) => {
+                setRecentTransactions(result);
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error("Error fetching initial transactions:", err);
+                setError("Failed to load initial transactions.");
+                setLoading(false);
+            });
+    }, [currentPageIndex, transactions.limit]);
+
+    if (loading) {
+        return <div className="py-8 text-center">Loading transactions...</div>;
+    }
+
+    if (error) {
+        return <div className="py-8 text-center text-red-600">Error fetching transactions. Please try again.</div>;
+    }
 
     return (
-        <section className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
-                <div className="flex w-full max-w-xs items-center rounded-lg border border-gray-300 px-3 py-2 transition-all duration-200 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-200">
-                    <span className="material-symbols-outlined mr-2 text-gray-400">search</span>
-                    <input
-                        type="text"
-                        placeholder="Search transactions..."
-                        className="flex-grow bg-transparent text-sm outline-none"
-                    />
-                </div>
-            </div>
-
+        <>
             <div className="space-y-4">
-                {transactions.map((transaction) => (
-                    <div
-                        key={transaction.id}
-                        className="flex items-center justify-between rounded-lg border border-gray-200 p-4 transition-colors duration-200 hover:bg-gray-50"
-                    >
-                        <div className="flex items-center space-x-4">
-                            <div className={`flex h-10 w-10 items-center justify-center rounded-full ${transaction.iconBg}`}>
-                                <span className={`material-symbols-outlined text-lg ${transaction.iconColor}`}>{transaction.icon}</span>
+                {transactions.transactions.length > 0 ? (
+                    transactions.transactions.map((transaction, index) => {
+                        const transactionType =
+                            transaction.transaction_type === "PAYMENT_RECEIVED" || transaction.transaction_type === "LOAN" ? "credit" : "debit";
+
+                        return (
+                            <div
+                                key={index}
+                                className="flex items-center justify-between border-b border-gray-100 py-3 last:border-b-0"
+                            >
+                                <div>
+                                    <p className="text-sm font-medium text-gray-900">
+                                        {transactionType === "credit" ? `Payment from ${transaction.company}` : "Loan repayment"}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                        {transactionType === "credit" ? `Shipment #${transaction.pickup_request_id}` : "Loan disbursement"}
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <p className={`text-sm font-semibold ${transactionType === "credit" ? "text-green-600" : "text-red-600"}`}>
+                                        {transactionType === "credit" ? "+ " : "- "}Ð {transaction.amount}
+                                    </p>
+                                    <p className="text-xs text-gray-500">{formatDate(transaction.transaction_date)}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p className="font-medium text-gray-900">
-                                    {transaction.type === "payment" && "Payment from "}
-                                    {transaction.type === "transfer" && "Transfer to "}
-                                    {transaction.type === "refund" && "Refund - "}
-                                    {transaction.type === "failed" && "Failed "}
-                                    {transaction.type === "office_supplies" && "Office Supplies "}
-                                    {transaction.name}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                    {transaction.date} &bull; <span className="font-mono text-xs">{transaction.txnId}</span>
-                                </p>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <p className="font-semibold text-gray-900">{transaction.amount}</p>
-                            <p className={`text-sm ${transaction.statusColor}`}>{transaction.status}</p>
-                        </div>
-                    </div>
-                ))}
+                        );
+                    })
+                ) : (
+                    <div className="py-8 text-center text-gray-500">No transactions found.</div>
+                )}
             </div>
 
             <div className="mt-6 flex items-center justify-between text-sm text-gray-600">
-                <p>Showing 1-10 of 2,847 transactions</p>
+                <p>
+                    Showing {(currentPageIndex - 1) * transactions.limit + 1} -{" "}
+                    {Math.min(currentPageIndex * transactions.limit, transactions.totalTransactions)} of{" "}
+                    {transactions.totalTransactions.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")} transactions
+                </p>
                 <div className="flex space-x-2">
-                    <button className="rounded-md border border-gray-300 px-3 py-1 transition-colors duration-200 hover:bg-gray-100">Previous</button>
-                    <button className="rounded-md border border-blue-500 bg-blue-50 px-3 py-1 font-semibold text-blue-700">1</button>
-                    <button className="rounded-md border border-gray-300 px-3 py-1 transition-colors duration-200 hover:bg-gray-100">2</button>
-                    <button className="rounded-md border border-gray-300 px-3 py-1 transition-colors duration-200 hover:bg-gray-100">3</button>
-                    <button className="rounded-md border border-gray-300 px-3 py-1 transition-colors duration-200 hover:bg-gray-100">Next</button>
+                    <button
+                        className="rounded-md border border-gray-300 px-3 py-1 transition-colors duration-200 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        onClick={() => handlePageChange(currentPageIndex - 1)}
+                        disabled={currentPageIndex === 1}
+                    >
+                        Previous
+                    </button>
+                    {renderPaginationButtons({
+                        totalPages: transactions.totalPages,
+                        currentPage: currentPageIndex,
+                        onPageChange: handlePageChange,
+                    })}
+                    <button
+                        className="rounded-md border border-gray-300 px-3 py-1 transition-colors duration-200 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        onClick={() => handlePageChange(currentPageIndex + 1)}
+                        disabled={currentPageIndex === transactions.totalPages}
+                    >
+                        Next
+                    </button>
                 </div>
             </div>
-        </section>
+        </>
     );
 };
 

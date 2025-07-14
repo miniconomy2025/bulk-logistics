@@ -1,18 +1,8 @@
 import type { RecentTransactionsItem } from "../types";
+import { formatDate } from "../utils/format-date";
 
 interface RecentTransactionProps {
     item: RecentTransactionsItem;
-}
-
-function formatDate(input: string, newYear: number = new Date().getFullYear()): string {
-    const date = new Date(input);
-    date.setFullYear(newYear);
-
-    const monthNumber = String(date.getMonth() + 1).padStart(2, "0");
-    const monthName = date.toLocaleString("default", { month: "long" });
-    const year = date.getFullYear();
-
-    return `${monthNumber} ${monthName} ${year}`;
 }
 
 export const RecentTransaction: React.FC<RecentTransactionProps> = ({ item }) => {
