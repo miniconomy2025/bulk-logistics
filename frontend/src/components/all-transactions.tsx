@@ -57,7 +57,7 @@ const AllTransactions: React.FC = () => {
 
     const handlePageChange = (page: number) => {
         if (page < 1 || page > transactions.totalPages || page === currentPageIndex) {
-            return; 
+            return;
         }
         setCurrentPageIndex(page);
         setLoading(true);
