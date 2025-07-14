@@ -1,7 +1,7 @@
 import { ShipmentPlannerService } from "./ShipmentPlannerService";
 import { shipmentModel } from "../models/shipmentRepository";
 import { updateCompletionDate, updatePickupRequestStatuses } from "../models/pickupRequestRepository";
-import { AllLoansInfoResponse, TransactionResponse, TruckDelivery, VehicleWithType } from "../types";
+import { AllLoansInfoResponse, ItemDefinitionWithName, TransactionResponse, TruckDelivery, VehicleWithType } from "../types";
 import { LogisticsNotification } from "../types/notifications";
 import { notificationApiClient } from "../client/notificationClient";
 import { thohApiClient } from "../client/thohClient";
@@ -13,6 +13,7 @@ import { reactivateVehicle } from "./vehicleService";
 import { getCompanyByName, updateCompanyDetails } from "../models/companyRepository";
 import { SimulatedClock, simulatedClock } from "../utils";
 import { addOrUpdateFailedNotification, getQueuedNotifications, removeSuccessfulNotification } from "../models/notificationsQueueRepository";
+import { getItemDefinitions } from "../models/pickupRequestItemRepository";
 
 const TICK_CHECK_INTERVAL_MS = 15000;
 
@@ -403,19 +404,40 @@ export default class AutonomyService {
                     const response = await notificationApiClient.sendLogisticsNotification(pickupRequestNotification);
                     if (response.status >= 200 && response.status < 300) {
                         await shipmentModel.createShipmentAndAssignitems(plan.vehicle.vehicle_id, item.pickup_request_item_id, plannedRequestIds);
-
-                        dropoffEntities.push({
-                            id: item.pickup_request_id,
-                            notificationURL: item.destinationCompanyUrl,
-                            type: "DELIVERY",
-                            quantity: item.quantity,
-                            items: [
-                                {
-                                    name: item.itemName,
-                                    quantity: item.quantity,
-                                },
-                            ],
-                        });
+                        const machinesWithCount = [
+                            "screen_machine",
+                            "recyling_machine",
+                            "ephone_machine",
+                            "ephone_plus_machine",
+                            "ephone_pro_max_machine",
+                        ];
+                        if (machinesWithCount.includes(item.itemName)) {
+                            dropoffEntities.push({
+                                id: item.pickup_request_id,
+                                notificationURL: item.destinationCompanyUrl,
+                                type: "DELIVERY",
+                                quantity: 1,
+                                items: [
+                                    {
+                                        name: item.itemName,
+                                        quantity: 1,
+                                    },
+                                ],
+                            });
+                        } else {
+                            dropoffEntities.push({
+                                id: item.pickup_request_id,
+                                notificationURL: item.destinationCompanyUrl,
+                                type: "DELIVERY",
+                                quantity: item.quantity,
+                                items: [
+                                    {
+                                        name: item.itemName,
+                                        quantity: item.quantity,
+                                    },
+                                ],
+                            });
+                        }
                     } else {
                         console.error(`Notification failed for item ${item.itemName} with status: ${response.status}`);
                     }
@@ -436,15 +458,9 @@ export default class AutonomyService {
         const queuedNotifications = await getQueuedNotifications();
         const notificationsToProcess = queuedNotifications.map((qn) => qn.payload);
 
-        const allNotificationsMap = new Map<number | string, LogisticsNotification>();
-        [...notificationsToProcess, ...newNotifications].forEach((n) => {
-            allNotificationsMap.set(n.id, n);
-        });
+        const allNotificationsToAttempt = [...notificationsToProcess, ...newNotifications];
 
-        const allUniqueNotifications = Array.from(allNotificationsMap.values());
-        console.log(`Processing ${allUniqueNotifications.length} unique delivery notifications.`);
-
-        for (const notification of allUniqueNotifications) {
+        for (const notification of allNotificationsToAttempt) {
             try {
                 const response = await notificationApiClient.sendLogisticsNotification(notification);
 
