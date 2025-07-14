@@ -271,8 +271,19 @@ export default class AutonomyService {
     /**
      * Checks if a loan is needed and applies for one if conditions are met.
      */
-    private async _checkAndSecureLoan(amount: number): Promise<boolean> {
+    private async _checkAndSecureLoan(requiredAmount: number): Promise<boolean> {
         const needsLoan = !this.hasActiveLoan;
+
+        const account = await bankApiClient.getAccountDetails();
+
+        let amount;
+
+        if (!!account.net_balance && account.net_balance >= requiredAmount) {
+          this.hasActiveLoan = true;
+          return this.hasActiveLoan;
+        }
+
+        amount = requiredAmount - (account.net_balance || 0);
 
         if (needsLoan) {
             try {
