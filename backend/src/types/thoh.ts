@@ -55,3 +55,29 @@ export interface TruckDeliveryRequest {
     maximumLoad: number;
     operationalCostPerDay: number;
 }
+
+export interface MachinesInformationResponse {
+    machines: MachinesInformation[]
+}
+
+export interface MachinesInformation {
+    machineName: string;
+    inputs: string;
+    quantity: number;
+    inputRatio: MachineInputRatio,
+    productionRate: number,
+    price: number,
+    weight: number
+}
+
+export interface MachineInputRatio {
+    copper?: number;
+    plastic?: number;
+    aluminium?:number;
+    sand?: number;
+    silicon?: number;
+    cases?: number;
+    screens?: number;
+    electronics?: number;
+    any_phone?: number;
+}
