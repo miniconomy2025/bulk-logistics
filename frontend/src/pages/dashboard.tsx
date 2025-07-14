@@ -9,7 +9,7 @@ import IncomeExpensesChart from "../components/income-expense-chart";
 import type { IncomeExpensesChartProps, TransactionsResponse } from "../types";
 import Shipments from "../data/shipments";
 import AllTransactions from "../components/all-transactions";
-import Modal from "../components/ui/modal";
+import Modal from "../components/ui/transactions-modal";
 
 interface TransactionItem {
     purchase: string;
@@ -251,7 +251,6 @@ const Dashboard: React.FC = () => {
                             View all
                         </button>
                         <Modal
-                            title="Transaction History"
                             isOpen={modalIsOpen}
                             onClose={closeModal}
                         >
