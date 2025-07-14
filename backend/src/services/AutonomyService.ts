@@ -154,6 +154,17 @@ export default class AutonomyService {
         );
     }
 
+    private extracOperationalCost(cost: string) {
+        let extractedCost = 0;
+
+        if (cost.includes("/")) {
+            extractedCost += Number(cost.split("/")[0]);
+        } else {
+            extractedCost += Number(cost);
+        }
+
+        return extractedCost;
+    }
     public async handleTruckDelivery(truckDelivery: TruckDelivery): Promise<void> {
         if (truckDelivery && truckDelivery.canFulfill) {
             for (let i = 0; i < truckDelivery.quantity; i++) {
@@ -161,13 +172,16 @@ export default class AutonomyService {
                     await addVehicle({
                         type: truckDelivery.itemName,
                         purchase_date: simulatedClock.getCurrentDate().toISOString().split("T")[0],
-                        operational_cost: truckDelivery.operatingCostPerDay,
+                        operational_cost: this.extracOperationalCost(truckDelivery.operatingCostPerDay),
                         load_capacity: truckDelivery.maximumLoad,
                     });
                 } catch (error) {
                     throw new Error("There was an error adding the vehicle");
                 }
             }
+
+            console.log("----------Delivered Trucks:");
+            console.log(truckDelivery.itemName + " : " + truckDelivery.quantity);
         } else {
             console.error("Truck delivery cannot be fulfilled:", truckDelivery.message);
         }
