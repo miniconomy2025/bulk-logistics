@@ -17,13 +17,13 @@ export interface TimeResponse {
 
 export interface TruckPurchaseResponse {
     orderId: number;
-    truckName: string;
-    price: number;
-    maximumLoad: number;
-    operatingCostPerDay: string;
-    weight: number;
+    truckName: "large_truck" | "medium_truck";
+    totalPrice: number;
+    unitWeight: number;
     totalWeight: number;
     quantity: number;
+    maximumLoad: number;
+    operatingCostPerDay: string;
     bankAccount: string;
 }
 

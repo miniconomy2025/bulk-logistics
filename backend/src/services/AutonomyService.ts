@@ -228,20 +228,21 @@ export default class AutonomyService {
             this.hasActiveLoan = true;
         }
 
+        const truckPriceMap: { [key: string]: number } = {};
+
+        const trucksInfo = await thohApiClient.getTrucksInformation();
+
+        console.log("---TRUCK INFO---", trucksInfo);
+
+        trucksInfo.forEach((truck) => {
+            truckPriceMap[truck.truckName] = truck.price;
+        });
+
         //
         // IF WE DO NOT HAVE A LOAN YET
         //
         if (!this.hasActiveLoan) {
             //2. Figure out cost of [4 large, 4 medium] vehicles from the hand
-            const truckPriceMap: { [key: string]: number } = {};
-
-            const trucksInfo = await thohApiClient.getTrucksInformation();
-
-            console.log("---TRUCK INFO---", trucksInfo);
-
-            trucksInfo.forEach((truck) => {
-                truckPriceMap[truck.truckName] = truck.price;
-            });
 
             //3. Request Loan
             const totalLoanAmount = requiredTrucks.reduce((total, truckInfo) => {
@@ -260,6 +261,7 @@ export default class AutonomyService {
                     this.funds,
                 );
             }
+        } else {
         }
 
         //
@@ -292,8 +294,8 @@ export default class AutonomyService {
                             bankApiClient.makePayment({
                                 paymentDetails: {
                                     to_account_number: purchaseResponse!.bankAccount,
-                                    amount: purchaseResponse!.price * purchaseResponse!.quantity,
-                                    description: String(purchaseResponse!.orderId),
+                                    amount: purchaseResponse!.totalPrice * purchaseResponse!.quantity,
+                                    description: String(purchaseResponse?.truckName + " - purchase:" + purchaseResponse!.orderId),
                                 },
                                 transactionCategory: TransactionCategory.Purchase,
                             }),
