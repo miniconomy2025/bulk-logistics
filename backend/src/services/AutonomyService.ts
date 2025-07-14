@@ -218,8 +218,8 @@ export default class AutonomyService {
         const isLoanApplicationSuccessful = await this._checkAndSecureLoan(totalLoanAmount * 2);
 
         if (isLoanApplicationSuccessful) {
-            const accountBalance = await bankApiClient.getBalance();
-            this.funds = accountBalance.net_balance;
+            const account = await bankApiClient.getAccountDetails();
+            this.funds = account.net_balance;
             console.log(
                 "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV\nLoan secured successfully. Funds available:\n",
                 this.funds,
