@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
+
 import { RecentTransaction } from "../components/recent-transactions";
 import { MetricCard } from "../components/ui/metric-card";
 import { TransactionItem } from "../components/ui/transaction-item";
 import { DashboardLayout } from "../layouts/app-layout";
 import Transactions from "../data/transactions";
 import IncomeExpensesChart from "../components/income-expense-chart";
-import type { IncomeExpensesChartProps, RecentTransactionsItem } from "../types";
+import type { IncomeExpensesChartProps, TransactionsResponse } from "../types";
 import Shipments from "../data/shipments";
+import AllTransactions from "../components/all-transactions";
+import Modal from "../components/ui/transactions-modal";
 
 interface TransactionItem {
     purchase: string;
@@ -35,11 +38,8 @@ interface TopRevenueSourcesResponse {
     transaction: TopRevenueSourceItem[];
 }
 
-interface RecentTransactionsResponse {
-    transaction: RecentTransactionsItem[];
-}
-
 const Dashboard: React.FC = () => {
+    const [modalIsOpen, setIsOpen] = useState<boolean>(false);
     const [totals, setTotals] = useState<TransactionResponse>({
         transaction: [
             {
@@ -64,8 +64,12 @@ const Dashboard: React.FC = () => {
             },
         ],
     });
-    const [recentTransactions, setRecentTransactions] = useState<RecentTransactionsResponse>({
-        transaction: [
+    const [recentTransactions, setRecentTransactions] = useState<TransactionsResponse>({
+        page: 1,
+        limit: 20,
+        totalPages: 2,
+        totalTransactions: 0,
+        transactions: [
             {
                 company: "",
                 amount: "",
@@ -95,9 +99,9 @@ const Dashboard: React.FC = () => {
         return data;
     };
 
-    const fetchRecentTransactionsData = async (): Promise<RecentTransactionsResponse> => {
-        const response = await Transactions.recent();
-        const data: RecentTransactionsResponse = await response.json();
+    const fetchRecentTransactionsData = async (): Promise<TransactionsResponse> => {
+        const response = await Transactions.getAll({ limit: 7, page: 1 });
+        const data: TransactionsResponse = await response.json();
         return data;
     };
 
@@ -142,6 +146,14 @@ const Dashboard: React.FC = () => {
     }, []);
 
     const total_money_out = Number(totals.transaction[0].loan) + Number(totals.transaction[0].expense) + Number(totals.transaction[0].purchase);
+
+    const openModal = (): void => {
+        setIsOpen(true);
+    };
+
+    const closeModal = (): void => {
+        setIsOpen(false);
+    };
 
     return (
         <DashboardLayout>
@@ -232,11 +244,22 @@ const Dashboard: React.FC = () => {
                 <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
                     <div className="mb-4 flex items-center justify-between">
                         <h2 className="text-lg font-semibold text-gray-900">Recent Transactions</h2>
-                        <button className="text-sm font-medium text-blue-600 hover:underline">View all</button>
+                        <button
+                            onClick={openModal}
+                            className="text-sm font-medium text-blue-600 hover:underline"
+                        >
+                            View all
+                        </button>
+                        <Modal
+                            isOpen={modalIsOpen}
+                            onClose={closeModal}
+                        >
+                            <AllTransactions />
+                        </Modal>
                     </div>
                     <p className="mb-6 text-sm text-gray-500">Added financial activity</p>
                     <div className="space-y-2">
-                        {recentTransactions.transaction.map((item, key) => {
+                        {recentTransactions.transactions.map((item, key) => {
                             return (
                                 <RecentTransaction
                                     key={key}

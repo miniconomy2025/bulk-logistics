@@ -8,7 +8,7 @@ import {
     ItemRequest,
 } from "../types/PickupRequest";
 import { calculateDeliveryCost } from "../services/DeliveryCostCalculatorService";
-import { findPickupRequestById, findPickupRequestsByCompanyName, savePickupRequest } from "../models/pickupRequestRepository";
+import { findAllPickupRequests, findPickupRequestById, findPickupRequestsByCompanyName, savePickupRequest } from "../models/pickupRequestRepository";
 import catchAsync from "../utils/errorHandlingMiddleware/catchAsync";
 import AppError from "../utils/errorHandlingMiddleware/appError";
 import { simulatedClock } from "../utils";
@@ -26,8 +26,12 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
     }
     let newItems: ItemRequest[] = [];
     const itemDefinition: ItemDefinitionWithName[] = await getItemDefinitions();
+    console.log("~~~~~~~~~~~~~~~~~~~~~~~ Pickup Request ~~~~~~~~~~~~~~~~~~~~~~~");
+    console.log(JSON.stringify(pickupRequestDetails.items, null, 2));
+
     pickupRequestDetails.items.forEach((item) => {
-        const itemMeasurementType: string = itemDefinition.find((i) => i.item_name == item.itemName)!.capacity_type_name;
+        const itemMeasurementType: "KG" | "UNIT" = itemDefinition.find((i) => i.item_name == item.itemName)!.capacity_type_name as "KG" | "UNIT";
+
         const itemMaxCapacity = itemMeasurementType === "KG" ? 5000 : 2000;
         if (item.quantity > itemMaxCapacity) {
             const fullTrucks = Math.floor(item.quantity / itemMaxCapacity);
@@ -43,12 +47,15 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
                 quantity: remainderQuantity,
             });
         } else {
-            newItems.push(item);
+            newItems.push({ ...item, measurementType: itemMeasurementType });
         }
     });
     const partitionedPickupRequestDetails = { ...pickupRequestDetails, items: newItems };
 
     const cost = await calculateDeliveryCost(partitionedPickupRequestDetails);
+
+    console.log("~~~~~~~~~~~~~~~~~~~~~~~ Cost Calculation Done ~~~~~~~~~~~~~~~~~~~~~~~");
+    console.log("Cost: ", cost);
 
     const result: PickupRequestCreationResult = await savePickupRequest({
         ...partitionedPickupRequestDetails,
@@ -123,4 +130,14 @@ export const getPickupRequestsByCompany = catchAsync(async (req: Request, res: R
     });
 
     res.status(200).json(pickupRequestsResponse);
+});
+
+export const getAllPickupRequests = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const pickupRequests = await findAllPickupRequests();
+
+    if (!pickupRequests) {
+        return next(new AppError("No pickup requests found", 404));
+    }
+
+    res.status(200).json(pickupRequests);
 });

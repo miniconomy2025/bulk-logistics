@@ -1,5 +1,5 @@
 import database from "../config/database";
-import { PickupRequestEntity, PickupRequestCreationResult, PickupRequestGetEntity } from "../types/PickupRequest";
+import { PickupRequestEntity, PickupRequestCreationResult, PickupRequestGetEntity, type PickupRequestDetails } from "../types/PickupRequest";
 import { v4 as uuidv4 } from "uuid"; // Import the UUID generator
 
 export const savePickupRequest = async (pickupRequest: PickupRequestEntity): Promise<PickupRequestCreationResult> => {
@@ -175,4 +175,12 @@ export const updatePickupRequestStatuses = async (completionDate: Date): Promise
 
     // Return the number of rows that were updated.
     return result.rowCount ?? 0;
+};
+
+export const findAllPickupRequests = async (): Promise<PickupRequestDetails[]> => {
+    const query = "SELECT * FROM pickup_requests_view";
+
+    const result = await database.query<PickupRequestDetails>(query);
+
+    return result.rows;
 };

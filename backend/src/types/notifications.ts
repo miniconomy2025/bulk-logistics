@@ -19,3 +19,10 @@ export interface LogisticNotificationsGrouped {
 export interface LogisticsNotificationResponse {
     status: number;
 }
+
+export interface QueuedNotification {
+    notification_id: number;
+    related_pickup_request_id: number;
+    payload: LogisticsNotification;
+    retry_count: number;
+}

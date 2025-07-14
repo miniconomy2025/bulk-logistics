@@ -4,36 +4,14 @@ import { BankNotificationPayload, Loan, Result, LoanInfoResponse } from "../type
 import { findAccountNumberByCompanyName } from "./companyRepository";
 import { getTransactionStatusByName } from "./transactionStatusRepository";
 
-export const findTransactions = async (): Promise<Result<any>> => {
+export const getTotalTransactionsCountRepo = async (): Promise<Result<any>> => {
     const query = `
-         SELECT
-          t.transaction_ledger_id,
-          t.commercial_bank_transaction_id,
-          t.amount,
-          tc.money_direction,
-          CASE 
-            WHEN tc.money_direction = 'in' THEN t.amount 
-            ELSE -t.amount 
-          END AS signed_amount,
-          t.transaction_date,
-          ts.status AS transaction_status,
-          tc.name AS category,
-          COALESCE(c.company_name, 'N/A') AS company_name
-        FROM bank_transactions_ledger t
-        JOIN transaction_status ts 
-          ON t.transaction_status_id = ts.transaction_status_id
-        JOIN transaction_category tc 
-          ON t.transaction_category_id = tc.transaction_category_id
-        LEFT JOIN pickup_requests pr 
-          ON t.related_pickup_request_id = pr.pickup_request_id
-        LEFT JOIN company c 
-          ON pr.requesting_company_id = c.company_id
-        ORDER BY t.transaction_date DESC
-        LIMIT 100;
-        `;
+    SELECT COUNT(*) FROM bank_transactions_ledger;
+  `;
+
     try {
         const result = await db.query(query);
-        return { ok: true, value: result.rows };
+        return { ok: true, value: parseInt(result.rows[0].count, 10) };
     } catch (error) {
         return { ok: false, error: error as Error };
     }
@@ -171,24 +149,26 @@ export const getTransactionBreakdown = async (): Promise<Result<any>> => {
     }
 };
 
-export const getRecentTransactionRepo = async (): Promise<Result<any>> => {
+export const getRecentTransactionRepo = async (page: number, limit: number): Promise<Result<any>> => {
+    const offset = (page - 1) * limit;
+
     const query = `
-    SELECT 
-        t.amount ,
-        t.transaction_date ,
+    SELECT
+        t.amount,
+        t.transaction_date,
         tc.name AS transaction_type,
         c.company_name AS company,
-        pr.pickup_request_id as pickup_request_id 
+        pr.pickup_request_id AS pickup_request_id
     FROM bank_transactions_ledger t
     JOIN transaction_category tc ON t.transaction_category_id = tc.transaction_category_id
     JOIN pickup_requests pr ON t.related_pickup_request_id = pr.pickup_request_id
-    JOIN company c ON pr.requesting_company_id = c.company_id 
+    JOIN company c ON pr.requesting_company_id = c.company_id
     ORDER BY t.transaction_date DESC
-    LIMIT 7;
+    LIMIT $1 OFFSET $2;
   `;
 
     try {
-        const result = await db.query(query);
+        const result = await db.query(query, [limit, offset]);
         return { ok: true, value: result };
     } catch (error) {
         return { ok: false, error: error as Error };

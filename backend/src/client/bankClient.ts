@@ -2,6 +2,7 @@ import { TransactionStatus } from "../enums";
 import { getCategoryIdByName, insertIntoTransactionLedger, saveLoanDetails } from "../models/transactionsRepository";
 import { getTransactionStatusByName } from "../models/transactionStatusRepository";
 import {
+    AllLoansInfoResponse,
     CreateAccountResponse,
     GetBalanceResponse,
     LoanApplicationRequest,
@@ -36,11 +37,27 @@ class BankClient extends BaseApiClient {
                             interest_rate: loanInfo.data.interest_rate,
                             initial_amount: loanInfo.data.initial_amount,
                         },
-                        response.data.initial_transaction_id.toString(),
+                        response.data.loan_number,
                     );
                 }
             }
             return response.data;
+        } catch (error: any) {
+            throw new AppError(error, 500);
+        }
+    }
+
+    public async getAllLoanDetails(): Promise<AllLoansInfoResponse> {
+        try {
+            const response = await this.client.get<AllLoansInfoResponse>("/loan");
+            if (response.data.success && response.data.loans.length > 0) {
+                return response.data;
+            }
+            return {
+                success: false,
+                total_outstanding_amount: 0,
+                loans: [],
+            };
         } catch (error: any) {
             throw new AppError(error, 500);
         }

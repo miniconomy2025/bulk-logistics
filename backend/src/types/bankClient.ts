@@ -5,10 +5,6 @@ export interface LoanApplicationRequest {
 export interface LoanApplicationResponse {
     success: boolean;
     loan_number: string;
-    initial_transaction_id: number;
-    interest_rate: string;
-    started_at: string;
-    write_off: boolean;
 }
 
 export interface LoanInfoResponse {
@@ -20,6 +16,20 @@ export interface LoanInfoResponse {
     write_off: boolean;
     outstanding_amount: string;
     payments: LoanPaymentResponse[];
+}
+
+export interface AllLoansInfoResponse {
+    success: boolean;
+    total_outstanding_amount: number;
+    loans: InnerLoan[];
+}
+
+export interface InnerLoan {
+    loan_number: string;
+    initial_amount: number;
+    interest_rate: number;
+    write_off: boolean;
+    outstanding_amount: number;
 }
 
 interface LoanPaymentResponse {

@@ -23,3 +23,11 @@ export interface RecentTransactionsItem {
     transaction_date: string;
     pickup_request_id: number;
 }
+
+export interface TransactionsResponse {
+    page: number;
+    limit: number;
+    totalPages: number;
+    totalTransactions: number;
+    transactions: RecentTransactionsItem[];
+}

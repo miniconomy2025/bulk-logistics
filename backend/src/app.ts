@@ -11,6 +11,7 @@ import pickupRequestRoutes from "./routes/pickupRequestRoutes";
 import shipmentRoutes from "./routes/shipmentRoutes";
 import thohRoutes from "./routes/thohRoutes";
 import transactionRoutes from "./routes/transactionRoutes";
+import shipmentStatusRoutes from "./routes/shipmentStatus";
 
 import AppError from "./utils/errorHandlingMiddleware/appError";
 import globalErrorHandler from "./utils/errorHandlingMiddleware/errorController";
@@ -39,6 +40,7 @@ init(app, {
 const PORT = 3000;
 
 app.use(express.json());
+app.use(cors());
 
 app.use("/api", thohRoutes);
 app.use("/api/health", health);
@@ -48,6 +50,7 @@ app.use("/api/company", companyRoutes);
 app.use("/api/pickup-request", pickupRequestRoutes);
 app.use("/api/thoh", thohRoutes);
 app.use("/api/shipments", shipmentRoutes);
+app.use("/api/shipment-status", shipmentStatusRoutes);
 
 app.all("*", (req, res, next) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
@@ -60,7 +63,8 @@ app.listen(PORT, () => {
 
     try {
         thohApiClient.getTime().then((response) => {
-            if (typeof response.epochStartTime === "number") {
+            if (!response.error && typeof response.epochStartTime === "number") {
+                console.log("SIMULATION AUTO START INITIATED\nTIME: " + response.epochStartTime);
                 autonomyService.start(response.epochStartTime);
             }
         });

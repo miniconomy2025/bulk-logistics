@@ -1,24 +1,14 @@
 import { Request, Response } from "express";
 import {
     findTransactionById,
-    findTransactions,
     getMonthlyRevenueExpenses,
     getRecentTransactionRepo,
     getTopRevenueSourcesRepo,
     getTotals,
+    getTotalTransactionsCountRepo,
     getTransactionBreakdown,
     insertIntoTransactionLedger,
 } from "../models/transactionsRepository";
-
-export async function getTransactions(_: Request, res: Response): Promise<void> {
-    const result = await findTransactions();
-    if (result.ok) {
-        res.status(200).json({ transactions: result.value });
-    } else {
-        console.error(result.error);
-        res.status(500).json({ message: "Internal server error." });
-    }
-}
 
 export async function getTransactionById(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
@@ -113,12 +103,35 @@ export async function getCostsBreakdown(_: Request, res: Response): Promise<void
     }
 }
 
-export async function getRecentTransactions(_: Request, res: Response): Promise<void> {
-    const result = await getRecentTransactionRepo();
-    if (result.ok) {
-        res.status(200).json({ transaction: result.value.rows });
+export async function getRecentTransactions(request: Request, res: Response): Promise<void> {
+    const page = parseInt(request.query.page as string) || 1;
+    const limit = parseInt(request.query.limit as string) || 20;
+
+    if (isNaN(page) || page < 1) {
+        res.status(400).json({ error: "Invalid page number. Page must be a positive integer." });
+        return;
+    }
+
+    if (isNaN(limit) || limit < 1) {
+        res.status(400).json({ error: "Invalid limit number. Limit must be a positive integer." });
+        return;
+    }
+
+    const transactionsResult = await getRecentTransactionRepo(page, limit);
+    const totalCountResult = await getTotalTransactionsCountRepo();
+
+    if (transactionsResult.ok && totalCountResult.ok) {
+        const totalTransactions = totalCountResult.value;
+        const totalPages = Math.ceil(totalTransactions / limit);
+
+        res.status(200).json({
+            page,
+            limit,
+            totalPages,
+            totalTransactions,
+            transactions: transactionsResult.value.rows,
+        });
     } else {
-        console.error(result.error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 }
