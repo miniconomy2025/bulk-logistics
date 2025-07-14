@@ -7,25 +7,101 @@ interface RenderPaginationButtonsProps {
     totalPages: number;
     currentPage: number;
     onPageChange: (page: number) => void;
+    pageWindowSize?: number;
 }
 
 const renderPaginationButtons = (options: RenderPaginationButtonsProps): JSX.Element[] => {
+    const { totalPages, currentPage, onPageChange, pageWindowSize = 2 } = options;
     const buttons: JSX.Element[] = [];
-    for (let i = 1; i <= options.totalPages; i++) {
-        const isActive = i === options.currentPage;
+
+    let startPage = Math.max(1, currentPage - pageWindowSize);
+    let endPage = Math.min(totalPages, currentPage + pageWindowSize);
+
+    if (currentPage - pageWindowSize < 1) {
+        endPage = Math.min(totalPages, endPage + (1 - (currentPage - pageWindowSize)));
+    }
+
+    if (currentPage + pageWindowSize > totalPages) {
+        startPage = Math.max(1, startPage - (currentPage + pageWindowSize - totalPages));
+    }
+
+    const actualVisiblePages = endPage - startPage + 1;
+    const desiredVisiblePages = pageWindowSize * 2 + 1;
+
+    if (actualVisiblePages < desiredVisiblePages && totalPages >= desiredVisiblePages) {
+        if (startPage === 1) {
+            endPage = desiredVisiblePages;
+        } else if (endPage === totalPages) {
+            startPage = totalPages - desiredVisiblePages + 1;
+        }
+    }
+
+    if (startPage > 1) {
+        buttons.push(
+            <button
+                key={1}
+                className={`rounded-md border border-gray-300 px-3 py-1 transition-colors duration-200 hover:bg-gray-100 ${
+                    1 === currentPage ? "bg-blue-500 text-white" : ""
+                }`}
+                onClick={() => onPageChange(1)}
+                disabled={1 === currentPage}
+            >
+                1
+            </button>,
+        );
+        if (startPage > 2) {
+            buttons.push(
+                <span
+                    key="ellipsis-start"
+                    className="px-3 py-1 text-gray-500"
+                >
+                    ...
+                </span>,
+            );
+        }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        const isActive = i === currentPage;
         buttons.push(
             <button
                 key={i}
                 className={`rounded-md border border-gray-300 px-3 py-1 transition-colors duration-200 ${
                     isActive ? "bg-blue-500 text-white" : "hover:bg-gray-100"
                 }`}
-                onClick={() => options.onPageChange(i)}
+                onClick={() => onPageChange(i)}
                 disabled={isActive}
             >
                 {i}
             </button>,
         );
     }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            buttons.push(
+                <span
+                    key="ellipsis-end"
+                    className="px-3 py-1 text-gray-500"
+                >
+                    ...
+                </span>,
+            );
+        }
+        buttons.push(
+            <button
+                key={totalPages}
+                className={`rounded-md border border-gray-300 px-3 py-1 transition-colors duration-200 hover:bg-gray-100 ${
+                    totalPages === currentPage ? "bg-blue-500 text-white" : ""
+                }`}
+                onClick={() => onPageChange(totalPages)}
+                disabled={totalPages === currentPage}
+            >
+                {totalPages}
+            </button>,
+        );
+    }
+
     return buttons;
 };
 
@@ -33,17 +109,9 @@ const AllTransactions: React.FC = () => {
     const [transactions, setRecentTransactions] = useState<TransactionsResponse>({
         page: 1,
         limit: 20,
-        totalPages: 2,
+        totalPages: 0,
         totalTransactions: 0,
-        transactions: [
-            {
-                company: "",
-                amount: "",
-                transaction_date: "",
-                transaction_type: "",
-                pickup_request_id: 0,
-            },
-        ],
+        transactions: [],
     });
     const [currentPageIndex, setCurrentPageIndex] = useState<number>(1);
     const [loading, setLoading] = useState<boolean>(true);
@@ -57,20 +125,9 @@ const AllTransactions: React.FC = () => {
 
     const handlePageChange = (page: number) => {
         if (page < 1 || page > transactions.totalPages || page === currentPageIndex) {
-            return; 
+            return;
         }
         setCurrentPageIndex(page);
-        setLoading(true);
-        fetchTransactionsData(page, transactions.limit)
-            .then((result) => {
-                setRecentTransactions(result);
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error("Error fetching transactions:", err);
-                setError("Failed to load transactions.");
-                setLoading(false);
-            });
     };
 
     useEffect(() => {
@@ -92,12 +149,16 @@ const AllTransactions: React.FC = () => {
     }
 
     if (error) {
-        return <div className="py-8 text-center text-red-600">Error fetching transactions. Please try again.</div>;
+        return <div className="py-8 text-center text-red-600">Error: {error}</div>;
     }
 
     return (
         <>
-            <div className="space-y-4">
+            <div
+                id="transactions-list"
+                className="space-y-4"
+            >
+                {" "}
                 {transactions.transactions.length > 0 ? (
                     transactions.transactions.map((transaction, index) => {
                         const transactionType =
@@ -126,36 +187,23 @@ const AllTransactions: React.FC = () => {
                         );
                     })
                 ) : (
-                    <div className="py-8 text-center text-gray-500">No transactions found.</div>
+                    <div className="py-8 text-center text-gray-500">No transactions found for this page.</div>
                 )}
             </div>
 
             <div className="mt-6 flex items-center justify-between text-sm text-gray-600">
-                <p>
+                <p className="mr-5">
                     Showing {(currentPageIndex - 1) * transactions.limit + 1} -{" "}
                     {Math.min(currentPageIndex * transactions.limit, transactions.totalTransactions)} of{" "}
                     {transactions.totalTransactions.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")} transactions
                 </p>
                 <div className="flex space-x-2">
-                    <button
-                        className="rounded-md border border-gray-300 px-3 py-1 transition-colors duration-200 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-                        onClick={() => handlePageChange(currentPageIndex - 1)}
-                        disabled={currentPageIndex === 1}
-                    >
-                        Previous
-                    </button>
                     {renderPaginationButtons({
                         totalPages: transactions.totalPages,
                         currentPage: currentPageIndex,
                         onPageChange: handlePageChange,
+                        pageWindowSize: 3,
                     })}
-                    <button
-                        className="rounded-md border border-gray-300 px-3 py-1 transition-colors duration-200 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
-                        onClick={() => handlePageChange(currentPageIndex + 1)}
-                        disabled={currentPageIndex === transactions.totalPages}
-                    >
-                        Next
-                    </button>
                 </div>
             </div>
         </>
