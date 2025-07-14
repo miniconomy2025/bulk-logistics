@@ -56,7 +56,11 @@ export class ShipmentPlannerService {
         plans: Map<number, ShipmentPlan>,
     ): void {
         for (const request of requests) {
-            const tempFleetState: PlannableVehicle[] = fleet.map(v => ({ ...v, assignedOrigins: new Set(v.assignedOrigins), assignedDestinations: new Set(v.assignedDestinations) }));
+            const tempFleetState: PlannableVehicle[] = fleet.map((v) => ({
+                ...v,
+                assignedOrigins: new Set(v.assignedOrigins),
+                assignedDestinations: new Set(v.assignedDestinations),
+            }));
             const dryRunPlan = new Map<number, { items: PickupToShipmentItemDetails[] }>();
             let canFitEntireRequest = true;
 
@@ -100,12 +104,12 @@ export class ShipmentPlannerService {
      * PASS 2: Iterates through remaining items and fits them into any available capacity.
      */
     private _planPartialRequests(requests: PickupRequestWithDetails[], fleet: PlannableVehicle[], plans: Map<number, ShipmentPlan>): void {
-        const allRemainingItems = requests.flatMap(req =>
-            req.items.map(item => ({
+        const allRemainingItems = requests.flatMap((req) =>
+            req.items.map((item) => ({
                 ...item,
                 originCompanyName: req.originCompanyName,
-                destinationCompanyName: req.destinationCompanyName
-            }))
+                destinationCompanyName: req.destinationCompanyName,
+            })),
         );
         for (const item of allRemainingItems) {
             const vehicleIndex = this.findVehicleForItem(item, fleet, item.originCompanyName, item.destinationCompanyName);
@@ -145,10 +149,14 @@ export class ShipmentPlannerService {
     /**
      * Finds the first available vehicle that can accommodate a given item.
      */
-    private findVehicleForItem(item: PickupToShipmentItemDetails, fleet: PlannableVehicle[], originCompanyName: string, destinationCompanyName: string): number {
-        return fleet.findIndex(vehicle => {
-            const canTakeItem = vehicle.capacity_type_id === item.capacity_type_id &&
-                vehicle.capacityRemaining >= item.quantity;
+    private findVehicleForItem(
+        item: PickupToShipmentItemDetails,
+        fleet: PlannableVehicle[],
+        originCompanyName: string,
+        destinationCompanyName: string,
+    ): number {
+        return fleet.findIndex((vehicle) => {
+            const canTakeItem = vehicle.capacity_type_id === item.capacity_type_id && vehicle.capacityRemaining >= item.quantity;
 
             if (!canTakeItem) return false;
 
@@ -162,7 +170,7 @@ export class ShipmentPlannerService {
             // Check if adding this item's destination would exceed the drop-off limit
             const isNewDestination = !vehicle.assignedDestinations.has(destinationCompanyName);
             // FIX: This now correctly compares against the vehicle's max_dropoffs_per_day limit
-            const hasDropoffsLeft = vehicle.dropoffsAssignedToday < vehicle.max_pickups_per_day; 
+            const hasDropoffsLeft = vehicle.dropoffsAssignedToday < vehicle.max_pickups_per_day;
             if (isNewDestination && !hasDropoffsLeft) {
                 return false; // Can't go to a new destination if drop-off slots are full
             }
@@ -175,10 +183,15 @@ export class ShipmentPlannerService {
     /**
      * Helper to merge a successful dry run plan into the main plan.
      */
-    private commitPlan(request: PickupRequestWithDetails, dryRunPlan: Map<number, { items: PickupToShipmentItemDetails[] }>, plans: Map<number, ShipmentPlan>, fleet: PlannableVehicle[]): void {
+    private commitPlan(
+        request: PickupRequestWithDetails,
+        dryRunPlan: Map<number, { items: PickupToShipmentItemDetails[] }>,
+        plans: Map<number, ShipmentPlan>,
+        fleet: PlannableVehicle[],
+    ): void {
         for (const [vehicleId, plan] of dryRunPlan.entries()) {
             if (!plans.has(vehicleId)) {
-                const vehicleForPlan = fleet.find(v => v.vehicle_id === vehicleId)!;
+                const vehicleForPlan = fleet.find((v) => v.vehicle_id === vehicleId)!;
 
                 plans.set(vehicleId, {
                     vehicle: vehicleForPlan,

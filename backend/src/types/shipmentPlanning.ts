@@ -3,7 +3,7 @@ import { PickupToShipmentItemDetails, VehicleWithType } from "./db";
 export interface PlannableVehicle extends VehicleWithType {
     capacityRemaining: number;
     pickupsAssignedToday: number;
-    dropoffsAssignedToday: number; 
+    dropoffsAssignedToday: number;
     capacity_type_id: number;
     assignedOrigins: Set<string>;
     assignedDestinations: Set<string>;
