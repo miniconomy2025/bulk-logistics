@@ -6,7 +6,7 @@ import { TransactionItem } from "../components/ui/transaction-item";
 import { DashboardLayout } from "../layouts/app-layout";
 import Transactions from "../data/transactions";
 import IncomeExpensesChart from "../components/income-expense-chart";
-import type { IncomeExpensesChartProps, RecentTransactionsItem } from "../types";
+import type { IncomeExpensesChartProps, TransactionsResponse } from "../types";
 import Shipments from "../data/shipments";
 import AllTransactions from "../components/all-transactions";
 import Modal from "../components/ui/modal";
@@ -38,13 +38,6 @@ interface TopRevenueSourcesResponse {
     transaction: TopRevenueSourceItem[];
 }
 
-interface RecentTransactionsResponse {
-    page: number;
-    limit: number;
-    totalPages: number;
-    transactions: RecentTransactionsItem[];
-}
-
 const Dashboard: React.FC = () => {
     const [modalIsOpen, setIsOpen] = useState<boolean>(false);
     const [totals, setTotals] = useState<TransactionResponse>({
@@ -71,10 +64,11 @@ const Dashboard: React.FC = () => {
             },
         ],
     });
-    const [recentTransactions, setRecentTransactions] = useState<RecentTransactionsResponse>({
+    const [recentTransactions, setRecentTransactions] = useState<TransactionsResponse>({
         page: 1,
         limit: 20,
         totalPages: 2,
+        totalTransactions: 0,
         transactions: [
             {
                 company: "",
@@ -105,9 +99,9 @@ const Dashboard: React.FC = () => {
         return data;
     };
 
-    const fetchRecentTransactionsData = async (): Promise<RecentTransactionsResponse> => {
-        const response = await Transactions.getAll();
-        const data: RecentTransactionsResponse = await response.json();
+    const fetchRecentTransactionsData = async (): Promise<TransactionsResponse> => {
+        const response = await Transactions.getAll({ limit: 7, page: 1 });
+        const data: TransactionsResponse = await response.json();
         return data;
     };
 

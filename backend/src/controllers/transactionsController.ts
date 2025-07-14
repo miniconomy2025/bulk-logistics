@@ -128,6 +128,7 @@ export async function getRecentTransactions(request: Request, res: Response): Pr
             page,
             limit,
             totalPages,
+            totalTransactions,
             transactions: transactionsResult.value.rows,
         });
     } else {
