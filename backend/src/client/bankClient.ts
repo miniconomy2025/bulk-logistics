@@ -99,8 +99,7 @@ class BankClient extends BaseApiClient {
         paymentDetails: TransactionRequest;
         transactionCategory: string;
     }): Promise<TransactionResponse> {
-
-        console.log("------MAKING PAYMENT------\nPAYMENT REQUEST: ", paymentDetails)
+        console.log("------MAKING PAYMENT------\nPAYMENT REQUEST: ", paymentDetails);
         const response = await this.client.post<TransactionResponse>("/transaction", paymentDetails);
         console.log("------PAYMENT MADE------\nPAYMENT RESPONSE: ", response.data);
 

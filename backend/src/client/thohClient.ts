@@ -14,7 +14,6 @@ class THOHApiClient extends BaseApiClient {
      */
 
     public async purchaseTruck(truckInfo: TruckPurchaseRequest): Promise<TruckPurchaseResponse> {
-
         console.log("------PURCHASING TRUCKS-------\nTRUCK REQUEST: ", truckInfo);
         const response = await this.client.post("/trucks", truckInfo);
         console.log("------PURCHASING COMPLETE-------\nTRUCK RESPONSE: ", response.data);
