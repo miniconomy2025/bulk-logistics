@@ -55,7 +55,7 @@ export interface GetBalanceResponse {
 
 export interface TransactionRequest {
     to_account_number: string;
-    to_bank_name: string;
+    to_bank_name?: string;
     amount: number;
     description: string;
 }

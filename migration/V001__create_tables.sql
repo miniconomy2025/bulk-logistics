@@ -1,6 +1,6 @@
 BEGIN;
 
-DROP TABLE IF EXISTS bank_transactions_ledger;
+DROP TABLE IF EXISTS bank_transactions_ledger CASCADE;
 
 DROP TABLE IF EXISTS loans;
 

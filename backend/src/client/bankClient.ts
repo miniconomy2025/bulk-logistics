@@ -4,6 +4,7 @@ import { getTransactionStatusByName } from "../models/transactionStatusRepositor
 import {
     AllLoansInfoResponse,
     CreateAccountResponse,
+    GetBalanceResponse,
     LoanApplicationRequest,
     LoanApplicationResponse,
     TransactionRequest,
@@ -82,9 +83,9 @@ class BankClient extends BaseApiClient {
         }
     }
 
-    public async getBalance(): Promise<AccountDetails> {
+    public async getBalance(): Promise<GetBalanceResponse> {
         try {
-            const response = await this.client.get<AccountDetails>("/account");
+            const response = await this.client.get<GetBalanceResponse>("/account/me/balance");
             return response.data;
         } catch (error: any) {
             throw new AppError(error, 500);
@@ -98,7 +99,10 @@ class BankClient extends BaseApiClient {
         paymentDetails: TransactionRequest;
         transactionCategory: string;
     }): Promise<TransactionResponse> {
-        const response = await this.client.post<TransactionResponse>("/transaction", paymentDetails);
+        console.log("------MAKING PAYMENT------\nPAYMENT REQUEST: ", paymentDetails);
+        const response = await this.client.post<TransactionResponse>("/transaction", { ...paymentDetails, to_bank_name: "commercial-bank" });
+        console.log("------PAYMENT MADE------\nPAYMENT RESPONSE: ", response.data);
+
         try {
             if (response.data) {
                 const transactionDate = simulatedClock.getCurrentDate().toISOString().split("T")[0];
