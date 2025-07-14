@@ -63,7 +63,8 @@ app.listen(PORT, () => {
 
     try {
         thohApiClient.getTime().then((response) => {
-            if (typeof response.epochStartTime === "number") {
+            if (!response.error && typeof response.epochStartTime === "number") {
+                console.log('SIMULATION AUTO START INITIATED\nTIME: ' + response.epochStartTime);
                 autonomyService.start(response.epochStartTime);
             }
         });
