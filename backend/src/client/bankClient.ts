@@ -4,6 +4,7 @@ import { getTransactionStatusByName } from "../models/transactionStatusRepositor
 import {
     AllLoansInfoResponse,
     CreateAccountResponse,
+    GetBalanceResponse,
     LoanApplicationRequest,
     LoanApplicationResponse,
     TransactionRequest,
@@ -82,9 +83,9 @@ class BankClient extends BaseApiClient {
         }
     }
 
-    public async getBalance(): Promise<AccountDetails> {
+    public async getBalance(): Promise<GetBalanceResponse> {
         try {
-            const response = await this.client.get<AccountDetails>("/account");
+            const response = await this.client.get<GetBalanceResponse>("/account/me/balance");
             return response.data;
         } catch (error: any) {
             throw new AppError(error, 500);
