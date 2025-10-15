@@ -1,5 +1,3 @@
-// src/services/__tests__/notificationService.test.ts
-
 import {
   getQueuedNotifications,
   addOrUpdateFailedNotification,
@@ -12,7 +10,7 @@ import { LogisticsNotification } from '../../types/notifications';
 jest.mock('../../config/database');
 const mockedQuery = db.query as jest.Mock;
 
-describe('Notification Service', () => {
+describe('Notification Queue', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
