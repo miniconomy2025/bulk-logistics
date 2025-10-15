@@ -1,5 +1,3 @@
-// src/services/__tests__/machineService.test.ts
-
 import { getMachines, updateMachineWeights } from '../../models/itemDefinitionRepository';
 import db from '../../config/database';
 import AppError from '../../utils/errorHandlingMiddleware/appError';
@@ -8,7 +6,7 @@ import { MachinesInformation } from '../../types/thoh';
 jest.mock('../../config/database');
 const mockedQuery = db.query as jest.Mock;
 
-describe('Machine Service', () => {
+describe('Item Definitions', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
