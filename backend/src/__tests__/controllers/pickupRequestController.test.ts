@@ -41,7 +41,7 @@ describe('Pickup Request Controller', () => {
 
   beforeEach(() => {
     jsonMock = jest.fn();
-    statusMock = jest.fn().mockReturnValue({ json: jsonMock });
+    statusMock = jest.fn().mockReturnThis();
     mockReq = { body: {}, params: {} };
     mockRes = {
       status: statusMock,
@@ -53,6 +53,31 @@ describe('Pickup Request Controller', () => {
   afterEach(() => {
     jest.clearAllMocks();
   });
+
+  describe('createPickupRequest', () => {
+    it('should process pickup request successfully', async () => {
+      mockReq.body = {
+        destinationCompany: 'TestCo',
+        items: [{ itemName: 'screen', quantity: 100 }],
+      };
+      (getMachines as jest.Mock).mockResolvedValueOnce([{ item_name: 'screen', weight_per_unit: 10 }]);
+      (validatePickupRequest as jest.Mock).mockResolvedValueOnce(true);
+      (getItemDefinitions as jest.Mock).mockResolvedValueOnce([{ item_name: 'screen', capacity_type_name: 'KG' }]);
+      (calculateDeliveryCost as jest.Mock).mockResolvedValueOnce(500);
+      (savePickupRequest as jest.Mock).mockResolvedValueOnce({
+        pickupRequestId: '123',
+        cost: 500,
+        paymentReferenceId: 'PAY123',
+        bulkLogisticsBankAccountNumber: 'ACC123',
+      });
+
+      await createPickupRequest(mockReq as Request, mockRes as Response, mockNext);
+
+      expect(getMachines).toHaveBeenCalled();
+      expect(validatePickupRequest).toHaveBeenCalled();
+    });
+  });
+
 
 
 
