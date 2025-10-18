@@ -17,6 +17,16 @@ import { getItemDefinitions } from "../models/pickupRequestItemRepository";
 
 const TICK_CHECK_INTERVAL_MS = 15000;
 
+// Configuration constants
+const REQUIRED_INITIAL_TRUCKS: TruckPurchaseRequest[] = [
+    { truckName: "large_truck", quantity: 4 },
+    { truckName: "medium_truck", quantity: 4 },
+];
+const BANK_NOTIFICATION_URL = "https://bulk-logistics-api.projects.bbdgrad.com/api/bank";
+const LOAN_MULTIPLIER = 2; // Request loan at 2x truck cost
+const COMPANY_NAME = "bulk-logistics";
+const THOH_COMPANY_NAME = "thoh";
+
 export default class AutonomyService {
     private static instance: AutonomyService;
 
@@ -40,8 +50,11 @@ export default class AutonomyService {
         this.isProcessingTick = false;
         this.tickIntervalId = null;
         this.hasActiveLoan = false;
+        this.initialTrucksSecured = false;
+        this.bankAccountSecured = false;
         this.funds = 0;
         this.initialTrucksCost = 0;
+        this.lastProcessedSimDate = null;
     }
 
     public static getInstance(): AutonomyService {
@@ -191,144 +204,211 @@ export default class AutonomyService {
     // PRIVATE HELPER METHODS (The "Cron Job" Logic)
     // ========================================================================
 
-    private async onInitOperations(): Promise<void> {
-        //
-        // IF WE DO NOT HAVE A BANK ACCOUNT YET.
-        //
-        if (!this.bankAccountSecured) {
-            const bankAccount = await bankApiClient.getAccountDetails();
-            let accountNumber: string;
-
-            //1. Create bank account, send the notification URL to the bank
-            if (!bankAccount.success || !bankAccount.account_number) {
-                const accountCreationResponse = await bankApiClient.createAccount("https://bulk-logistics-api.projects.bbdgrad.com/api/bank");
-                accountNumber = accountCreationResponse.account_number;
-            } else {
-                accountNumber = bankAccount.account_number;
-            }
-
-            if (accountNumber) {
-                try {
-                    await updateCompanyDetails("bulk-logistics", {
-                        bankAccountNumber: accountNumber,
-                    });
-                    this.bankAccountSecured = true;
-                } catch (error) {
-                    throw new Error("Failed to update bank account details for bulk logistics: " + error);
-                }
-            }
+    /**
+     * Ensures a bank account exists for the logistics company.
+     * Creates one if it doesn't exist and updates company details.
+     */
+    private async ensureBankAccountExists(): Promise<void> {
+        if (this.bankAccountSecured) {
+            return;
         }
 
-        const requiredTrucks: TruckPurchaseRequest[] = [
-            { truckName: "large_truck", quantity: 4 },
-            { truckName: "medium_truck", quantity: 4 },
-        ];
+        console.log("Checking bank account status...");
 
-        let currentVehicles: VehicleWithType[] = [];
+        const bankAccount = await bankApiClient.getAccountDetails();
+        let accountNumber: string;
+
+        if (!bankAccount.success || !bankAccount.account_number) {
+            console.log("No bank account found. Creating new account...");
+            const accountCreationResponse = await bankApiClient.createAccount(BANK_NOTIFICATION_URL);
+            accountNumber = accountCreationResponse.account_number;
+            console.log(`Bank account created: ${accountNumber}`);
+        } else {
+            accountNumber = bankAccount.account_number;
+            console.log(`Bank account already exists: ${accountNumber}`);
+        }
 
         try {
-            currentVehicles = await getAllVehiclesWithType();
+            await updateCompanyDetails(COMPANY_NAME, {
+                bankAccountNumber: accountNumber,
+            });
+            this.bankAccountSecured = true;
+            console.log("Bank account details updated successfully.");
         } catch (error) {
-            throw Error("Failed to check vehicles in DB: " + error);
+            throw new Error(`Failed to update bank account details for ${COMPANY_NAME}: ${error}`);
         }
+    }
 
-        let allLoansInfo: AllLoansInfoResponse;
-
-        try {
-            allLoansInfo = await bankApiClient.getAllLoanDetails();
-        } catch (error) {
-            throw new Error("Error getting all loans: " + error);
-        }
-        if (allLoansInfo!.success && allLoansInfo!.loans.length > 0) {
-            this.hasActiveLoan = true;
-        }
-
-        const truckPriceMap: { [key: string]: number } = {};
-
+    /**
+     * Fetches truck information from THOH and creates a price lookup map.
+     * @returns Object mapping truck names to their prices
+     */
+    private async getTruckPriceMap(): Promise<{ [key: string]: number }> {
         const trucksInfo = await thohApiClient.getTrucksInformation();
+        console.log("Fetched truck pricing information from THOH");
 
-        console.log("---TRUCK INFO---", trucksInfo);
-
+        const priceMap: { [key: string]: number } = {};
         trucksInfo.forEach((truck) => {
-            truckPriceMap[truck.truckName] = truck.price;
+            priceMap[truck.truckName] = truck.price;
         });
 
-        //
-        // IF WE DO NOT HAVE A LOAN YET
-        //
-        if (!this.hasActiveLoan) {
-            //2. Figure out cost of [4 large, 4 medium] vehicles from the hand
+        return priceMap;
+    }
 
-            //3. Request Loan
-            const totalLoanAmount = requiredTrucks.reduce((total, truckInfo) => {
-                const price = truckPriceMap[truckInfo.truckName];
-                return total + price * truckInfo.quantity;
-            }, 0);
+    /**
+     * Ensures a loan is secured to finance initial truck purchases.
+     * @param truckPriceMap Price lookup for calculating loan amount
+     */
+    private async ensureLoanSecured(truckPriceMap: { [key: string]: number }): Promise<void> {
+        // Check if loan already exists
+        const allLoansInfo = await bankApiClient.getAllLoanDetails();
 
-            console.log("---TOTAL LOAN AMOUNT---", totalLoanAmount);
-            const isLoanApplicationSuccessful = await this.checkAndSecureLoan(totalLoanAmount * 2);
-
-            if (isLoanApplicationSuccessful) {
-                const accountBalance = await bankApiClient.getAccountDetails();
-                this.funds = accountBalance.net_balance;
-                console.log(
-                    "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV\nLoan secured successfully. Funds available:\n",
-                    this.funds,
-                );
-            }
-        } else {
+        if (allLoansInfo.success && allLoansInfo.loans.length > 0) {
+            this.hasActiveLoan = true;
+            console.log("Existing loan found. Skipping loan application.");
+            return;
         }
 
-        //
-        // IF WE HAVE NOT SECURED OUR INITIAL TRUCKS
-        //
-        if (!this.initialTrucksSecured) {
-            if (currentVehicles.length > 0) {
-                this.initialTrucksSecured = true;
+        if (this.hasActiveLoan) {
+            return;
+        }
+
+        console.log("No active loan found. Calculating required loan amount...");
+
+        // Calculate total cost of required trucks
+        const totalTruckCost = REQUIRED_INITIAL_TRUCKS.reduce((total, truckInfo) => {
+            const price = truckPriceMap[truckInfo.truckName];
+            return total + (price * truckInfo.quantity);
+        }, 0);
+
+        const totalLoanAmount = totalTruckCost * LOAN_MULTIPLIER;
+        console.log(`Total truck cost: ${totalTruckCost}, Requesting loan: ${totalLoanAmount}`);
+
+        const isLoanApplicationSuccessful = await this.checkAndSecureLoan(totalLoanAmount);
+
+        if (isLoanApplicationSuccessful) {
+            const accountBalance = await bankApiClient.getAccountDetails();
+            this.funds = accountBalance.net_balance;
+            console.log(`Loan secured successfully. Available funds: ${this.funds}`);
+        } else {
+            throw new Error("Failed to secure loan for truck purchases");
+        }
+    }
+
+    /**
+     * Processes payments for purchased trucks.
+     * @param truckPurchaseResponses Array of truck purchase responses
+     */
+    private async processTruckPayments(truckPurchaseResponses: (TruckPurchaseResponse | undefined)[]): Promise<void> {
+        const firstResponse = truckPurchaseResponses[0];
+
+        if (!firstResponse || !firstResponse.orderId) {
+            console.log("First truck purchase response was undefined or missing orderId. Skipping payment.");
+            return;
+        }
+
+        // Update THOH's bank account details
+        await updateCompanyDetails(THOH_COMPANY_NAME, {
+            bankAccountNumber: firstResponse.bankAccount,
+        });
+        console.log(`Updated ${THOH_COMPANY_NAME} bank account details`);
+
+        // Create payment promises for all truck purchases
+        const paymentPromises: Promise<TransactionResponse>[] = [];
+
+        for (const purchaseResponse of truckPurchaseResponses) {
+            if (!purchaseResponse) continue;
+
+            paymentPromises.push(
+                bankApiClient.makePayment({
+                    paymentDetails: {
+                        to_account_number: purchaseResponse.bankAccount,
+                        amount: purchaseResponse.totalPrice * purchaseResponse.quantity,
+                        description: `${purchaseResponse.truckName} - purchase:${purchaseResponse.orderId}`,
+                    },
+                    transactionCategory: TransactionCategory.Purchase,
+                })
+            );
+        }
+
+        // Process all payments
+        const paymentResults = await Promise.all(paymentPromises);
+
+        let allPaymentsSuccessful = true;
+        paymentResults.forEach((result) => {
+            if (result.success) {
+                console.log(`Payment successful for transaction: ${result.transaction_number}`);
             } else {
-                // If we do, we update initialTrucksSecured to true.
-                // 4. Purchase trucks
-                const truckPurchasePromises: Promise<TruckPurchaseResponse | undefined>[] = [];
-                requiredTrucks.forEach((truckInfo) => {
-                    truckPurchasePromises.push(this.checkAndPurchaseTrucks(truckInfo));
-                });
-
-                const trucksPurchaseResponse = await Promise.all(truckPurchasePromises);
-
-                const trucksPurchasePaymentsPromises: Promise<TransactionResponse>[] = [];
-
-                const firstResponse = trucksPurchaseResponse[0];
-
-                if (firstResponse && firstResponse.orderId) {
-                    await updateCompanyDetails("thoh", {
-                        bankAccountNumber: firstResponse.bankAccount,
-                    });
-
-                    for (const purchaseResponse of trucksPurchaseResponse) {
-                        trucksPurchasePaymentsPromises.push(
-                            bankApiClient.makePayment({
-                                paymentDetails: {
-                                    to_account_number: purchaseResponse!.bankAccount,
-                                    amount: purchaseResponse!.totalPrice * purchaseResponse!.quantity,
-                                    description: String(purchaseResponse?.truckName + " - purchase:" + purchaseResponse!.orderId),
-                                },
-                                transactionCategory: TransactionCategory.Purchase,
-                            }),
-                        );
-                    }
-                } else {
-                    console.log("First truck purchase response was undefined or missing orderId. Skipping payment.");
-                }
-                const paymentResults = await Promise.all(trucksPurchasePaymentsPromises);
-                paymentResults.forEach((result) => {
-                    if (result.success) {
-                        console.log(`Payment successful for transaction: ${result.transaction_number}`);
-                        this.initialTrucksSecured = true;
-                    } else {
-                        console.error("Payment failed:", result);
-                    }
-                });
+                console.error("Payment failed:", result);
+                allPaymentsSuccessful = false;
             }
+        });
+
+        if (allPaymentsSuccessful) {
+            this.initialTrucksSecured = true;
+            console.log("All truck payments processed successfully.");
+        }
+    }
+
+    /**
+     * Ensures the initial fleet of trucks is purchased and paid for.
+     * @param truckPriceMap Price lookup for validation (optional, for future use)
+     */
+    private async ensureInitialFleetPurchased(): Promise<void> {
+        if (this.initialTrucksSecured) {
+            return;
+        }
+
+        console.log("Checking initial truck fleet status...");
+
+        // Check if we already have vehicles
+        const currentVehicles = await getAllVehiclesWithType();
+
+        if (currentVehicles.length > 0) {
+            this.initialTrucksSecured = true;
+            console.log(`Initial fleet already exists (${currentVehicles.length} vehicles found).`);
+            return;
+        }
+
+        console.log("No vehicles found. Purchasing initial truck fleet...");
+
+        // Purchase all required trucks
+        const purchasePromises = REQUIRED_INITIAL_TRUCKS.map((truckInfo) =>
+            this.checkAndPurchaseTrucks(truckInfo)
+        );
+
+        const purchaseResponses = await Promise.all(purchasePromises);
+
+        console.log(`Successfully ordered ${purchaseResponses.length} truck types`);
+
+        // Process payments for all purchases
+        await this.processTruckPayments(purchaseResponses);
+    }
+
+    /**
+     * Orchestrates all one-time initialization operations.
+     * Runs on the first simulation tick to set up bank account, loan, and initial fleet.
+     */
+    private async onInitOperations(): Promise<void> {
+        console.log("\n=== INITIALIZATION OPERATIONS ===");
+
+        try {
+            // Step 1: Ensure bank account exists
+            await this.ensureBankAccountExists();
+
+            // Step 2: Get truck pricing information
+            const truckPriceMap = await this.getTruckPriceMap();
+
+            // Step 3: Ensure loan is secured for truck purchases
+            await this.ensureLoanSecured(truckPriceMap);
+
+            // Step 4: Purchase initial fleet of trucks
+            await this.ensureInitialFleetPurchased();
+
+            console.log("=== INITIALIZATION COMPLETE ===\n");
+        } catch (error) {
+            console.error("FATAL ERROR during initialization operations:", error);
+            throw error;
         }
     }
 
