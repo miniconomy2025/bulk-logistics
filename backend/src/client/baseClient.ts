@@ -32,6 +32,9 @@ export abstract class BaseApiClient {
         this.client = axios.create({
             baseURL: baseURL,
             httpsAgent: httpsAgent,
+            headers: {
+                "Client-Id": "bulk-logistics",
+            },
         });
 
         this.client.interceptors.response.use(
