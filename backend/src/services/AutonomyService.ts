@@ -201,7 +201,7 @@ export default class AutonomyService {
 
             //1. Create bank account, send the notification URL to the bank
             if (!bankAccount.success || !bankAccount.account_number) {
-                const accountCreationResponse = await bankApiClient.createAccount("https://bulk-logistics-api.projects.bbdgrad.com/api/bank");
+                const accountCreationResponse = await bankApiClient.createAccount("https://team7-todo.xyz/api/bank");
                 accountNumber = accountCreationResponse.account_number;
             } else {
                 accountNumber = bankAccount.account_number;
