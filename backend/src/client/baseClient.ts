@@ -12,15 +12,15 @@ export abstract class BaseApiClient {
         this.serviceName = serviceName;
 
         // const customCa = fs.readFileSync(process.env.MTLS_CA_CERT_PATH!);
-        const customCa = fs.readFileSync("/etc/ssl/bulk-logistics/root-ca.crt");
+        // const customCa = fs.readFileSync("/etc/ssl/bulk-logistics/root-ca.crt");
 
-        const allCAs = [...tls.rootCertificates, customCa];
+        // const allCAs = [...tls.rootCertificates, customCa];
 
         const httpsAgent = new https.Agent({
-            key: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.key"),
-            cert: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.crt"),
-            ca: allCAs,
-            rejectUnauthorized: true,
+            // key: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.key"),
+            // cert: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.crt"),
+            // ca: allCAs,
+            // rejectUnauthorized: true,
         });
         // const httpsAgent = new https.Agent({
         //     key: fs.readFileSync(process.env.MTLS_PRIVATE_KEY_PATH!),

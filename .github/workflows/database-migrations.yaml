@@ -28,7 +28,7 @@ jobs:
 
       - name: Ensure schema_migrations table exists
         run: |
-          psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -c "
+          psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -c "
             CREATE TABLE IF NOT EXISTS schema_migrations (
               filename TEXT PRIMARY KEY,
               applied_at TIMESTAMPTZ DEFAULT now()
@@ -40,5 +40,5 @@ jobs:
           for file in $(find migration -type f -name '*.sql' | sort); do
             filename=$(basename "$file")
             echo "Applying migration $filename"
-            psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DATABASE" -f "$file"
+            psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -f "$file"
           done
