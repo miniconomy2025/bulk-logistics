@@ -1,30 +1,45 @@
 export default {
-  preset: 'ts-jest',
-  testEnvironment: 'jsdom',
-  roots: ['<rootDir>/src'],
-  testMatch: [
-    '**/__tests__/**/*.ts',
-    '**/__tests__/**/*.tsx',
-    '**/?(*.)+(spec|test).ts',
-    '**/?(*.)+(spec|test).tsx'
-  ],
-  transform: {
-    '^.+\\.tsx?$': 'ts-jest',
-  },
-  collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/main.tsx', // Exclude main entry file from coverage
-    '!src/vite-env.d.ts',
-  ],
-  coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov', 'html'],
-  setupFilesAfterEnv: ['<rootDir>/src/__tests__/setup.ts'],
-  testTimeout: 10000,
-  clearMocks: true,
-  restoreMocks: true,
-  moduleNameMapping: {
-    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
-    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': 'jest-transform-stub',
-  },
+    testEnvironment: "jsdom",
+    roots: ["<rootDir>/src"],
+    testMatch: ["**/__tests__/**/*.ts", "**/__tests__/**/*.tsx", "**/?(*.)+(spec|test).ts", "**/?(*.)+(spec|test).tsx"],
+    transform: {
+        "^.+\\.tsx?$": [
+            "ts-jest",
+            {
+                tsconfig: {
+                    jsx: "react-jsx",
+                },
+            },
+        ],
+    },
+    collectCoverageFrom: [
+        "src/**/*.{ts,tsx}",
+        "!src/**/*.d.ts",
+        "!src/main.tsx", // Exclude main entry file from coverage
+        "!src/vite-env.d.ts",
+        "!src/**/__tests__/**",
+        "!src/**/*.test.{ts,tsx}",
+        "!src/**/*.spec.{ts,tsx}",
+    ],
+    coverageDirectory: "coverage",
+    coverageReporters: ["text", "lcov", "html", "json"],
+    coverageThreshold: {
+        global: {
+            branches: 80,
+            functions: 80,
+            lines: 80,
+            statements: 80,
+        },
+    },
+    setupFilesAfterEnv: ["<rootDir>/src/__tests__/setup.ts"],
+    testTimeout: 10000,
+    clearMocks: true,
+    restoreMocks: true,
+    moduleNameMapper: {
+        "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+        "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "jest-transform-stub",
+    },
+    moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
+    testPathIgnorePatterns: ["/node_modules/", "/dist/"],
+    verbose: true,
 };
