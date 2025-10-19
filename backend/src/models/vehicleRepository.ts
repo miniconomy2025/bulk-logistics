@@ -1,7 +1,7 @@
 import db from "../config/database";
-import type { VehicleCreate, VehicleOperationalCost, VehicleWithDeliveryCount, VehicleWithType } from "../types";
+import type { AvailableVehicle, VehicleCreate, VehicleOperationalCost, VehicleWithDeliveryCount, VehicleWithType } from "../types";
 
-export const findAvailableVehicles = async (dispatchDate: string) => {
+export const findAvailableVehicles = async (dispatchDate: string): Promise<AvailableVehicle[]> => {
     const sql = "SELECT * FROM get_available_vehicles(p_dispatch_date => $1)";
 
     const res = await db.query(sql, [dispatchDate]);
@@ -80,6 +80,7 @@ export const getAllVehiclesWithType = async (): Promise<VehicleWithType[]> => {
         daily_operational_cost: parseFloat(row.daily_operational_cost),
         is_in_active_shipment: row.is_in_active_shipment,
         max_pickups_per_day: row.vt_max_pickups,
+        max_dropoffs_per_day: row.max_dropoffs,
         vehicle_type: {
             vehicle_type_id: row.vt_id,
             name: row.vt_name,
@@ -145,6 +146,7 @@ export const getVehicleForShipmentId = async (shipmentId: number): Promise<Vehic
         purchase_date: row.purchase_date,
         daily_operational_cost: row.vt_cost,
         max_pickups_per_day: row.vt_max_pickups,
+        max_dropoffs_per_day: row.max_dropoffs,
         vehicle_type: {
             vehicle_type_id: row.vt_id,
             name: row.vt_name,
@@ -190,6 +192,7 @@ export const getAvailableVehiclesWithType = async (): Promise<VehicleWithType[]>
         purchase_date: row.purchase_date,
         disabled_date: row.disabled_date,
         max_pickups_per_day: row.vt_max_pickups,
+        max_dropoffs_per_day: row.max_dropoffs,
         vehicle_type: {
             vehicle_type_id: row.vt_id,
             name: row.vt_name,

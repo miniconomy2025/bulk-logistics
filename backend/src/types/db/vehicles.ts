@@ -16,9 +16,10 @@ export interface Vehicle {
     disabled_date?: string;
     is_in_active_shipment?: boolean;
 }
-export interface VehicleWithType extends Vehicle {
-    vehicle_type: VehicleType;
+export interface VehicleWithType extends Partial<Vehicle> {
+    vehicle_type?: VehicleType;
     max_pickups_per_day: number;
+    max_dropoffs_per_day: number;
 }
 
 export interface GetVehicleResult {
