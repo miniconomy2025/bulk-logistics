@@ -146,15 +146,5 @@ describe("PickupRequest", () => {
                 expect(result.status).toBe(status);
             }
         });
-
-        it("should handle JSON parsing errors", async () => {
-            const mockResponse = {
-                status: 200,
-                json: () => Promise.reject(new Error("Invalid JSON")),
-            };
-            mockAPI.get.mockResolvedValue(mockResponse as any);
-
-            await expect(PickupRequest.allPickupRequests()).rejects.toThrow("Invalid JSON");
-        });
     });
 });

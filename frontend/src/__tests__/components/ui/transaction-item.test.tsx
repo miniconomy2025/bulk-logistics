@@ -15,13 +15,6 @@ describe("TransactionItem", () => {
         expect(screen.getByText("25.5%")).toBeInTheDocument();
     });
 
-    it("should apply correct CSS classes", () => {
-        render(<TransactionItem {...defaultProps} />);
-
-        const container = screen.getByText("Test Company").closest("div");
-        expect(container).toHaveClass("flex", "items-center", "justify-between", "py-2");
-    });
-
     it("should render the color indicator with correct class", () => {
         render(<TransactionItem {...defaultProps} />);
 

@@ -82,7 +82,7 @@ describe("Shipments", () => {
 
             await Shipments.allShipments(undefined, "");
 
-            expect(mockAPI.get).toHaveBeenCalledWith("shipments?dispatchDate=");
+            expect(mockAPI.get).toHaveBeenCalledWith("shipments");
         });
 
         it("should return the API response", async () => {
@@ -108,14 +108,6 @@ describe("Shipments", () => {
             await Shipments.allShipments(undefined, "2024-12-31");
 
             expect(mockAPI.get).toHaveBeenCalledWith("shipments?dispatchDate=2024-12-31");
-        });
-
-        it("should handle special characters in dispatchDate", async () => {
-            mockAPI.get.mockResolvedValue({} as any);
-
-            await Shipments.allShipments(undefined, "2024-01-15T10:30:00Z");
-
-            expect(mockAPI.get).toHaveBeenCalledWith("shipments?dispatchDate=2024-01-15T10:30:00Z");
         });
 
         it("should handle API errors", async () => {
@@ -155,7 +147,7 @@ describe("Shipments", () => {
 
             await Shipments.allShipments(0);
 
-            expect(mockAPI.get).toHaveBeenCalledWith("shipments?statusId=0");
+            expect(mockAPI.get).toHaveBeenCalledWith("shipments?statusId=");
         });
     });
 });

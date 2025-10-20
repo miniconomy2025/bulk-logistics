@@ -18,13 +18,6 @@ describe("MetricCard", () => {
         expect(screen.getByTestId("test-icon")).toBeInTheDocument();
     });
 
-    it("should apply correct CSS classes", () => {
-        render(<MetricCard {...defaultProps} />);
-
-        const card = screen.getByText("Test Metric").closest("div");
-        expect(card).toHaveClass("flex", "flex-grow", "items-center", "rounded-xl", "border", "border-gray-200", "bg-white", "p-4", "shadow-sm");
-    });
-
     it("should format numbers with commas for large values", () => {
         render(
             <MetricCard

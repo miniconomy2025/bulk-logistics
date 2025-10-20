@@ -1,4 +1,6 @@
-export default {
+import type { Config } from "@jest/types";
+
+const config: Config.InitialOptions = {
     testEnvironment: "jsdom",
     roots: ["<rootDir>/src"],
     testMatch: ["**/__tests__/**/*.ts", "**/__tests__/**/*.tsx", "**/?(*.)+(spec|test).ts", "**/?(*.)+(spec|test).tsx"],
@@ -42,4 +44,7 @@ export default {
     moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
     testPathIgnorePatterns: ["/node_modules/", "/dist/"],
     verbose: true,
+    preset: "ts-jest",
 };
+
+export default config;

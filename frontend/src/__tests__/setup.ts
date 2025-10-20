@@ -1,4 +1,9 @@
 import "@testing-library/jest-dom";
+import { configDotenv } from "dotenv";
+
+configDotenv({
+    path: ".env.test",
+});
 
 Object.defineProperty(window, "matchMedia", {
     writable: true,
@@ -15,17 +20,17 @@ Object.defineProperty(window, "matchMedia", {
 });
 
 global.IntersectionObserver = class IntersectionObserver implements IntersectionObserver {
-  readonly root: Element | null = null;
-  readonly rootMargin: string = '';
-  readonly thresholds: ReadonlyArray<number> = [];
+    readonly root: Element | null = null;
+    readonly rootMargin: string = "";
+    readonly thresholds: ReadonlyArray<number> = [];
 
-  constructor() {}
-  disconnect() {}
-  observe() {}
-  unobserve() {}
-  takeRecords(): IntersectionObserverEntry[] {
-    return [];
-  }
+    constructor() {}
+    disconnect() {}
+    observe() {}
+    unobserve() {}
+    takeRecords(): IntersectionObserverEntry[] {
+        return [];
+    }
 } as unknown as typeof IntersectionObserver;
 
 global.ResizeObserver = class ResizeObserver {

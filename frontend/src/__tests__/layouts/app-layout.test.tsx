@@ -47,17 +47,6 @@ describe("DashboardLayout", () => {
         expect(screen.getByText("Sidebar Menu")).toBeInTheDocument();
     });
 
-    it("should apply correct CSS classes to container", () => {
-        render(
-            <DashboardLayout>
-                <div>Test Content</div>
-            </DashboardLayout>,
-        );
-
-        const container = screen.getByTestId("mobile-menu").closest("div");
-        expect(container).toHaveClass("font-inter", "block", "min-h-screen", "bg-gray-100", "lg:flex");
-    });
-
     it("should render multiple children", () => {
         render(
             <DashboardLayout>

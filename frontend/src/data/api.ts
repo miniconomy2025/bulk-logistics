@@ -5,7 +5,7 @@ interface PostProps {
 }
 
 export default class API {
-    private static apiRoot: string | undefined;
+    public static apiRoot: string | undefined;
 
     private static async pingAPI(): Promise<void> {
         const apiRoot = "https://team7-todo.xyz";

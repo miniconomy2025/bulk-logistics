@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { RecentTransaction } from "../../components/recent-transactions";
 import type { RecentTransactionsItem } from "../../types";
 
-jest.mock("../../../utils/format-date", () => ({
+jest.mock("../../utils/format-date", () => ({
     formatDate: jest.fn((date: string) => `Formatted: ${date}`),
 }));
 
