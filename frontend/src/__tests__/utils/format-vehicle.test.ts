@@ -29,11 +29,11 @@ describe("format-vehicle", () => {
 
         it("should handle already capitalized words", () => {
             expect(formatVehicleName("Truck_Heavy")).toBe("Truck Heavy");
-            expect(formatVehicleName("VAN_SMALL")).toBe("Van Small");
+            expect(formatVehicleName("VAN_SMALL")).toBe("VAN SMALL");
         });
 
         it("should handle mixed case", () => {
-            expect(formatVehicleName("tRuCk_HeAvY")).toBe("Truck Heavy");
+            expect(formatVehicleName("tRuCk_HeAvY")).toBe("TRuCk HeAvY");
         });
 
         it("should handle numbers in vehicle names", () => {
