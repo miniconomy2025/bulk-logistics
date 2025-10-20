@@ -30,8 +30,11 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
             await updateMachineWeights(getMachineDetailsResponse.machines);
             machineWeightsInDb = await getMachines();
             console.log("Machine weights have been updated and re-fetched.");
-        } catch (error) {
-            console.error("Issue getting the machine information from thoh OR the db select failed", error);
+        } catch (error:any) {
+            return next(new AppError(
+                `Failed to retrieve machine weight information from THOH. Cannot process pickup request. Error: ${error.message || error}`,
+                503
+            ));
         }
     }
     // Then we do a young validation here to make sure they're ordering legitimate things.
