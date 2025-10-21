@@ -309,7 +309,7 @@ export default class AutonomyService {
                             bankApiClient.makePayment({
                                 paymentDetails: {
                                     to_account_number: purchaseResponse!.bankAccount,
-                                    amount: purchaseResponse!.totalPrice * purchaseResponse!.quantity,
+                                    amount: purchaseResponse!.totalPrice,
                                     description: String(purchaseResponse?.truckName + " - purchase:" + purchaseResponse!.orderId),
                                 },
                                 transactionCategory: TransactionCategory.Purchase,
