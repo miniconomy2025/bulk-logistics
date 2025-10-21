@@ -74,7 +74,6 @@ export const insertIntoTransactionLedger = async (options: InsertIntoTransaction
     ($1, $2, $3, $4, $5, $6, $7, $8, $9)
   RETURNING *;
   `;
-    console.log(`THESE ARE THE OPTIONS FOR THE INSERT !!!!!! VVVVVVVVVVV\n${options}`)
     try {
         const result = await db.query(query, [
             options.commercial_bank_transaction_id,

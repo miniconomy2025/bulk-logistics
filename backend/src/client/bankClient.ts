@@ -142,7 +142,7 @@ class BankClient extends BaseApiClient {
                 const transactionStatus = response.data.success ? TransactionStatus.Completed : TransactionStatus.Failed;
                 const status = await getTransactionStatusByName(transactionStatus);
                 const transactionCategoryId = await getCategoryIdByName(transactionCategory);
-
+                console.log(`WE ARE NOW INSERTING INTO THE LEDGER!!!!\n ${response.data}`);
                 await insertIntoTransactionLedger({
                     commercial_bank_transaction_id: response.data.transaction_number,
                     payment_reference_id: response.data.transaction_number,
