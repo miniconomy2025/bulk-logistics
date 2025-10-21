@@ -201,7 +201,10 @@ export default class AutonomyService {
 
             //1. Create bank account, send the notification URL to the bank
             if (!bankAccount.success || !bankAccount.account_number) {
+                console.log('------------CREATING BANK ACCOUNT-------------------')
                 const accountCreationResponse = await bankApiClient.createAccount("https://team7-todo.xyz/api/bank");
+                console.log('---------------ACCOUNT RESPONSE-------------')
+                console.log(accountCreationResponse)
                 accountNumber = accountCreationResponse.account_number;
             } else {
                 accountNumber = bankAccount.account_number;
