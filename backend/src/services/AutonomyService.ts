@@ -186,6 +186,7 @@ export default class AutonomyService {
         return extractedCost;
     }
     public async handleTruckDelivery(truckDelivery: TruckDelivery): Promise<void> {
+        console.log("---------- TRUCKS BEING DELIVERED -----------")
         if (truckDelivery && truckDelivery.canFulfill) {
             for (let i = 0; i < truckDelivery.quantity; i++) {
                 try {
