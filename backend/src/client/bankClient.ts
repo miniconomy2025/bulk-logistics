@@ -23,6 +23,11 @@ class BankClient extends BaseApiClient {
 
     public async applyForLoan(loanDetails: LoanApplicationRequest): Promise<LoanApplicationResponse> {
         try {
+            // Validate loan amount
+            if (loanDetails.amount <= 0) {
+                throw new Error("Loan amount must be greater than 0");
+            }
+
             console.log("---APPLYING FOR LOAN---");
             console.log("Loan request: ", loanDetails);
             const response = await this.client.post<LoanApplicationResponse>("/loan", loanDetails);
@@ -65,6 +70,18 @@ class BankClient extends BaseApiClient {
 
     public async createAccount(notificationUrl: string): Promise<CreateAccountResponse> {
         try {
+            // Validate notification URL
+            if (!notificationUrl || notificationUrl.trim() === '') {
+                throw new Error("Notification URL is required");
+            }
+
+            // Basic URL format validation
+            try {
+                new URL(notificationUrl);
+            } catch {
+                throw new Error("Invalid notification URL format");
+            }
+
             const response = await this.client.post<CreateAccountResponse>("/account", { notification_url: notificationUrl });
             return response.data;
         } catch (error: any) {
@@ -76,10 +93,9 @@ class BankClient extends BaseApiClient {
         try {
             const response = await this.client.get<AccountDetails>("/account/me");
             return response.data;
-        } catch {
-            return {
-                success: false,
-            };
+        } catch (error: any) {
+            // Fixed: Now throws AppError for consistency with other methods
+            throw new AppError(error, 500);
         }
     }
 
@@ -99,17 +115,34 @@ class BankClient extends BaseApiClient {
         paymentDetails: TransactionRequest;
         transactionCategory: string;
     }): Promise<TransactionResponse> {
-        console.log("------MAKING PAYMENT------\nPAYMENT REQUEST: ", paymentDetails);
-        const response = await this.client.post<TransactionResponse>("/transaction", { ...paymentDetails, to_bank_name: "commercial-bank" });
-        console.log("------PAYMENT MADE------\nPAYMENT RESPONSE: ", response.data);
-
         try {
+            // Validate payment amount
+            if (paymentDetails.amount <= 0) {
+                throw new Error("Payment amount must be greater than 0");
+            }
+
+            // Validate account number
+            if (!paymentDetails.to_account_number || paymentDetails.to_account_number.trim() === '') {
+                throw new Error("Recipient account number is required");
+            }
+
+            console.log("------MAKING PAYMENT------\nPAYMENT REQUEST: ", paymentDetails);
+
+            // Fixed: Only set to_bank_name if not already provided
+            const paymentRequest = {
+                ...paymentDetails,
+                to_bank_name: paymentDetails.to_bank_name || "commercial-bank"
+            };
+
+            const response = await this.client.post<TransactionResponse>("/transaction", paymentRequest);
+            console.log("------PAYMENT MADE------\nPAYMENT RESPONSE: ", response.data);
+
             if (response.data) {
                 const transactionDate = simulatedClock.getCurrentDate().toISOString().split("T")[0];
                 const transactionStatus = response.data.success ? TransactionStatus.Completed : TransactionStatus.Failed;
                 const status = await getTransactionStatusByName(transactionStatus);
                 const transactionCategoryId = await getCategoryIdByName(transactionCategory);
-
+                console.log(`WE ARE NOW INSERTING INTO THE LEDGER!!!!\n ${response.data}`);
                 await insertIntoTransactionLedger({
                     commercial_bank_transaction_id: response.data.transaction_number,
                     payment_reference_id: response.data.transaction_number,

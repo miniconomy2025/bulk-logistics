@@ -20,7 +20,7 @@ export abstract class BaseApiClient {
             // key: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.key"),
             // cert: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.crt"),
             // ca: allCAs,
-            // rejectUnauthorized: true,
+            rejectUnauthorized: false,
         });
         // const httpsAgent = new https.Agent({
         //     key: fs.readFileSync(process.env.MTLS_PRIVATE_KEY_PATH!),

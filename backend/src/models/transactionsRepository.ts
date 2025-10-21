@@ -74,7 +74,6 @@ export const insertIntoTransactionLedger = async (options: InsertIntoTransaction
     ($1, $2, $3, $4, $5, $6, $7, $8, $9)
   RETURNING *;
   `;
-
     try {
         const result = await db.query(query, [
             options.commercial_bank_transaction_id,
@@ -200,14 +199,14 @@ export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
 const getCategoryId = async (direction: "in" | "out"): Promise<number> => {
     const result = await db.query(
         `
-        SELECT 1 transaction_category_id FROM transaction_category WHERE name $1`,
+        SELECT 1 transaction_category_id FROM transaction_category WHERE name = $1`,
         [direction],
     );
     return result.rows[0]?.transaction_category_id || null;
 };
 
 export const getCategoryIdByName = async (name: string): Promise<number> => {
-    const result = await db.query(`SELECT  transaction_category_id FROM transaction_category WHERE name $1`, [name]);
+    const result = await db.query(`SELECT  transaction_category_id FROM transaction_category WHERE name = $1`, [name]);
 
     return result.rows[0]?.transaction_category_id;
 };
