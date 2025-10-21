@@ -18,7 +18,7 @@ import { BaseApiClient } from "./baseClient";
 
 class BankClient extends BaseApiClient {
     constructor() {
-        super("https://commercial-bank-api.projects.bbdgrad.com/api", "Bank");
+        super("https://commercial-bank-api.subspace.site/api", "Bank");
     }
 
     public async applyForLoan(loanDetails: LoanApplicationRequest): Promise<LoanApplicationResponse> {

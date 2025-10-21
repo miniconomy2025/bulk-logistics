@@ -22,7 +22,7 @@ const REQUIRED_INITIAL_TRUCKS: TruckPurchaseRequest[] = [
     { truckName: "large_truck", quantity: 4 },
     { truckName: "medium_truck", quantity: 4 },
 ];
-const BANK_NOTIFICATION_URL = "https://bulk-logistics-api.projects.bbdgrad.com/api/bank";
+const BANK_NOTIFICATION_URL = "https://team7-todo.xyz/api/bank";
 const LOAN_MULTIPLIER = 2; // Request loan at 2x truck cost
 const COMPANY_NAME = "bulk-logistics";
 const THOH_COMPANY_NAME = "thoh";
