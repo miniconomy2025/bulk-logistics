@@ -567,8 +567,8 @@ export default class AutonomyService {
                     };
                     const response = await notificationApiClient.sendLogisticsNotification(pickupRequestNotification);
                     if (response.status >= 200 && response.status < 300) {
-                        // Only mark THIS item's pickup request as shipped, not all planned requests
-                        await shipmentModel.createShipmentAndAssignitems(plan.vehicle.vehicle_id, item.pickup_request_item_id, [item.pickup_request_id]);
+                        // Create shipment and assign this item to it
+                        await shipmentModel.createShipmentAndAssignitems(plan.vehicle.vehicle_id, item.pickup_request_item_id);
                         const machinesWithCount = [
                             "screen_machine",
                             "recyling_machine",

@@ -80,7 +80,7 @@ class ShipmentModel {
         return result.rows[0];
     };
 
-    createShipmentAndAssignitems = async (vehicleId: number, pickupRequestItemId: number, plannedRequestIds: number[]) => {
+    createShipmentAndAssignitems = async (vehicleId: number, pickupRequestItemId: number) => {
         const client = await db.connect();
         try {
             await client.query("BEGIN");
@@ -89,9 +89,8 @@ class ShipmentModel {
             console.log(newShipment);
             await this.assignItemToShipmentWithPickupRequestItemId(pickupRequestItemId, newShipment.shipment_id, client);
 
-            for (const id in plannedRequestIds) {
-                await updateCompletionDate(+id, simulatedClock.getCurrentDate(), client);
-            }
+            // Note: Completion dates are set later in the evening after delivery notifications
+            // via updatePickupRequestStatuses() in AutonomyService.notifyCompletedDeliveries()
 
             await client.query("COMMIT");
         } catch (error) {
