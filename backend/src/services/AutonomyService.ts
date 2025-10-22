@@ -525,7 +525,7 @@ export default class AutonomyService {
         console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nMorning Ops: Planning and dispatching shipments...");
         const planner = new ShipmentPlannerService();
         let dropoffEntities: LogisticsNotification[] = [];
-        const { createdShipmentsPlan, plannedRequestIds } = await planner.planDailyShipments();
+        const { createdShipmentsPlan } = await planner.planDailyShipments();
         // const vehiclesWithShipments = await findAllVehiclesWithShipments(currentDate);
 
         // const operationalCosts = vehiclesWithShipments.reduce((totalOperationalCost, vehicle) => {
@@ -567,7 +567,8 @@ export default class AutonomyService {
                     };
                     const response = await notificationApiClient.sendLogisticsNotification(pickupRequestNotification);
                     if (response.status >= 200 && response.status < 300) {
-                        await shipmentModel.createShipmentAndAssignitems(plan.vehicle.vehicle_id, item.pickup_request_item_id, plannedRequestIds);
+                        // Only mark THIS item's pickup request as shipped, not all planned requests
+                        await shipmentModel.createShipmentAndAssignitems(plan.vehicle.vehicle_id, item.pickup_request_item_id, [item.pickup_request_id]);
                         const machinesWithCount = [
                             "screen_machine",
                             "recyling_machine",
