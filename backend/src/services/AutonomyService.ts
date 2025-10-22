@@ -256,7 +256,13 @@ export default class AutonomyService {
      */
     private async getTruckPriceMap(): Promise<{ [key: string]: number }> {
         const trucksInfo = await thohApiClient.getTrucksInformation();
-        console.log("Fetched truck pricing information from THOH");
+        console.log("Fetched truck pricing information from THOH:", trucksInfo);
+
+        // Validate response is an array
+        if (!Array.isArray(trucksInfo)) {
+            console.error("THOH getTrucksInformation returned non-array:", trucksInfo);
+            throw new Error("Invalid response from THOH trucks API - expected array");
+        }
 
         const priceMap: { [key: string]: number } = {};
         trucksInfo.forEach((truck) => {
@@ -471,23 +477,26 @@ export default class AutonomyService {
     private async onInitOperations(): Promise<void> {
         console.log("\n=== INITIALIZATION OPERATIONS ===");
 
+        // Step 1: Ensure bank account exists
+        await this.ensureBankAccountExists();
+
+        // Step 2: Get truck pricing information (needed for loan calculation)
+        let truckPriceMap: { [key: string]: number } = {};
         try {
-            // Step 1: Ensure bank account exists
-            await this.ensureBankAccountExists();
-
-            // Step 2: Get truck pricing information
-            const truckPriceMap = await this.getTruckPriceMap();
-
-            // Step 3: Ensure loan is secured for truck purchases
-            await this.ensureLoanSecured(truckPriceMap);
-
-            // Step 4: Purchase initial fleet of trucks
-            await this.ensureInitialFleetPurchased();
-
-            console.log("=== INITIALIZATION COMPLETE ===\n");
+            truckPriceMap = await this.getTruckPriceMap();
         } catch (error) {
-            console.error("FATAL ERROR during initialization operations:", error);
-            throw error;
+            console.error("Failed to get truck pricing from THOH (will retry on next tick):", error);
+            return; // Can't proceed without truck prices
+        }
+
+        // Step 3: Ensure loan is secured for truck purchases
+        await this.ensureLoanSecured(truckPriceMap);
+
+        // Step 4: Purchase initial fleet of trucks
+        await this.ensureInitialFleetPurchased();
+
+        if (this.initialTrucksSecured && this.hasActiveLoan && this.bankAccountSecured) {
+            console.log("=== INITIALIZATION COMPLETE ===\n");
         }
     }
 
