@@ -480,6 +480,15 @@ export default class AutonomyService {
         // Step 1: Ensure bank account exists
         await this.ensureBankAccountExists();
 
+        const currentVehicles =await getAllVehiclesWithType();
+
+            if (currentVehicles.length > 3) {
+              this.hasActiveLoan = true;
+              this.initialTrucksSecured = false;
+
+              return;
+            }
+
         // Step 2: Get truck pricing information (needed for loan calculation)
         let truckPriceMap: { [key: string]: number } = {};
         try {
