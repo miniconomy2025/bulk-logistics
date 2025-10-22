@@ -16,6 +16,16 @@ export const startSimulation = catchAsync(async (req: Request, res: Response, ne
 export const truckFailure = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const failureInfo: TruckFailureInfo = req.body;
 
+    console.log("=== TRUCK FAILURE REQUEST ===");
+    console.log("IP:", req.ip || req.socket.remoteAddress);
+    console.log("Host:", req.get("host"));
+    console.log("Origin:", req.get("origin"));
+    console.log("Referer:", req.get("referer"));
+    console.log("User-Agent:", req.get("user-agent"));
+    console.log("X-Forwarded-For:", req.get("x-forwarded-for"));
+    console.log("Body:", JSON.stringify(failureInfo, null, 2));
+    console.log("=============================");
+
     const result = await handleTruckFailure(failureInfo);
 
     if (result.success) {
