@@ -116,6 +116,50 @@ class ShipmentModel {
             return { ok: false, error: error as Error };
         }
     };
+
+    findShipmentIdsByItemIds = async (pickupRequestItemIds: number[]): Promise<Result<number[]>> => {
+        const query = {
+            text: `
+                SELECT DISTINCT shipment_id
+                FROM pickup_request_item
+                WHERE pickup_request_item_id = ANY($1)
+                `,
+            values: [pickupRequestItemIds],
+        };
+
+        try {
+            const result = await db.query(query);
+            const shipmentIds = result.rows.map((row) => row.shipment_id);
+
+            return { ok: true, value: shipmentIds };
+        } catch (error) {
+            return { ok: false, error: error as Error };
+        }
+    };
+
+    updateShipmentStatusesByIds = async (options: { shipmentIds: number[]; newStatusId: number }): Promise<number | null> => {
+        if (!options.shipmentIds || options.shipmentIds.length === 0) {
+            console.log("No shipment IDs provided, skipping update.");
+            return 0;
+        }
+
+        const sqlQuery = {
+            text: `
+            UPDATE shipments
+            SET shipment_status_id = $1
+            WHERE shipment_id = ANY($2)
+        `,
+            values: [options.newStatusId, options.shipmentIds],
+        };
+
+        try {
+            const res = await db.query(sqlQuery);
+            return res.rowCount;
+        } catch (err) {
+            console.error("Error in updateShipmentStatusesByIds:", err);
+            return null;
+        }
+    };
 }
 
 const shipmentModel = new ShipmentModel();
