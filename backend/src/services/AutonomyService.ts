@@ -476,6 +476,7 @@ export default class AutonomyService {
      */
     private async onInitOperations(): Promise<void> {
         console.log("\n=== INITIALIZATION OPERATIONS ===");
+        console.log(this.hasActiveLoan, this.initialTrucksSecured, this.bankAccountSecured);
 
         // Step 1: Ensure bank account exists
         await this.ensureBankAccountExists();
@@ -485,10 +486,12 @@ export default class AutonomyService {
             if (currentVehicles.length > 3) {
               this.hasActiveLoan = true;
               this.initialTrucksSecured = true;
+              this.bankAccountSecured = true;
 
               return;
             }
-            const truckPriceMap = await this.getTruckPriceMap();
+
+        const truckPriceMap = await this.getTruckPriceMap();
 
         // // Step 2: Get truck pricing information (needed for loan calculation)
         // let truckPriceMap: { [key: string]: number } = {};
