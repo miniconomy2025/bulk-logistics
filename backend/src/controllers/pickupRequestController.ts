@@ -112,12 +112,14 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
                     newItems.push({
                         itemName: item.itemName,
                         quantity: itemMaxCapacity,
+                        measurementType: itemMeasurementType,
                     });
                 }
                 const remainderQuantity = item.quantity - fullTrucks * itemMaxCapacity;
                 newItems.push({
                     itemName: item.itemName,
                     quantity: remainderQuantity,
+                    measurementType: itemMeasurementType,
                 });
             } else {
                 newItems.push({ ...item, measurementType: itemMeasurementType });
