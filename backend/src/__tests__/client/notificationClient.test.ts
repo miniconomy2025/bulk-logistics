@@ -37,8 +37,8 @@ describe('NotificationClient', () => {
             type: 'PICKUP',
             quantity: 5,
             items: [
-                { name: 'copper', quantity: 3 },
-                { name: 'silicon', quantity: 2 },
+                { itemID: 1, name: 'copper', quantity: 3 },
+                { itemID: 2, name: 'silicon', quantity: 2 },
             ],
         };
 
@@ -59,8 +59,8 @@ describe('NotificationClient', () => {
                     type: 'PICKUP',
                     quantity: 5,
                     items: [
-                        { name: 'copper', quantity: 3 },
-                        { name: 'silicon', quantity: 2 },
+                        { itemID: 1, name: 'copper', quantity: 3 },
+                        { itemID: 2, name: 'silicon', quantity: 2 },
                     ],
                 }
             );
@@ -72,7 +72,7 @@ describe('NotificationClient', () => {
                 notificationURL: 'https://company-b.example.com',
                 type: 'DELIVERY',
                 quantity: 10,
-                items: [{ name: 'phones', quantity: 10 }],
+                items: [{ itemID: 1, name: 'phones', quantity: 10 }],
             };
 
             mockPost.mockResolvedValueOnce({ status: 201 });
@@ -85,7 +85,7 @@ describe('NotificationClient', () => {
                     id: 456,
                     type: 'DELIVERY',
                     quantity: 10,
-                    items: [{ name: 'phones', quantity: 10 }],
+                    items: [{ itemID: 1, name: 'phones', quantity: 10 }],
                 }
             );
         });
@@ -96,7 +96,7 @@ describe('NotificationClient', () => {
                 notificationURL: 'https://company-c.example.com',
                 type: 'PICKUP',
                 quantity: 2,
-                items: [{ name: 'item', quantity: 2 }],
+                items: [{ itemID: 1, name: 'item', quantity: 2 }],
             };
 
             mockPost.mockResolvedValueOnce({ status: 200 });
@@ -229,7 +229,7 @@ describe('NotificationClient', () => {
                 notificationURL: 'https://test.com',
                 type: 'PICKUP',
                 quantity: -5,
-                items: [{ name: 'item', quantity: -5 }],
+                items: [{ itemID: 1, name: 'item', quantity: -5 }],
             };
 
             // Fixed: Now validates and rejects negative quantities
@@ -267,8 +267,8 @@ describe('NotificationClient', () => {
                 type: 'PICKUP',
                 quantity: 10, // Says 10 total
                 items: [
-                    { name: 'copper', quantity: 3 },
-                    { name: 'silicon', quantity: 2 },
+                    { itemID: 1, name: 'copper', quantity: 3 },
+                    { itemID: 2, name: 'silicon', quantity: 2 },
                 ], // But items only sum to 5
             };
 
@@ -356,6 +356,7 @@ describe('NotificationClient', () => {
 
         it('should handle very large item arrays', async () => {
             const largeItemArray = Array.from({ length: 1000 }, (_, i) => ({
+                itemID: i,
                 name: `item-${i}`,
                 quantity: i,
             }));
@@ -384,7 +385,7 @@ describe('NotificationClient', () => {
                 notificationURL: 'https://test.com',
                 type: 'PICKUP',
                 quantity: 1,
-                items: [{ name: 'item-with-<special>-&-"chars"', quantity: 1 }],
+                items: [{ itemID: 1, name: 'item-with-<special>-&-"chars"', quantity: 1 }],
             };
 
             mockPost.mockResolvedValueOnce({ status: 200 });
@@ -394,7 +395,7 @@ describe('NotificationClient', () => {
             expect(mockPost).toHaveBeenCalledWith(
                 expect.any(String),
                 expect.objectContaining({
-                    items: [{ name: 'item-with-<special>-&-"chars"', quantity: 1 }],
+                    items: [{ itemID: 1, name: 'item-with-<special>-&-"chars"', quantity: 1 }],
                 })
             );
         });
