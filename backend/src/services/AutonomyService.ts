@@ -488,15 +488,16 @@ export default class AutonomyService {
 
               return;
             }
+            const truckPriceMap = await this.getTruckPriceMap();
 
-        // Step 2: Get truck pricing information (needed for loan calculation)
-        let truckPriceMap: { [key: string]: number } = {};
-        try {
-            truckPriceMap = await this.getTruckPriceMap();
-        } catch (error) {
-            console.error("Failed to get truck pricing from THOH (will retry on next tick):", error);
-            return; // Can't proceed without truck prices
-        }
+        // // Step 2: Get truck pricing information (needed for loan calculation)
+        // let truckPriceMap: { [key: string]: number } = {};
+        // try {
+        //     truckPriceMap = await this.getTruckPriceMap();
+        // } catch (error) {
+        //     console.error("Failed to get truck pricing from THOH (will retry on next tick):", error);
+        //     return; // Can't proceed without truck prices
+        // }
 
         // Step 3: Ensure loan is secured for truck purchases
         await this.ensureLoanSecured(truckPriceMap);
