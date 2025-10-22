@@ -25,7 +25,16 @@ export const addOrUpdateFailedNotification = async (notification: LogisticsNotif
     await db.query(query, [notification.id, notification, currentDate]);
 };
 
-export const removeSuccessfulNotification = async (pickupRequestId: number): Promise<void> => {
-    const query = `DELETE FROM delivery_notification_queue WHERE related_pickup_request_id = $1;`;
-    await db.query(query, [pickupRequestId]);
+export const removeSuccessfulNotification = async (pickupRequestId: number): Promise<LogisticsNotification> => {
+    const query = `
+        DELETE FROM delivery_notification_queue 
+        WHERE related_pickup_request_id = $1
+        RETURNING *;
+    `;
+    
+    // The query result will contain a 'rows' array with the deleted data
+    const result = await db.query<LogisticsNotification>(query, [pickupRequestId]);
+
+    // Return the first deleted item, or undefined if no rows matched
+    return result.rows[0];
 };

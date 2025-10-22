@@ -8,12 +8,14 @@ import { thohApiClient } from "../client/thohClient";
 import { addVehicle, findAllVehiclesWithShipments, getAllVehiclesWithType } from "../models/vehicleRepository";
 import type { TruckFailureRequest, TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
 import { bankApiClient } from "../client/bankClient";
-import { TransactionCategory } from "../enums";
+import { ShipmentStatus, TransactionCategory } from "../enums";
 import { reactivateVehicle } from "./vehicleService";
 import { getCompanyByName, updateCompanyDetails } from "../models/companyRepository";
 import { SimulatedClock, simulatedClock } from "../utils";
 import { addOrUpdateFailedNotification, getQueuedNotifications, removeSuccessfulNotification } from "../models/notificationsQueueRepository";
 import { getItemDefinitions } from "../models/pickupRequestItemRepository";
+import shipmentStatus from "../models/shipmentStatus";
+import shipmentProcessingService from "./shipmentProcessingService";
 
 const TICK_CHECK_INTERVAL_MS = 15000;
 
@@ -582,6 +584,7 @@ export default class AutonomyService {
                         quantity: item.quantity,
                         items: [
                             {
+                                itemID: item.pickup_request_item_id,
                                 name: item.itemName,
                                 quantity: item.quantity,
                             },
@@ -606,6 +609,7 @@ export default class AutonomyService {
                                 quantity: 1,
                                 items: [
                                     {
+                                        itemID: item.pickup_request_item_id,
                                         name: item.itemName,
                                         quantity: 1,
                                     },
@@ -619,6 +623,7 @@ export default class AutonomyService {
                                 quantity: item.quantity,
                                 items: [
                                     {
+                                        itemID: item.pickup_request_item_id,
                                         name: item.itemName,
                                         quantity: item.quantity,
                                     },
@@ -646,6 +651,7 @@ export default class AutonomyService {
         const notificationsToProcess = queuedNotifications.map((qn) => qn.payload);
 
         const allNotificationsToAttempt = [...notificationsToProcess, ...newNotifications];
+        let deliveredItemIDs: number[] = [];
 
         for (const notification of allNotificationsToAttempt) {
             try {
@@ -653,7 +659,10 @@ export default class AutonomyService {
 
                 if (response.status >= 200 && response.status < 300) {
                     console.log(`Successfully sent delivery notification for request ID: ${notification.id}`);
-                    await removeSuccessfulNotification(+notification.id);
+                    const removed = await removeSuccessfulNotification(+notification.id);
+
+                    deliveredItemIDs = [...deliveredItemIDs, ...removed.items.map(item => item.itemID )];
+
                 } else {
                     throw new Error(`Received HTTP ${response.status} from notification endpoint.`);
                 }
@@ -663,7 +672,25 @@ export default class AutonomyService {
             }
         }
 
-        await updatePickupRequestStatuses(simulatedClock.getCurrentDate());
+        try {
+
+            const statusId = await shipmentStatus.findShipmentStatusByName(ShipmentStatus.Delivered);
+            
+            if (!statusId) {
+                throw new Error(`Configuration Error: ShipmentStatus '${ShipmentStatus.Delivered}' not found in database.`);
+            }
+            
+            await shipmentProcessingService.processShipmentUpdate({
+                itemsIDs: deliveredItemIDs, 
+                newStatusId: statusId
+            });
+            
+            await updatePickupRequestStatuses(simulatedClock.getCurrentDate());
+
+            deliveredItemIDs = [];
+        } catch (err: any) {
+            console.error("Failed to process shipment update:", err.message);
+        }
 
         console.log("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV");
     }
