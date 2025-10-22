@@ -484,7 +484,7 @@ export default class AutonomyService {
 
             if (currentVehicles.length > 3) {
               this.hasActiveLoan = true;
-              this.initialTrucksSecured = false;
+              this.initialTrucksSecured = true;
 
               return;
             }
