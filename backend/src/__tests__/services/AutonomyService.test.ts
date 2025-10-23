@@ -25,6 +25,8 @@ jest.mock('../../utils', () => ({
     },
 }));
 jest.mock('../../models/notificationsQueueRepository');
+jest.mock('../../models/shipmentStatus');
+jest.mock('../../services/shipmentProcessingService');
 
 // Import after mocking
 import AutonomyService from '../../services/AutonomyService';
@@ -39,6 +41,8 @@ import { reactivateVehicle } from '../../services/vehicleService';
 import { getCompanyByName, updateCompanyDetails } from '../../models/companyRepository';
 import { simulatedClock } from '../../utils';
 import { addOrUpdateFailedNotification, getQueuedNotifications, removeSuccessfulNotification } from '../../models/notificationsQueueRepository';
+import shipmentStatus from '../../models/shipmentStatus';
+import shipmentProcessingService from '../../services/shipmentProcessingService';
 import { TruckDelivery } from '../../types';
 import type { TruckFailureRequest } from '../../types/thoh';
 
@@ -84,6 +88,8 @@ describe('AutonomyService', () => {
             data: [],
         });
         (getAllVehiclesWithType as jest.Mock).mockResolvedValue([]);
+        (shipmentStatus.findShipmentStatusByName as jest.Mock).mockResolvedValue(3);
+        (shipmentProcessingService.processShipmentUpdate as jest.Mock).mockResolvedValue(undefined);
     });
 
     afterEach(() => {
@@ -224,7 +230,7 @@ describe('AutonomyService', () => {
             await jest.advanceTimersByTimeAsync(15000);
 
             expect(mockBankClient.createAccount).toHaveBeenCalledWith(
-                'https://bulk-logistics-api.projects.bbdgrad.com/api/bank'
+                'https://team7-todo.xyz/api/bank'
             );
             expect(updateCompanyDetails).toHaveBeenCalledWith('bulk-logistics', {
                 bankAccountNumber: 'BL-123456',
@@ -301,8 +307,14 @@ describe('AutonomyService', () => {
 
         it('should not purchase trucks if they already exist', async () => {
             (getAllVehiclesWithType as jest.Mock).mockResolvedValue([
-                { vehicle_id: 1, type_name: 'large_truck' },
-                { vehicle_id: 2, type_name: 'medium_truck' },
+                { vehicle_id: 1, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 2, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 3, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 4, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 5, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
+                { vehicle_id: 6, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
+                { vehicle_id: 7, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
+                { vehicle_id: 8, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
             ]);
 
             const startTime = Date.now();
@@ -323,7 +335,14 @@ describe('AutonomyService', () => {
                 loans: [{ loan_number: 'LOAN-123', initial_amount: 1000000, interest_rate: 0.05, write_off: false, outstanding_amount: 1000000 }],
             });
             (getAllVehiclesWithType as jest.Mock).mockResolvedValue([
-                { vehicle_id: 1, type_name: 'large_truck' },
+                { vehicle_id: 1, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 2, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 3, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 4, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 5, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
+                { vehicle_id: 6, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
+                { vehicle_id: 7, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
+                { vehicle_id: 8, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
             ]);
         });
 
@@ -409,7 +428,7 @@ describe('AutonomyService', () => {
                     notificationURL: 'http://origin.com/notify',
                     type: 'PICKUP',
                     quantity: 100,
-                    items: [{ name: 'copper', quantity: 100 }],
+                    items: [{ itemID: 1, name: 'copper', quantity: 100 }],
                 })
             );
         });
@@ -462,7 +481,7 @@ describe('AutonomyService', () => {
             (shipmentModel.createShipmentAndAssignitems as jest.Mock).mockResolvedValue(undefined);
             (getQueuedNotifications as jest.Mock).mockResolvedValue([]);
             (updatePickupRequestStatuses as jest.Mock).mockResolvedValue(undefined);
-            (removeSuccessfulNotification as jest.Mock).mockResolvedValue(undefined);
+            (removeSuccessfulNotification as jest.Mock).mockResolvedValue({ items: [] });
 
             const startTime = Date.now();
             autonomyService.start(startTime);
@@ -474,7 +493,7 @@ describe('AutonomyService', () => {
             expect(mockNotificationClient.sendLogisticsNotification).toHaveBeenCalledWith(
                 expect.objectContaining({
                     "id": "EXT-123",
-                    "items": [{ "name": "copper", "quantity": 100 }],
+                    "items": [{ "itemID": 1, "name": "copper", "quantity": 100 }],
                     "notificationURL": "http://origin.com/notify",
                     "quantity": 100,
                     "type": "PICKUP"
@@ -561,7 +580,7 @@ describe('AutonomyService', () => {
                 loans: [{ loan_number: 'LOAN-123', initial_amount: 1000000, interest_rate: 0.05, write_off: false, outstanding_amount: 1000000 }],
             });
             (getAllVehiclesWithType as jest.Mock).mockResolvedValue([
-                { vehicle_id: 1, type_name: 'large_truck' },
+                { vehicle_id: 1, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
             ]);
             const mockPlanDailyShipments = jest.fn().mockResolvedValue({
                 createdShipmentsPlan: [],
@@ -587,7 +606,7 @@ describe('AutonomyService', () => {
                 status: 200,
                 data: { success: true },
             } as any);
-            (removeSuccessfulNotification as jest.Mock).mockResolvedValue(undefined);
+            (removeSuccessfulNotification as jest.Mock).mockResolvedValue({ items: [] });
 
             const startTime = Date.now();
             autonomyService.start(startTime);
@@ -616,7 +635,7 @@ describe('AutonomyService', () => {
                 status: 200,
                 data: { success: true },
             } as any);
-            (removeSuccessfulNotification as jest.Mock).mockResolvedValue(undefined);
+            (removeSuccessfulNotification as jest.Mock).mockResolvedValue({ items: [] });
 
             const startTime = Date.now();
             autonomyService.start(startTime);
@@ -851,7 +870,14 @@ describe('AutonomyService', () => {
                 loans: [{ loan_number: 'LOAN-123', initial_amount: 1000000, interest_rate: 0.05, write_off: false, outstanding_amount: 1000000 }],
             });
             (getAllVehiclesWithType as jest.Mock).mockResolvedValue([
-                { vehicle_id: 1, type_name: 'large_truck' },
+                { vehicle_id: 1, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 2, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 3, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 4, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 5, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
+                { vehicle_id: 6, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
+                { vehicle_id: 7, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
+                { vehicle_id: 8, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
             ]);
             (getQueuedNotifications as jest.Mock).mockResolvedValue([]);
             (updatePickupRequestStatuses as jest.Mock).mockResolvedValue(undefined);
@@ -883,7 +909,7 @@ describe('AutonomyService', () => {
                 data: { success: true },
             } as any);
             (shipmentModel.createShipmentAndAssignitems as jest.Mock).mockResolvedValue(undefined);
-            (removeSuccessfulNotification as jest.Mock).mockResolvedValue(undefined);
+            (removeSuccessfulNotification as jest.Mock).mockResolvedValue({ items: [] });
 
             const startTime = Date.now();
             autonomyService.start(startTime);
@@ -895,7 +921,7 @@ describe('AutonomyService', () => {
             expect(mockNotificationClient.sendLogisticsNotification).toHaveBeenCalledWith(
                 expect.objectContaining({
                     "id": "EXT-123",
-                    "items": [{ "name": "screen_machine", "quantity": 2000 }], 
+                    "items": [{ "itemID": 1, "name": "screen_machine", "quantity": 2000 }], 
                     "notificationURL": "http://origin.com/notify", 
                     "quantity": 2000, 
                     "type": "PICKUP" 
@@ -929,7 +955,7 @@ describe('AutonomyService', () => {
                 data: { success: true },
             } as any);
             (shipmentModel.createShipmentAndAssignitems as jest.Mock).mockResolvedValue(undefined);
-            (removeSuccessfulNotification as jest.Mock).mockResolvedValue(undefined);
+            (removeSuccessfulNotification as jest.Mock).mockResolvedValue({ items: [] });
 
             const startTime = Date.now();
             autonomyService.start(startTime);
@@ -941,7 +967,7 @@ describe('AutonomyService', () => {
             expect(mockNotificationClient.sendLogisticsNotification).toHaveBeenCalledWith(
                 expect.objectContaining({
                     "id": "EXT-123", 
-                    "items": [{"name": "copper", "quantity": 1000}], 
+                    "items": [{"itemID": 1, "name": "copper", "quantity": 1000}], 
                     "notificationURL": "http://origin.com/notify", 
                     "quantity": 1000, "type": "PICKUP"
                 })
@@ -957,7 +983,14 @@ describe('AutonomyService', () => {
                 loans: [{ loan_number: 'LOAN-123', initial_amount: 1000000, interest_rate: 0.05, write_off: false, outstanding_amount: 1000000 }],
             });
             (getAllVehiclesWithType as jest.Mock).mockResolvedValue([
-                { vehicle_id: 1, type_name: 'large_truck' },
+                { vehicle_id: 1, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 2, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 3, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 4, vehicle_type: { name: 'large_truck' }, vehicle_type_id: 1 },
+                { vehicle_id: 5, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
+                { vehicle_id: 6, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
+                { vehicle_id: 7, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
+                { vehicle_id: 8, vehicle_type: { name: 'medium_truck' }, vehicle_type_id: 2 },
             ]);
         });
 
@@ -1034,3 +1067,4 @@ describe('AutonomyService', () => {
         });
     });
 });
+

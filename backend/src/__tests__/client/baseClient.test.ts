@@ -53,6 +53,9 @@ describe('BaseApiClient', () => {
             expect(mockedAxios.create).toHaveBeenCalledWith({
                 baseURL: 'https://api.example.com',
                 httpsAgent: expect.any(Object),
+                headers: {
+                    'Client-Id': 'bulk-logistics',
+                },
             });
         });
 
@@ -77,6 +80,9 @@ describe('BaseApiClient', () => {
             expect(mockedAxios.create).toHaveBeenCalledWith({
                 baseURL: '',
                 httpsAgent: expect.any(Object),
+                headers: {
+                    'Client-Id': 'bulk-logistics',
+                },
             });
         });
 
@@ -173,7 +179,6 @@ describe('BaseApiClient', () => {
 
         it('should handle different HTTP error status codes correctly', () => {
             const testCases = [
-                { status: 404, expected: 'Request to TestService failed with status 404' },
                 { status: 500, expected: 'Request to TestService failed with status 500' },
                 { status: 403, expected: 'Request to TestService failed with status 403' },
             ];
@@ -196,6 +201,26 @@ describe('BaseApiClient', () => {
 
                 expect(() => errorHandler(axiosError as AxiosError)).toThrow(expected);
             });
+        });
+
+        it('should return response for 404 status without throwing', () => {
+            const axiosError: Partial<AxiosError> = {
+                response: {
+                    data: {},
+                    status: 404,
+                    statusText: 'Not Found',
+                    headers: {},
+                    config: {} as any,
+                },
+                message: 'Request failed',
+                name: 'AxiosError',
+                config: {} as any,
+                isAxiosError: true,
+                toJSON: () => ({}),
+            };
+
+            const result = errorHandler(axiosError as AxiosError);
+            expect(result).toEqual(axiosError.response);
         });
 
         it('should log error details to console', () => {
@@ -244,6 +269,9 @@ describe('BaseApiClient', () => {
             expect(mockedAxios.create).toHaveBeenCalledWith({
                 baseURL: null,
                 httpsAgent: expect.any(Object),
+                headers: {
+                    'Client-Id': 'bulk-logistics',
+                },
             });
         });
 

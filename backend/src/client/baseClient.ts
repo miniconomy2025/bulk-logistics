@@ -40,11 +40,10 @@ export abstract class BaseApiClient {
         this.client.interceptors.response.use(
             (response) => response,
             (error: AxiosError) => {
-                if (error.response?.status === 404) {
-                    console.error(`Error from ${this.serviceName} API:`, error.response.data);
-                    return error.response;
-                }
-                else if (error.response) {
+                if (error.response) {
+                    if (error.response.status === 404) {
+                        return error.response;
+                    }
                     console.error(`Error from ${this.serviceName} API:`, error.response.data);
                     throw new AppError(`Request to ${this.serviceName} failed with status ${error.response.status}`, 502);
                 } else if (error.request) {
