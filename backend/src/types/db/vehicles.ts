@@ -15,6 +15,7 @@ export interface Vehicle {
     purchase_date: string;
     disabled_date?: string;
     is_in_active_shipment?: boolean;
+    
 }
 export interface VehicleWithType extends Partial<Vehicle> {
     vehicle_type?: VehicleType;

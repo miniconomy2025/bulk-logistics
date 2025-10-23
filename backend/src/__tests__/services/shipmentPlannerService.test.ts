@@ -80,16 +80,26 @@ describe("ShipmentPlannerService", () => {
         vehicle_id: 101,
         vehicle_type_id: 2,
         is_active: true,
-        vehicleType: "small truck",
+        vehicleType: "medium truck",
         maximum_capacity: 500,
         capacity_type_id: 1,
-        max_pickups_per_day: 250,
-        max_dropoffs_per_day: 500,
+        max_pickups_per_day: 5,
+        max_dropoffs_per_day: 100,
+    };
+
+    const mockVehicle2: AvailableVehicle = {
+        vehicle_id: 102,
+        vehicle_type_id: 2,
+        is_active: true,
+        vehicleType: "medium truck",
+        maximum_capacity: 500,
+        capacity_type_id: 1,
+        max_pickups_per_day: 5,
+        max_dropoffs_per_day: 100,
     };
 
     describe("planDailyShipments", () => {
         it("should correctly plan a request that fits perfectly into a single vehicle", async () => {
-            
             mockedFindPaidAndUnshippedRequests.mockResolvedValue([pickupRequestMock1, pickupRequestMock2]);
             mockedFindAvailableVehicles.mockResolvedValue([mockVehicle]);
 
@@ -114,7 +124,6 @@ describe("ShipmentPlannerService", () => {
         });
 
         it("should not create any shipment plan when there are no pending requests", async () => {
-
             mockedFindPaidAndUnshippedRequests.mockResolvedValue([]);
             mockedFindAvailableVehicles.mockResolvedValue([mockVehicle]);
 
@@ -132,7 +141,6 @@ describe("ShipmentPlannerService", () => {
         });
 
         it("should not create any shipment plan when there are no vehicles", async () => {
-
             mockedFindPaidAndUnshippedRequests.mockResolvedValue([pickupRequestMock1, pickupRequestMock2]);
             mockedFindAvailableVehicles.mockResolvedValue([]);
 
@@ -147,6 +155,104 @@ describe("ShipmentPlannerService", () => {
 
             expect(mockedFindPaidAndUnshippedRequests).toHaveBeenCalledTimes(1);
             expect(mockedFindAvailableVehicles).toHaveBeenCalledTimes(1);
+        });
+
+        it("should use multiple vehicles when items cannot fit into a single vehicle", async () => {
+            // Arrange: Create two items that together exceed the capacity of one vehicle
+            const largeItem1: PickupToShipmentItemDetails = {
+                pickup_request_id: 3,
+                pickup_request_item_id: 301,
+                itemName: "heavy-screens",
+                quantity: 400, // nearly fills a single vehicle
+                capacity_type_id: 1,
+                originCompanyUrl: "api/companies/heavy-supplier",
+                destinationCompanyUrl: "api/companies/pear",
+                originalExternalOrderId: "EXT-ORDER-400",
+            };
+
+            const largeItem2: PickupToShipmentItemDetails = {
+                pickup_request_id: 4,
+                pickup_request_item_id: 302,
+                itemName: "heavy-cases",
+                quantity: 300, // cannot fit into remaining capacity of same vehicle
+                capacity_type_id: 1,
+                originCompanyUrl: "api/companies/case-supplier",
+                destinationCompanyUrl: "api/companies/pear",
+                originalExternalOrderId: "EXT-ORDER-400",
+            };
+
+            const request1: PickupRequestWithDetails = {
+                pickupRequestId: 3,
+                requestingCompanyName: "pear",
+                originCompanyName: "heavy-supplier",
+                destinationCompanyName: "pear",
+                originalExternalOrderId: "EXT-ORDER-400",
+                cost: 5000,
+                requestDate: new Date("2025-10-10T00:00:00Z"),
+                completionDate: null,
+                paymentStatus: "PAID",
+                paymentDate: new Date("2025-10-10T00:00:00Z"),
+                items: [largeItem1],
+            };
+
+            const request2: PickupRequestWithDetails = {
+                pickupRequestId: 4,
+                requestingCompanyName: "pear",
+                originCompanyName: "case-supplier",
+                destinationCompanyName: "pear",
+                originalExternalOrderId: "EXT-ORDER-400",
+                cost: 5000,
+                requestDate: new Date("2025-10-10T00:00:00Z"),
+                completionDate: null,
+                paymentStatus: "PAID",
+                paymentDate: new Date("2025-10-10T00:00:00Z"),
+                items: [largeItem2],
+            };
+
+            const smallCapacityVehicle1: AvailableVehicle = {
+                vehicle_id: 201,
+                vehicle_type_id: 2,
+                is_active: true,
+                vehicleType: "medium truck",
+                maximum_capacity: 500,
+                capacity_type_id: 1,
+                max_pickups_per_day: 5,
+                max_dropoffs_per_day: 100,
+            };
+
+            const smallCapacityVehicle2: AvailableVehicle = {
+                vehicle_id: 202,
+                vehicle_type_id: 2,
+                is_active: true,
+                vehicleType: "medium truck",
+                maximum_capacity: 500,
+                capacity_type_id: 1,
+                max_pickups_per_day: 5,
+                max_dropoffs_per_day: 100,
+            };
+
+            mockedFindPaidAndUnshippedRequests.mockResolvedValue([request1, request2]);
+            mockedFindAvailableVehicles.mockResolvedValue([smallCapacityVehicle1, smallCapacityVehicle2]);
+            mockedSimulatedClock.getCurrentDate.mockReturnValue(new Date("2025-10-10T10:00:00Z"));
+
+            const plannerService = new ShipmentPlannerService();
+
+            const result = await plannerService.planDailyShipments();
+
+            // Both requests should be planned
+            expect(result.plannedRequestIds).toHaveLength(2);
+            // Two vehicles should be used since combined items exceed one vehicle’s capacity
+            expect(result.createdShipmentsPlan).toHaveLength(2);
+
+            const [plan1, plan2] = result.createdShipmentsPlan;
+
+            const totalPlannedItems = [...plan1.itemsToAssign, ...plan2.itemsToAssign];
+
+            // Ensure all items were planned
+            expect(totalPlannedItems).toEqual(expect.arrayContaining([largeItem1, largeItem2]));
+
+            // Plans should be in different vehicles
+            expect(plan1.vehicle.vehicle_id).not.toBe(plan2.vehicle.vehicle_id);
         });
     });
 });
