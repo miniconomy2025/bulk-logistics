@@ -55,9 +55,9 @@ INSERT INTO item_definitions (item_name, capacity_type_id) VALUES
 
 -- Insert data into vehicle_type
 INSERT INTO vehicle_type (name, capacity_type_id, maximum_capacity, max_pickups_per_day, max_dropoffs_per_day) VALUES
-('large_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG'), 5000, 1, 1),
-('medium_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'), 2000, 5, 100 ),
-('small_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'), 500, 250, 500);
+('large_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG'), 9999999, 1, 1),
+('medium_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'), 9999999, 5, 100 ),
+('small_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'), 9999999, 250, 500);
 
 -- Insert data into vehicle
 -- INSERT INTO vehicle (is_active, daily_operational_cost, vehicle_type_id, purchase_date) VALUES
@@ -98,14 +98,14 @@ INSERT INTO shipment_status (name) VALUES
 
 -- Insert data into bank_transactions_ledger (updated with new transaction categories and company references)
 -- INSERT INTO bank_transactions_ledger (
---     commercial_bank_transaction_id, 
---     payment_reference_id, 
---     transaction_category_id, 
---     amount, 
---     transaction_date, 
---     transaction_status_id, 
---     related_pickup_request_id, 
---     loan_id, 
+--     commercial_bank_transaction_id,
+--     payment_reference_id,
+--     transaction_category_id,
+--     amount,
+--     transaction_date,
+--     transaction_status_id,
+--     related_pickup_request_id,
+--     loan_id,
 --     related_thoh_order_id
 -- ) VALUES
 -- ('BANK-TXN-001', 'a1b2c3d4-e5f6-7890-1234-567890abcdef', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PAYMENT_RECEIVED'), 500.00, '2024-06-02', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),

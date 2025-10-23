@@ -66,6 +66,10 @@ export default class AutonomyService {
         return AutonomyService.instance;
     }
 
+    public getIsRunning(): boolean {
+        return this.isRunning;
+    }
+
     /**
      * Starts the simulation's daily tick timer.
      */
@@ -659,13 +663,9 @@ export default class AutonomyService {
 
                 if (response.status >= 200 && response.status < 300) {
                     console.log(`Successfully sent delivery notification for request ID: ${notification.id}`);
-                    const removed = await removeSuccessfulNotification(+notification.id);
+                    await removeSuccessfulNotification(+notification.id);
 
-                    if(removed){
-                        console.log("Delivered Items: ", removed.items)
-                        
-                        deliveredItemIDs = [...deliveredItemIDs, ...removed.items.map(item => item.itemID )];
-                    }
+                    deliveredItemIDs = [...deliveredItemIDs, ...notification.items.map(item => item.itemID )];
                 } else {
                     throw new Error(`Received HTTP ${response.status} from notification endpoint.`);
                 }
