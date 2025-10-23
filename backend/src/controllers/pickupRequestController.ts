@@ -30,7 +30,8 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
             await updateMachineWeights(getMachineDetailsResponse.machines);
             machineWeightsInDb = await getMachines();
             console.log("Machine weights have been updated and re-fetched.");
-        } catch (error:any) {
+        } catch (error: any) {
+            console.error("Issue getting the machine information from thoh OR the db select failed", error);
             return next(new AppError(
                 `Failed to retrieve machine weight information from THOH. Cannot process pickup request. Error: ${error.message || error}`,
                 503
@@ -53,14 +54,15 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
     //  "itemName": "screen_machine",
     //  "quantity": "20"
     // }
-    const machinesWithCount = ["screen_machine", "recyling_machine", "ephone_machine", "ephone_plus_machine", "ephone_pro_max_machine"];
+    const machinesWithCount = ["screen_machine", "recyling_machine", "ephone_machine", "ephone_plus_machine", "ephone_pro_max_machine", "case_machine"];
 
     // These are the machines that we are expecting to get in KGs but the machines are not separate items. The requests will look like this:
     // {
     //  "itemName": "screen_machine",
     //  "quantity": "7500"     for a machine that weights 2500 for example, this is 3 machines.
     // }
-    const machinesWithGroupedKg = ["case_machine"];
+
+    const machinesWithGroupedKg = [""];
 
     console.log("~~~~~~~~~~~~~~~~~~~~~~~ Pickup Request ~~~~~~~~~~~~~~~~~~~~~~~");
     console.log(JSON.stringify(pickupRequestDetails.items, null, 2));
@@ -110,12 +112,14 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
                     newItems.push({
                         itemName: item.itemName,
                         quantity: itemMaxCapacity,
+                        measurementType: itemMeasurementType,
                     });
                 }
                 const remainderQuantity = item.quantity - fullTrucks * itemMaxCapacity;
                 newItems.push({
                     itemName: item.itemName,
                     quantity: remainderQuantity,
+                    measurementType: itemMeasurementType,
                 });
             } else {
                 newItems.push({ ...item, measurementType: itemMeasurementType });
@@ -123,7 +127,6 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
         }
     });
     const partitionedPickupRequestDetails = { ...pickupRequestDetails, items: newItems };
-
     const cost = await calculateDeliveryCost(partitionedPickupRequestDetails);
 
     console.log("~~~~~~~~~~~~~~~~~~~~~~~ Cost Calculation Done ~~~~~~~~~~~~~~~~~~~~~~~");

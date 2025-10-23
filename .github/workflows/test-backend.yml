@@ -1,0 +1,71 @@
+name: Test Backend Build
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          npm install
+
+      - name: Run build
+        working-directory: backend
+        run: |
+          npm run build
+
+      - name: Run tests
+        working-directory: backend
+        run: |
+          npm test
+          
+      - name: Verify app starts
+        working-directory: backend
+        env:
+          NODE_ENV: production
+        run: |
+          # Start the app in the background and probe /api/health with retries; kill the server after probing.
+          timeout 12s bash -lc '
+            # Start server bound to all interfaces (important for Docker networking)
+            HOST=0.0.0.0 node dist/app.js &
+            PID=$!
+            
+            echo "Waiting for server to start..."
+            sleep 2
+            
+            # Try up to 6 times with verbose output
+            for i in 1 2 3 4 5 6; do
+              echo "Attempt $i: Checking http://localhost:3000/api/health"
+              if curl -v http://localhost:3000/api/health 2>&1; then
+                echo "Health check passed"
+                kill $PID || true
+                exit 0
+              fi
+              echo "Attempt $i failed, waiting..."
+              sleep 1
+            done
+            
+            echo "Health check failed after retries"
+            echo "Checking if server is still running..."
+            ps -p $PID || true
+            echo "Checking listening ports..."
+            netstat -tulpn || true
+            
+            kill $PID || true
+            exit 3
+          '

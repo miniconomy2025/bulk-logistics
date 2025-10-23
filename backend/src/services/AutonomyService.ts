@@ -8,14 +8,26 @@ import { thohApiClient } from "../client/thohClient";
 import { addVehicle, findAllVehiclesWithShipments, getAllVehiclesWithType } from "../models/vehicleRepository";
 import type { TruckFailureRequest, TruckPurchaseRequest, TruckPurchaseResponse } from "../types/thoh";
 import { bankApiClient } from "../client/bankClient";
-import { TransactionCategory } from "../enums";
+import { ShipmentStatus, TransactionCategory } from "../enums";
 import { reactivateVehicle } from "./vehicleService";
 import { getCompanyByName, updateCompanyDetails } from "../models/companyRepository";
 import { SimulatedClock, simulatedClock } from "../utils";
 import { addOrUpdateFailedNotification, getQueuedNotifications, removeSuccessfulNotification } from "../models/notificationsQueueRepository";
 import { getItemDefinitions } from "../models/pickupRequestItemRepository";
+import shipmentStatus from "../models/shipmentStatus";
+import shipmentProcessingService from "./shipmentProcessingService";
 
 const TICK_CHECK_INTERVAL_MS = 15000;
+
+// Configuration constants
+const REQUIRED_INITIAL_TRUCKS: TruckPurchaseRequest[] = [
+    { truckName: "large_truck", quantity: 4 },
+    { truckName: "medium_truck", quantity: 4 },
+];
+const BANK_NOTIFICATION_URL = "https://team7-todo.xyz/api/bank";
+const LOAN_MULTIPLIER = 2; // Request loan at 2x truck cost
+const COMPANY_NAME = "bulk-logistics";
+const THOH_COMPANY_NAME = "thoh";
 
 export default class AutonomyService {
     private static instance: AutonomyService;
@@ -40,8 +52,11 @@ export default class AutonomyService {
         this.isProcessingTick = false;
         this.tickIntervalId = null;
         this.hasActiveLoan = false;
+        this.initialTrucksSecured = false;
+        this.bankAccountSecured = false;
         this.funds = 0;
         this.initialTrucksCost = 0;
+        this.lastProcessedSimDate = null;
     }
 
     public static getInstance(): AutonomyService {
@@ -110,15 +125,22 @@ export default class AutonomyService {
             if (todayStr !== this.lastProcessedSimDate) {
                 this.isProcessingTick = true;
 
-                // If this is the very first tick, run the one-time setup.
-                if (this.lastProcessedSimDate == null || !this.initialTrucksSecured || !this.hasActiveLoan || !this.bankAccountSecured) {
+                // If initialization is incomplete, run the one-time setup
+                if (!this.initialTrucksSecured || !this.hasActiveLoan || !this.bankAccountSecured) {
+                    console.log("Initialization incomplete. Running initialization operations...");
                     await this.onInitOperations();
                 }
 
-                // Run all tasks for this new day
-                await this.performDailyTasks(trueSimulatedDate);
+                // Only run daily tasks if initialization is complete
+                if (this.initialTrucksSecured && this.hasActiveLoan && this.bankAccountSecured) {
+                    console.log("Initialization complete. Running daily tasks...");
+                    await this.performDailyTasks(trueSimulatedDate);
 
-                this.lastProcessedSimDate = todayStr;
+                    // Only update lastProcessedSimDate after successfully running daily tasks
+                    this.lastProcessedSimDate = todayStr;
+                } else {
+                    console.warn("Initialization still incomplete. Skipping daily tasks. Will retry initialization on next tick (every 15 seconds).");
+                }
 
                 this.isProcessingTick = false;
             }
@@ -166,6 +188,7 @@ export default class AutonomyService {
         return extractedCost;
     }
     public async handleTruckDelivery(truckDelivery: TruckDelivery): Promise<void> {
+        console.log("---------- TRUCKS BEING DELIVERED -----------")
         if (truckDelivery && truckDelivery.canFulfill) {
             for (let i = 0; i < truckDelivery.quantity; i++) {
                 try {
@@ -191,144 +214,304 @@ export default class AutonomyService {
     // PRIVATE HELPER METHODS (The "Cron Job" Logic)
     // ========================================================================
 
-    private async onInitOperations(): Promise<void> {
-        //
-        // IF WE DO NOT HAVE A BANK ACCOUNT YET.
-        //
-        if (!this.bankAccountSecured) {
+    /**
+     * Ensures a bank account exists for the logistics company.
+     * Creates one if it doesn't exist and updates company details.
+     */
+    private async ensureBankAccountExists(): Promise<void> {
+        if (this.bankAccountSecured) {
+            return;
+        }
+
+        console.log("Checking bank account status...");
+
+        try {
             const bankAccount = await bankApiClient.getAccountDetails();
             let accountNumber: string;
 
-            //1. Create bank account, send the notification URL to the bank
             if (!bankAccount.success || !bankAccount.account_number) {
-                const accountCreationResponse = await bankApiClient.createAccount("https://team7-todo.xyz/api/bank");
+                console.log("No bank account found. Creating new account...");
+                const accountCreationResponse = await bankApiClient.createAccount(BANK_NOTIFICATION_URL);
                 accountNumber = accountCreationResponse.account_number;
+                console.log(`Bank account created: ${accountNumber}`);
             } else {
                 accountNumber = bankAccount.account_number;
+                console.log(`Bank account already exists: ${accountNumber}`);
             }
 
-            if (accountNumber) {
-                try {
-                    await updateCompanyDetails("bulk-logistics", {
-                        bankAccountNumber: accountNumber,
-                    });
-                    this.bankAccountSecured = true;
-                } catch (error) {
-                    throw new Error("Failed to update bank account details for bulk logistics: " + error);
-                }
-            }
-        }
-
-        const requiredTrucks: TruckPurchaseRequest[] = [
-            { truckName: "large_truck", quantity: 4 },
-            { truckName: "medium_truck", quantity: 4 },
-        ];
-
-        let currentVehicles: VehicleWithType[] = [];
-
-        try {
-            currentVehicles = await getAllVehiclesWithType();
+            // Update company details in DB
+            await updateCompanyDetails(COMPANY_NAME, {
+                bankAccountNumber: accountNumber,
+            });
+            this.bankAccountSecured = true;
+            console.log("Bank account details updated successfully.");
         } catch (error) {
-            throw Error("Failed to check vehicles in DB: " + error);
+            console.error(`Failed to secure bank account (will retry on next tick): ${error}`);
+            // Don't set bankAccountSecured to true - will retry on next tick
+            // Don't throw - allow other initialization steps to proceed
         }
+    }
 
-        let allLoansInfo: AllLoansInfoResponse;
-
-        try {
-            allLoansInfo = await bankApiClient.getAllLoanDetails();
-        } catch (error) {
-            throw new Error("Error getting all loans: " + error);
-        }
-        if (allLoansInfo!.success && allLoansInfo!.loans.length > 0) {
-            this.hasActiveLoan = true;
-        }
-
-        const truckPriceMap: { [key: string]: number } = {};
-
+    /**
+     * Fetches truck information from THOH and creates a price lookup map.
+     * @returns Object mapping truck names to their prices
+     */
+    private async getTruckPriceMap(): Promise<{ [key: string]: number }> {
         const trucksInfo = await thohApiClient.getTrucksInformation();
+        console.log("Fetched truck pricing information from THOH:", trucksInfo);
 
-        console.log("---TRUCK INFO---", trucksInfo);
+        // Validate response is an array
+        if (!Array.isArray(trucksInfo)) {
+            console.error("THOH getTrucksInformation returned non-array:", trucksInfo);
+            throw new Error("Invalid response from THOH trucks API - expected array");
+        }
 
+        const priceMap: { [key: string]: number } = {};
         trucksInfo.forEach((truck) => {
-            truckPriceMap[truck.truckName] = truck.price;
+            priceMap[truck.truckName] = truck.price;
         });
 
-        //
-        // IF WE DO NOT HAVE A LOAN YET
-        //
-        if (!this.hasActiveLoan) {
-            //2. Figure out cost of [4 large, 4 medium] vehicles from the hand
+        return priceMap;
+    }
 
-            //3. Request Loan
-            const totalLoanAmount = requiredTrucks.reduce((total, truckInfo) => {
-                const price = truckPriceMap[truckInfo.truckName];
-                return total + price * truckInfo.quantity;
-            }, 0);
+    /**
+     * Ensures a loan is secured to finance initial truck purchases.
+     * @param truckPriceMap Price lookup for calculating loan amount
+     */
+    private async ensureLoanSecured(truckPriceMap: { [key: string]: number }): Promise<void> {
+        // Check if loan already exists
+        const allLoansInfo = await bankApiClient.getAllLoanDetails();
 
-            console.log("---TOTAL LOAN AMOUNT---", totalLoanAmount);
-            const isLoanApplicationSuccessful = await this.checkAndSecureLoan(totalLoanAmount * 2);
-
-            if (isLoanApplicationSuccessful) {
-                const accountBalance = await bankApiClient.getAccountDetails();
-                this.funds = accountBalance.net_balance;
-                console.log(
-                    "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV\nLoan secured successfully. Funds available:\n",
-                    this.funds,
-                );
-            }
-        } else {
+        if (allLoansInfo.success && allLoansInfo.loans.length > 0) {
+            this.hasActiveLoan = true;
+            console.log("Existing loan found. Skipping loan application.");
+            return;
         }
 
-        //
-        // IF WE HAVE NOT SECURED OUR INITIAL TRUCKS
-        //
-        if (!this.initialTrucksSecured) {
-            if (currentVehicles.length > 0) {
-                this.initialTrucksSecured = true;
-            } else {
-                // If we do, we update initialTrucksSecured to true.
-                // 4. Purchase trucks
-                const truckPurchasePromises: Promise<TruckPurchaseResponse | undefined>[] = [];
-                requiredTrucks.forEach((truckInfo) => {
-                    truckPurchasePromises.push(this.checkAndPurchaseTrucks(truckInfo));
-                });
+        if (this.hasActiveLoan) {
+            return;
+        }
 
-                const trucksPurchaseResponse = await Promise.all(truckPurchasePromises);
+        console.log("No active loan found. Calculating required loan amount...");
 
-                const trucksPurchasePaymentsPromises: Promise<TransactionResponse>[] = [];
+        // Calculate total cost of required trucks
+        const totalTruckCost = REQUIRED_INITIAL_TRUCKS.reduce((total, truckInfo) => {
+            const price = truckPriceMap[truckInfo.truckName];
+            return total + (price * truckInfo.quantity);
+        }, 0);
 
-                const firstResponse = trucksPurchaseResponse[0];
+        const totalLoanAmount = totalTruckCost * LOAN_MULTIPLIER;
+        console.log(`Total truck cost: ${totalTruckCost}, Requesting loan: ${totalLoanAmount}`);
 
-                if (firstResponse && firstResponse.orderId) {
-                    await updateCompanyDetails("thoh", {
-                        bankAccountNumber: firstResponse.bankAccount,
-                    });
+        const isLoanApplicationSuccessful = await this.checkAndSecureLoan(totalLoanAmount);
 
-                    for (const purchaseResponse of trucksPurchaseResponse) {
-                        trucksPurchasePaymentsPromises.push(
-                            bankApiClient.makePayment({
-                                paymentDetails: {
-                                    to_account_number: purchaseResponse!.bankAccount,
-                                    amount: purchaseResponse!.totalPrice * purchaseResponse!.quantity,
-                                    description: String(purchaseResponse?.truckName + " - purchase:" + purchaseResponse!.orderId),
-                                },
-                                transactionCategory: TransactionCategory.Purchase,
-                            }),
-                        );
-                    }
-                } else {
-                    console.log("First truck purchase response was undefined or missing orderId. Skipping payment.");
-                }
-                const paymentResults = await Promise.all(trucksPurchasePaymentsPromises);
-                paymentResults.forEach((result) => {
-                    if (result.success) {
-                        console.log(`Payment successful for transaction: ${result.transaction_number}`);
-                        this.initialTrucksSecured = true;
-                    } else {
-                        console.error("Payment failed:", result);
-                    }
-                });
+        if (isLoanApplicationSuccessful) {
+            const accountBalance = await bankApiClient.getAccountDetails();
+            this.funds = accountBalance.net_balance;
+            console.log(`Loan secured successfully. Available funds: ${this.funds}`);
+        } else {
+            throw new Error("Failed to secure loan for truck purchases");
+        }
+    }
+
+    /**
+     * Processes payments for purchased trucks and adds them to the database.
+     * @param truckPurchaseResponses Array of truck purchase responses
+     */
+    private async processTruckPayments(truckPurchaseResponses: (TruckPurchaseResponse | undefined)[]): Promise<void> {
+        const firstResponse = truckPurchaseResponses[0];
+
+        if (!firstResponse || !firstResponse.orderId) {
+            console.log("First truck purchase response was undefined or missing orderId. Skipping payment.");
+            return;
+        }
+
+        // Update THOH's bank account details
+        await updateCompanyDetails(THOH_COMPANY_NAME, {
+            bankAccountNumber: firstResponse.bankAccount,
+        });
+        console.log(`Updated ${THOH_COMPANY_NAME} bank account details`);
+
+        // Calculate total cost of all truck purchases
+        let totalCost = 0;
+        for (const purchaseResponse of truckPurchaseResponses) {
+            if (!purchaseResponse) continue;
+            totalCost += purchaseResponse.totalPrice * purchaseResponse.quantity;
+        }
+
+        // Check if we have sufficient funds
+        const accountDetails = await bankApiClient.getAccountDetails();
+        if (accountDetails.success && accountDetails.net_balance !== undefined && accountDetails.net_balance < totalCost) {
+            console.warn(`Insufficient funds for truck purchase. Need: ${totalCost}, Have: ${accountDetails.net_balance}`);
+            console.log("Attempting to secure additional loan...");
+
+            const loanAmount = totalCost * LOAN_MULTIPLIER;
+            const loanSecured = await this.checkAndSecureLoan(loanAmount);
+
+            if (!loanSecured) {
+                console.error("Failed to secure loan for truck purchase. Will retry on next tick.");
+                return;
             }
+            console.log("Additional loan secured successfully.");
+        }
+
+        // Create payment promises for all truck purchases
+        const paymentPromises: Promise<TransactionResponse>[] = [];
+
+        for (const purchaseResponse of truckPurchaseResponses) {
+            if (!purchaseResponse) continue;
+
+            paymentPromises.push(
+                bankApiClient.makePayment({
+                    paymentDetails: {
+                        to_account_number: purchaseResponse.bankAccount,
+                        amount: purchaseResponse.totalPrice * purchaseResponse.quantity,
+                        description: `${purchaseResponse.truckName} - purchase:${purchaseResponse.orderId}`,
+                    },
+                    transactionCategory: TransactionCategory.Purchase,
+                })
+            );
+        }
+
+        // Process all payments
+        const paymentResults = await Promise.all(paymentPromises);
+
+        let allPaymentsSuccessful = true;
+        let paymentIndex = 0;
+
+        for (const purchaseResponse of truckPurchaseResponses) {
+            if (!purchaseResponse) continue;
+
+            const paymentResult = paymentResults[paymentIndex];
+            if (paymentResult.success) {
+                console.log(`Payment successful for transaction: ${paymentResult.transaction_number}`);
+
+                // Add trucks to database immediately after successful payment
+                for (let i = 0; i < purchaseResponse.quantity; i++) {
+                    try {
+                        await addVehicle({
+                            type: purchaseResponse.truckName,
+                            purchase_date: simulatedClock.getCurrentDate().toISOString().split("T")[0],
+                            operational_cost: this.extracOperationalCost(purchaseResponse.operatingCostPerDay),
+                            load_capacity: purchaseResponse.maximumLoad,
+                        });
+                        console.log(`Added ${purchaseResponse.truckName} to database (${i + 1}/${purchaseResponse.quantity})`);
+                    } catch (error) {
+                        console.error(`Failed to add ${purchaseResponse.truckName} to database:`, error);
+                        allPaymentsSuccessful = false;
+                    }
+                }
+            } else {
+                console.error("Payment failed:", paymentResult);
+                allPaymentsSuccessful = false;
+            }
+            paymentIndex++;
+        }
+
+        if (allPaymentsSuccessful) {
+            this.initialTrucksSecured = true;
+            console.log("All truck payments processed successfully and trucks added to database.");
+        } else {
+            console.warn("Some trucks failed to be paid for or added to database. Will retry on next tick.");
+        }
+    }
+
+    /**
+     * Ensures the initial fleet of trucks is purchased and paid for.
+     * Verifies we have the required number of each truck type.
+     */
+    private async ensureInitialFleetPurchased(): Promise<void> {
+        if (this.initialTrucksSecured) {
+            return;
+        }
+
+        console.log("Checking initial truck fleet status...");
+
+        // Check if we already have the required vehicles
+        const currentVehicles = await getAllVehiclesWithType();
+
+        // Count vehicles by type
+        const vehicleCounts: { [key: string]: number } = {};
+        currentVehicles.forEach((vehicle) => {
+            const typeName = vehicle.vehicle_type?.name ?? "";
+            vehicleCounts[typeName] = (vehicleCounts[typeName] || 0) + 1;
+        });
+
+        // Check if we have all required trucks
+        const missingTrucks: TruckPurchaseRequest[] = [];
+        for (const requiredTruck of REQUIRED_INITIAL_TRUCKS) {
+            const currentCount = vehicleCounts[requiredTruck.truckName] || 0;
+            if (currentCount < requiredTruck.quantity) {
+                const needed = requiredTruck.quantity - currentCount;
+                missingTrucks.push({
+                    truckName: requiredTruck.truckName,
+                    quantity: needed,
+                });
+                console.log(`Need ${needed} more ${requiredTruck.truckName}(s). Currently have: ${currentCount}/${requiredTruck.quantity}`);
+            }
+        }
+
+        if (missingTrucks.length === 0) {
+            this.initialTrucksSecured = true;
+            console.log(`Initial fleet complete. Total vehicles: ${currentVehicles.length}`);
+            return;
+        }
+
+        console.log(`Missing trucks detected. Purchasing ${missingTrucks.length} truck type(s)...`);
+
+        // Purchase only the missing trucks
+        const purchasePromises = missingTrucks.map((truckInfo) =>
+            this.checkAndPurchaseTrucks(truckInfo)
+        );
+
+        const purchaseResponses = await Promise.all(purchasePromises);
+
+        console.log(`Successfully ordered ${purchaseResponses.filter(r => r !== undefined).length} truck type(s)`);
+
+        // Process payments for all purchases
+        await this.processTruckPayments(purchaseResponses);
+    }
+
+    /**
+     * Orchestrates all one-time initialization operations.
+     * Runs on the first simulation tick to set up bank account, loan, and initial fleet.
+     */
+    private async onInitOperations(): Promise<void> {
+        console.log("\n=== INITIALIZATION OPERATIONS ===");
+        console.log(this.hasActiveLoan, this.initialTrucksSecured, this.bankAccountSecured);
+
+        // Step 1: Ensure bank account exists
+        await this.ensureBankAccountExists();
+
+        const currentVehicles =await getAllVehiclesWithType();
+
+            if (currentVehicles.length > 3) {
+              this.hasActiveLoan = true;
+              this.initialTrucksSecured = true;
+              this.bankAccountSecured = true;
+
+              return;
+            }
+
+        const truckPriceMap = await this.getTruckPriceMap();
+
+        // // Step 2: Get truck pricing information (needed for loan calculation)
+        // let truckPriceMap: { [key: string]: number } = {};
+        // try {
+        //     truckPriceMap = await this.getTruckPriceMap();
+        // } catch (error) {
+        //     console.error("Failed to get truck pricing from THOH (will retry on next tick):", error);
+        //     return; // Can't proceed without truck prices
+        // }
+
+        // Step 3: Ensure loan is secured for truck purchases
+        await this.ensureLoanSecured(truckPriceMap);
+
+        // Step 4: Purchase initial fleet of trucks
+        await this.ensureInitialFleetPurchased();
+
+        if (this.initialTrucksSecured && this.hasActiveLoan && this.bankAccountSecured) {
+            console.log("=== INITIALIZATION COMPLETE ===\n");
         }
     }
 
@@ -366,7 +549,7 @@ export default class AutonomyService {
         console.log("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\nMorning Ops: Planning and dispatching shipments...");
         const planner = new ShipmentPlannerService();
         let dropoffEntities: LogisticsNotification[] = [];
-        const { createdShipmentsPlan, plannedRequestIds } = await planner.planDailyShipments();
+        const { createdShipmentsPlan } = await planner.planDailyShipments();
         // const vehiclesWithShipments = await findAllVehiclesWithShipments(currentDate);
 
         // const operationalCosts = vehiclesWithShipments.reduce((totalOperationalCost, vehicle) => {
@@ -401,6 +584,7 @@ export default class AutonomyService {
                         quantity: item.quantity,
                         items: [
                             {
+                                itemID: item.pickup_request_item_id,
                                 name: item.itemName,
                                 quantity: item.quantity,
                             },
@@ -408,7 +592,8 @@ export default class AutonomyService {
                     };
                     const response = await notificationApiClient.sendLogisticsNotification(pickupRequestNotification);
                     if (response.status >= 200 && response.status < 300) {
-                        await shipmentModel.createShipmentAndAssignitems(plan.vehicle.vehicle_id, item.pickup_request_item_id, plannedRequestIds);
+                        // Create shipment and assign this item to it
+                        await shipmentModel.createShipmentAndAssignitems(Number(plan.vehicle.vehicle_id), item.pickup_request_item_id);
                         const machinesWithCount = [
                             "screen_machine",
                             "recyling_machine",
@@ -424,6 +609,7 @@ export default class AutonomyService {
                                 quantity: 1,
                                 items: [
                                     {
+                                        itemID: item.pickup_request_item_id,
                                         name: item.itemName,
                                         quantity: 1,
                                     },
@@ -437,6 +623,7 @@ export default class AutonomyService {
                                 quantity: item.quantity,
                                 items: [
                                     {
+                                        itemID: item.pickup_request_item_id,
                                         name: item.itemName,
                                         quantity: item.quantity,
                                     },
@@ -464,6 +651,7 @@ export default class AutonomyService {
         const notificationsToProcess = queuedNotifications.map((qn) => qn.payload);
 
         const allNotificationsToAttempt = [...notificationsToProcess, ...newNotifications];
+        let deliveredItemIDs: number[] = [];
 
         for (const notification of allNotificationsToAttempt) {
             try {
@@ -471,7 +659,10 @@ export default class AutonomyService {
 
                 if (response.status >= 200 && response.status < 300) {
                     console.log(`Successfully sent delivery notification for request ID: ${notification.id}`);
-                    await removeSuccessfulNotification(+notification.id);
+                    const removed = await removeSuccessfulNotification(+notification.id);
+
+                    deliveredItemIDs = [...deliveredItemIDs, ...removed.items.map(item => item.itemID )];
+
                 } else {
                     throw new Error(`Received HTTP ${response.status} from notification endpoint.`);
                 }
@@ -481,7 +672,25 @@ export default class AutonomyService {
             }
         }
 
-        await updatePickupRequestStatuses(simulatedClock.getCurrentDate());
+        try {
+
+            const statusId = await shipmentStatus.findShipmentStatusByName(ShipmentStatus.Delivered);
+            
+            if (!statusId) {
+                throw new Error(`Configuration Error: ShipmentStatus '${ShipmentStatus.Delivered}' not found in database.`);
+            }
+            
+            await shipmentProcessingService.processShipmentUpdate({
+                itemsIDs: deliveredItemIDs, 
+                newStatusId: statusId
+            });
+            
+            await updatePickupRequestStatuses(simulatedClock.getCurrentDate());
+
+            deliveredItemIDs = [];
+        } catch (err: any) {
+            console.error("Failed to process shipment update:", err.message);
+        }
 
         console.log("VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV");
     }

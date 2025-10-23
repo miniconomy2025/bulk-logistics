@@ -20,7 +20,7 @@ export abstract class BaseApiClient {
             // key: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.key"),
             // cert: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.crt"),
             // ca: allCAs,
-            // rejectUnauthorized: true,
+            rejectUnauthorized: false,
         });
         // const httpsAgent = new https.Agent({
         //     key: fs.readFileSync(process.env.MTLS_PRIVATE_KEY_PATH!),
@@ -41,6 +41,9 @@ export abstract class BaseApiClient {
             (response) => response,
             (error: AxiosError) => {
                 if (error.response) {
+                    if (error.response.status === 404) {
+                        return error.response;
+                    }
                     console.error(`Error from ${this.serviceName} API:`, error.response.data);
                     throw new AppError(`Request to ${this.serviceName} failed with status ${error.response.status}`, 502);
                 } else if (error.request) {
