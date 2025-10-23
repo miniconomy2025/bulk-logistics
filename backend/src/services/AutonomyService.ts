@@ -666,7 +666,6 @@ export default class AutonomyService {
                     await removeSuccessfulNotification(+notification.id);
 
                     deliveredItemIDs = [...deliveredItemIDs, ...notification.items.map(item => item.itemID )];
-                    console.log("Items delivered: ", deliveredItemIDs)
                 } else {
                     throw new Error(`Received HTTP ${response.status} from notification endpoint.`);
                 }
@@ -684,7 +683,6 @@ export default class AutonomyService {
                 throw new Error(`Configuration Error: ShipmentStatus '${ShipmentStatus.Delivered}' not found in database.`);
             }
             
-            console.log("Items to ship: ", deliveredItemIDs)
             await shipmentProcessingService.processShipmentUpdate({
                 itemsIDs: deliveredItemIDs, 
                 newStatusId: statusId
