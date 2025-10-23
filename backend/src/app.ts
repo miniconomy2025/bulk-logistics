@@ -61,14 +61,12 @@ app.use(globalErrorHandler);
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 
-    try {
-        thohApiClient.getTime().then((response) => {
-            if (!response.error && typeof response.epochStartTime === "number") {
-                console.log("SIMULATION AUTO START INITIATED\nTIME: " + response.epochStartTime);
-                autonomyService.start(response.epochStartTime);
-            }
-        });
-    } catch {
-        //Ignore error
-    }
+    thohApiClient.getTime().then((response) => {
+        if (!response.error && typeof response.epochStartTime === "number") {
+            console.log("SIMULATION AUTO START INITIATED\nTIME: " + response.epochStartTime);
+            autonomyService.start(response.epochStartTime);
+        }
+    }).catch((error) => {
+        //Ignore error Error is being logged by our base client
+    });
 });
