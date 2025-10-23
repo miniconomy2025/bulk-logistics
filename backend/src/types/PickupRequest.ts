@@ -33,7 +33,7 @@ export interface PickupRequestCreateResponse {
     pickupRequestId: number;
     cost: number;
     paymentReferenceId: string;
-    accountNumber: string | number;
+    accountNumber: string;
     status: string;
     statusCheckUrl: string;
 }
