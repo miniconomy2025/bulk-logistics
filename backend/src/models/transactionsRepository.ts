@@ -175,7 +175,7 @@ export const getRecentTransactionRepo = async (page: number, limit: number): Pro
 
 export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
     const query = `
-    SELECT 
+    SELECT
         c.company_name AS company,
         SUM(t.amount) AS total,
         COUNT(DISTINCT t.related_pickup_request_id) AS shipments
@@ -289,18 +289,26 @@ export const updatePaymentStatusForPickupRequest = async (transaction: BankNotif
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(transaction.description);
 
     const paymentReferenceId = isUuid ? transaction.description : null;
-    const pickupRequestId = !isUuid ? parseInt(transaction.description, 10) : null;
+    let pickupRequestId = !isUuid ? parseInt(transaction.description, 10) : null;
+
+    if (!isUuid && pickupRequestId == null) {
+      const splitDescription = transaction.description.split(' ');
+      if (splitDescription.length > 1) {
+        const lastIndex = splitDescription[splitDescription.length - 1];
+        pickupRequestId = parseInt(lastIndex, 10);
+      }
+    }
 
     const query = `
         UPDATE bank_transactions_ledger
-        SET 
+        SET
             transaction_status_id = (
-                SELECT transaction_status_id 
-                FROM transaction_status 
+                SELECT transaction_status_id
+                FROM transaction_status
                 WHERE status = 'COMPLETED'
             )
-        WHERE 
-            payment_reference_id = $1 
+        WHERE
+            payment_reference_id = $1
             OR related_pickup_request_id = $2;
     `;
 
