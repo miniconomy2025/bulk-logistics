@@ -6,8 +6,9 @@ import AppError from "../utils/errorHandlingMiddleware/appError";
 import catchAsync from "../utils/errorHandlingMiddleware/catchAsync";
 
 export const bankNotification = catchAsync(async (req: Request, res: Response): Promise<void> => {
+    console.log('-------BANK NOTIFICATION RECEIVED------------------')
     const transaction = req.body as BankNotificationPayload;
-
+    console.log(transaction)
     const bankAccount = await findAccountNumberByCompanyName("bulk-logistics");
 
     if (!validateTransaction(transaction)) {

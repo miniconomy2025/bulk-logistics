@@ -69,8 +69,8 @@ resource "aws_instance" "api_server" {
 
               systemctl enable postgresql
               systemctl start postgresql
-              sudo -u postgres psql -c "CREATE USER bulk-logistic WITH PASSWORD '$${DB_PASSWORD}';"
-              sudo -u postgres createdb bldatabase -O bulk-logistic
+              sudo -u postgres psql -c "CREATE USER bulk-logistics WITH PASSWORD '$DB_PASSWORD';"
+              sudo -u postgres createdb bldatabase -O bulk-logistics
 
               apt install -y nodejs npm
               git clone https://github.com/miniconomy2025/bulk-logistics.git /home/ubuntu/bulk-logistics
@@ -121,8 +121,8 @@ resource "aws_budgets_budget" "bulk-logistics_budget" {
   budget_type       = "COST"
   limit_amount      = "25"
   limit_unit        = "USD"
-  time_period_start   = "2025-07-05_00:00"
-  time_period_end = "2025-07-12_00:00"
+  time_period_start   = "2025-10-18_00:00"
+  time_period_end = "2025-10-28_00:00"
   time_unit         = "MONTHLY"
 
   notification {

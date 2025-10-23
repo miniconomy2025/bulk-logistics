@@ -1,0 +1,42 @@
+name: Test Backend Build
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+  workflow_dispatch:
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        working-directory: backend
+        run: |
+          npm install
+
+      - name: Run build
+        working-directory: backend
+        run: |
+          npm run build
+
+      - name: Run tests
+        working-directory: backend
+        run: |
+          npm test
+          
+      - name: Verify app starts
+        working-directory: backend
+        run: |
+          node -e "const app = require('./dist/app.js'); // Verify the app can be loaded"
+          timeout 5s node dist/app.js || code=$?; if [ $code -ne 124 ]; then exit $code; fi
+          # Exit code 124 means the timeout killed it, which is what we want

@@ -78,7 +78,8 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
             console.log("~~~~~~~~~~~~~~~~~~ Selected M/S Vehicles ~~~~~~~~~~~~~~~~~~~~~~~");
             console.log(selectedVehicles);
 
-            if ((remainingItems > 2000 || remainingItems > 500) && mediumTrucks.length > 0) {
+            // Use medium truck if items > 500, otherwise use small truck
+            if (remainingItems > 500 && mediumTrucks.length > 0) {
                 const vehicle = mediumTrucks[mediumIndex % mediumTrucks.length];
                 selectedVehicles.push(vehicle);
                 mediumIndex++;
