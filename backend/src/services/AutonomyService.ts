@@ -661,8 +661,8 @@ export default class AutonomyService {
                     console.log(`Successfully sent delivery notification for request ID: ${notification.id}`);
                     const removed = await removeSuccessfulNotification(+notification.id);
 
+                    console.log("Delivered Items: ", removed)
                     if(removed){
-                        console.log("Delivered Items: ", removed.items)
                         
                         deliveredItemIDs = [...deliveredItemIDs, ...removed.items.map(item => item.itemID )];
                     }

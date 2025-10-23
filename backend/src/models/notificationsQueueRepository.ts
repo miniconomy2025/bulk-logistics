@@ -34,5 +34,6 @@ export const removeSuccessfulNotification = async (pickupRequestId: number): Pro
     
     const result = await db.query<LogisticsNotification>(query, [pickupRequestId]);
 
+    console.log("deleted notification", result)
     return result.rows.length ? result.rows[0] : null;
 };
