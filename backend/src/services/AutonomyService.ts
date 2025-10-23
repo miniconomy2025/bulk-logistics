@@ -659,13 +659,10 @@ export default class AutonomyService {
 
                 if (response.status >= 200 && response.status < 300) {
                     console.log(`Successfully sent delivery notification for request ID: ${notification.id}`);
-                    const removed = await removeSuccessfulNotification(+notification.id);
+                    await removeSuccessfulNotification(+notification.id);
 
-                    console.log("Delivered Items: ", removed)
-                    if(removed){
-                        
-                        deliveredItemIDs = [...deliveredItemIDs, ...removed.items.map(item => item.itemID )];
-                    }
+                    deliveredItemIDs = [...deliveredItemIDs, ...notification.items.map(item => item.itemID )];
+                    console.log("Items delivered: ", deliveredItemIDs)
                 } else {
                     throw new Error(`Received HTTP ${response.status} from notification endpoint.`);
                 }
