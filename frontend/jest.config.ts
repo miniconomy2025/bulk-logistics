@@ -34,7 +34,7 @@ const config: Config.InitialOptions = {
             statements: 80,
         },
     },
-    setupFilesAfterEnv: ["<rootDir>/src/__tests__/setup.ts"],
+    setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
     testTimeout: 10000,
     clearMocks: true,
     restoreMocks: true,
@@ -43,7 +43,7 @@ const config: Config.InitialOptions = {
         "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "jest-transform-stub",
     },
     moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
-    testPathIgnorePatterns: ["/node_modules/", "/dist/", "<rootDir>/src/__tests__/__mocks__/", "<rootDir>/src/__tests__/setup.ts"   ],
+    testPathIgnorePatterns: ["/node_modules/", "/dist/", "<rootDir>/src/__tests__/__mocks__/"],
     verbose: true,
     preset: "ts-jest",
 };
