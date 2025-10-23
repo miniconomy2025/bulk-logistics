@@ -127,14 +127,21 @@ const ShipmentsDashboard: React.FC = () => {
                             </label>
                             <select
                                 id="paymentFilter"
+                                title="paymentFilter"
                                 aria-labelledby="paymentFilter"
                                 className="rounded border border-gray-300 p-2 text-sm"
                                 value={currentStatus ?? ""}
                                 onChange={(e) => setCurrentStatus(e.target.value === "" ? null : Number(e.target.value))}
                             >
-                                <option value="">All Shipments</option>
+                                <option
+                                    title={"All Shipments filter"}
+                                    value=""
+                                >
+                                    All Shipments
+                                </option>
                                 {shipmentStatuses.map((status) => (
                                     <option
+                                        title={status + " " + "filter"}
                                         key={status.shipmentStatusId}
                                         value={status.shipmentStatusId}
                                     >
