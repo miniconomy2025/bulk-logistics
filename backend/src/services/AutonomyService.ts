@@ -683,6 +683,7 @@ export default class AutonomyService {
                 throw new Error(`Configuration Error: ShipmentStatus '${ShipmentStatus.Delivered}' not found in database.`);
             }
             
+            console.log("Items to ship: ", deliveredItemIDs)
             await shipmentProcessingService.processShipmentUpdate({
                 itemsIDs: deliveredItemIDs, 
                 newStatusId: statusId
