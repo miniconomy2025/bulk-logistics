@@ -29,7 +29,7 @@ export const handleTruckFailure = async (failureInfo: TruckFailureInfo) => {
     const vehiclesToFail = [];
 
     for (const vehicle of allVehicles) {
-        if (vehicle.vehicle_type.name === failureInfo.truckName) {
+        if (vehicle.vehicle_type?.name === failureInfo.truckName) {
             vehiclesToFail.push(vehicle);
         }
 
@@ -57,7 +57,7 @@ export const handleTruckFailure = async (failureInfo: TruckFailureInfo) => {
     const disableVehicles = [];
 
     for (const vehicle of vehiclesToFail) {
-        const response = await updateVehicleStatus(vehicle.vehicle_id, false, simulatedClock.getCurrentDate().toISOString());
+        const response = await updateVehicleStatus(Number(vehicle.vehicle_id), false, simulatedClock.getCurrentDate().toISOString());
 
         disableVehicles.push(response);
         console.log("----Vehicle Disabled-----");

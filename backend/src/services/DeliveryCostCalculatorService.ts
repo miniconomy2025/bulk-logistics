@@ -40,13 +40,13 @@ export const calculateDeliveryCost = async (pickupRequestDetails: PickupRequestR
             const { daily_operational_cost, vehicle_type } = vehicle;
 
             // Validate operational cost is not negative
-            if (daily_operational_cost < 0) {
-                console.warn(`Negative operational cost detected for vehicle type ${vehicle_type.name}, using absolute value`);
+            if (daily_operational_cost! < 0) {
+                console.warn(`Negative operational cost detected for vehicle type ${vehicle_type?.name}, using absolute value`);
             }
 
             const operationalCost = Math.abs(Number(daily_operational_cost));
 
-            switch (vehicle_type.name) {
+            switch (vehicle_type?.name) {
                 case VehicleType.Large:
                     totalOperationalCost += operationalCost;
                     loanRepaymentPerDelivery += loanRepayment / 30;

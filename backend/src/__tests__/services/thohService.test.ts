@@ -143,6 +143,7 @@ describe('thohService', () => {
                 max_dropoffs_per_day: 1,
             },
             max_pickups_per_day: 1,
+            max_dropoffs_per_day: 1,
         };
 
         const largeTruck2: VehicleWithType = {
@@ -165,6 +166,7 @@ describe('thohService', () => {
                 max_dropoffs_per_day: 100,
             },
             max_pickups_per_day: 5,
+            max_dropoffs_per_day: 100,
         };
 
         describe('Successful Failure Operations', () => {

@@ -47,6 +47,7 @@ describe('vehicleService', () => {
                 max_dropoffs_per_day: 1,
             },
             max_pickups_per_day: 1,
+            max_dropoffs_per_day: 1,
         };
 
         const mediumTruck: VehicleWithType = {
@@ -64,6 +65,7 @@ describe('vehicleService', () => {
                 max_dropoffs_per_day: 100,
             },
             max_pickups_per_day: 5,
+            max_dropoffs_per_day: 100,
         };
 
         const smallTruck: VehicleWithType = {
@@ -81,6 +83,7 @@ describe('vehicleService', () => {
                 max_dropoffs_per_day: 500,
             },
             max_pickups_per_day: 200,
+            max_dropoffs_per_day: 500,
         };
 
         describe('Weight-based (KG) Items', () => {
@@ -100,7 +103,7 @@ describe('vehicleService', () => {
 
                 expect(result.success).toBe(true);
                 expect(result.vehicles).toHaveLength(1);
-                expect(result.vehicles?.[0].vehicle_type.name).toBe('large_truck');
+                expect(result.vehicles?.[0].vehicle_type?.name).toBe('large_truck');
             });
 
             it('should select multiple large trucks for items over 5000 KG', async () => {
@@ -204,7 +207,7 @@ describe('vehicleService', () => {
                 // With the bug: will select medium truck (correct by accident)
                 // Correct logic should be: remainingItems > 2000 AND mediumTrucks exist
                 expect(result.success).toBe(true);
-                expect(result.vehicles?.[0].vehicle_type.name).toBe('medium_truck');
+                expect(result.vehicles?.[0].vehicle_type?.name).toBe('medium_truck');
             });
 
             it('should select medium truck for items between 501 and 2000 UNITS', async () => {
@@ -243,7 +246,7 @@ describe('vehicleService', () => {
 
                 expect(result.success).toBe(true);
                 expect(result.vehicles).toHaveLength(1);
-                expect(result.vehicles?.[0].vehicle_type.name).toBe('small_truck');
+                expect(result.vehicles?.[0].vehicle_type?.name).toBe('small_truck');
             });
 
             it('should handle mix of medium and small trucks for large orders', async () => {
@@ -378,7 +381,7 @@ describe('vehicleService', () => {
 
                 // Uses first item's measurement type (KG)
                 expect(result.success).toBe(true);
-                expect(result.vehicles?.[0].vehicle_type.name).toBe('large_truck');
+                expect(result.vehicles?.[0].vehicle_type?.name).toBe('large_truck');
             });
 
             it('should handle zero quantity items', async () => {
@@ -478,6 +481,7 @@ describe('vehicleService', () => {
                 max_dropoffs_per_day: 1,
             },
             max_pickups_per_day: 1,
+            max_dropoffs_per_day: 1,
         };
 
         it('should reactivate vehicles disabled 2 or more days ago', async () => {
