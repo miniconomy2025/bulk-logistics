@@ -289,15 +289,7 @@ export const updatePaymentStatusForPickupRequest = async (transaction: BankNotif
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(transaction.description);
 
     const paymentReferenceId = isUuid ? transaction.description : null;
-    let pickupRequestId = !isUuid ? parseInt(transaction.description, 10) : null;
-
-    if (!isUuid && !pickupRequestId) {
-      const splitDescription = transaction.description.split(' ');
-      if (splitDescription.length > 1) {
-        const lastIndex = splitDescription[splitDescription.length - 1];
-        pickupRequestId = parseInt(lastIndex, 10);
-      }
-    }
+    const pickupRequestId = !isUuid ? parseInt(transaction.description, 10) : null;
 
     const query = `
         UPDATE bank_transactions_ledger
