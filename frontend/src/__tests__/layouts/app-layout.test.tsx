@@ -1,17 +1,18 @@
 import { render, screen } from "@testing-library/react";
 import { DashboardLayout } from "../../layouts/app-layout";
+import "@testing-library/jest-dom";
 
-jest.mock("../../components/mobile-menu", () => {
-    return function MockMobileMenu() {
+jest.mock("../../components/mobile-menu", () => ({
+    MobileMenu: function MockMobileMenu() {
         return <div data-testid="mobile-menu">Mobile Menu</div>;
-    };
-});
+    }
+}));
 
-jest.mock("../../components/sidebar-menu", () => {
-    return function MockSidebarMenu() {
+jest.mock("../../components/sidebar-menu", () => ({
+    SidebarMenu: function MockSidebarMenu() {
         return <div data-testid="sidebar-menu">Sidebar Menu</div>;
-    };
-});
+    }
+}));
 
 describe("DashboardLayout", () => {
     it("should render with children", () => {

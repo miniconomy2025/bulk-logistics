@@ -10,6 +10,7 @@ const config: Config.InitialOptions = {
             {
                 tsconfig: {
                     jsx: "react-jsx",
+                    esModuleInterop: true,
                 },
             },
         ],
