@@ -291,7 +291,7 @@ export const updatePaymentStatusForPickupRequest = async (transaction: BankNotif
     const paymentReferenceId = isUuid ? transaction.description : null;
     let pickupRequestId = !isUuid ? parseInt(transaction.description, 10) : null;
 
-    if (!isUuid && pickupRequestId == null) {
+    if (!isUuid && !pickupRequestId) {
       const splitDescription = transaction.description.split(' ');
       if (splitDescription.length > 1) {
         const lastIndex = splitDescription[splitDescription.length - 1];
