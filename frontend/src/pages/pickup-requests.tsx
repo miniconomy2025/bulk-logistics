@@ -31,7 +31,12 @@ const PickupRequestDashboard: React.FC = () => {
             <main className="w-full flex-1 overflow-y-auto p-8 pt-[4.5rem] lg:ml-64 lg:pt-8">
                 <header className="mb-8 flex flex-col items-start justify-between sm:flex-row sm:items-center">
                     <div>
-                        <h1 title="pr-heading" className="text-3xl font-bold text-gray-900">Pickup Requests</h1>
+                        <h1
+                            title="pr-heading"
+                            className="text-3xl font-bold text-gray-900"
+                        >
+                            Pickup Requests
+                        </h1>
                         <p className="text-md text-gray-500">Track pickup requests and their statuses</p>
                     </div>
                 </header>
