@@ -114,14 +114,13 @@ export const getTotals = async (): Promise<Result<any>> => {
 export const getMonthlyRevenueExpenses = async (): Promise<Result<any>> => {
     const query = `
     SELECT
-        EXTRACT(YEAR FROM transaction_date) AS year,
-        EXTRACT(MONTH FROM transaction_date) AS month,
+        DATE(transaction_date) AS date,
         SUM(CASE WHEN tc.name IN ('PURCHASE', 'EXPENSE', 'LOAN') THEN amount END) AS expenses,
         SUM(CASE WHEN tc.name IN ('PAYMENT_RECEIVED') THEN amount END) AS revenue
     FROM bank_transactions_ledger t
     JOIN transaction_category tc ON t.transaction_category_id = tc.transaction_category_id
-    GROUP BY year, month
-    ORDER BY year DESC, month DESC;
+    GROUP BY DATE(transaction_date)
+    ORDER BY date DESC;
   `;
 
     try {
