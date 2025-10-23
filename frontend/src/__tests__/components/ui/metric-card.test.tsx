@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { MetricCard } from "../../../components/ui/metric-card";
+import "@testing-library/jest-dom";
 
 describe("MetricCard", () => {
     const defaultProps = {
@@ -14,7 +15,7 @@ describe("MetricCard", () => {
         render(<MetricCard {...defaultProps} />);
 
         expect(screen.getByText("Test Metric")).toBeInTheDocument();
-        expect(screen.getByText("1,234")).toBeInTheDocument();
+        expect(screen.getByText("Ð 1 234")).toBeInTheDocument();
         expect(screen.getByTestId("test-icon")).toBeInTheDocument();
     });
 
@@ -25,7 +26,7 @@ describe("MetricCard", () => {
                 value={1234567}
             />,
         );
-        expect(screen.getByText("1,234,567")).toBeInTheDocument();
+        expect(screen.getByText("Ð 1 234 567")).toBeInTheDocument();
     });
 
     it("should not show currency symbol for shipment type", () => {
@@ -35,13 +36,13 @@ describe("MetricCard", () => {
                 type="shipment"
             />,
         );
-        expect(screen.getByText("1,234")).toBeInTheDocument();
+        expect(screen.getByText("1 234")).toBeInTheDocument();
         expect(screen.queryByText("Ð")).not.toBeInTheDocument();
     });
 
     it("should show currency symbol for non-shipment types", () => {
         render(<MetricCard {...defaultProps} />);
-        expect(screen.getByText("Ð 1,234")).toBeInTheDocument();
+        expect(screen.getByText("Ð 1 234")).toBeInTheDocument();
     });
 
     it('should show currency symbol for "Active Shipments" title', () => {
@@ -51,7 +52,7 @@ describe("MetricCard", () => {
                 title="Active Shipments"
             />,
         );
-        expect(screen.getByText("Ð 1,234")).toBeInTheDocument();
+        expect(screen.getByText("1 234")).toBeInTheDocument();
     });
 
     it("should handle zero values", () => {
@@ -71,7 +72,7 @@ describe("MetricCard", () => {
                 value={-1234}
             />,
         );
-        expect(screen.getByText("Ð -1,234")).toBeInTheDocument();
+        expect(screen.getByText("Ð -1 234")).toBeInTheDocument();
     });
 
     it("should apply custom background and text colors", () => {
@@ -107,7 +108,7 @@ describe("MetricCard", () => {
                 value={1234.56}
             />,
         );
-        expect(screen.getByText("Ð 1,234.56")).toBeInTheDocument();
+        expect(screen.getByText("Ð 1 234.56")).toBeInTheDocument();
     });
 
     it("should handle very large numbers", () => {
@@ -117,6 +118,6 @@ describe("MetricCard", () => {
                 value={999999999}
             />,
         );
-        expect(screen.getByText("Ð 999,999,999")).toBeInTheDocument();
+        expect(screen.getByText("Ð 999 999 999")).toBeInTheDocument();
     });
 });

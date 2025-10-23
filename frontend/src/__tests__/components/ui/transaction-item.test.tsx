@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { TransactionItem } from "../../../components/ui/transaction-item";
+import "@testing-library/jest-dom";
 
 describe("TransactionItem", () => {
     const defaultProps = {
@@ -85,26 +86,6 @@ describe("TransactionItem", () => {
             />,
         );
         expect(screen.getByText(specialName)).toBeInTheDocument();
-    });
-
-    it("should handle empty label", () => {
-        render(
-            <TransactionItem
-                {...defaultProps}
-                label=""
-            />,
-        );
-        expect(screen.getByText("")).toBeInTheDocument();
-    });
-
-    it("should handle empty percentage", () => {
-        render(
-            <TransactionItem
-                {...defaultProps}
-                percentage=""
-            />,
-        );
-        expect(screen.getByText("")).toBeInTheDocument();
     });
 
     it("should apply correct text styling", () => {

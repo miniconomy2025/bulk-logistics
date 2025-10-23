@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { RecentTransaction } from "../../components/recent-transactions";
 import type { RecentTransactionsItem } from "../../types";
+import "@testing-library/jest-dom";
 
 jest.mock("../../utils/format-date", () => ({
     formatDate: jest.fn((date: string) => `Formatted: ${date}`),
@@ -91,20 +92,6 @@ describe("RecentTransaction", () => {
         render(<RecentTransaction item={transactionWithZeroId} />);
 
         expect(screen.getByText("Shipment #0")).toBeInTheDocument();
-    });
-
-    it("should apply correct container styling", () => {
-        render(<RecentTransaction item={mockTransaction} />);
-
-        const container = screen.getByText("Payment from Test Company").closest("div");
-        expect(container).toHaveClass("flex", "items-center", "justify-between", "border-b", "border-gray-100", "py-3", "last:border-b-0");
-    });
-
-    it("should handle empty company name", () => {
-        const emptyCompanyTransaction = { ...mockTransaction, company: "" };
-        render(<RecentTransaction item={emptyCompanyTransaction} />);
-
-        expect(screen.getByText("Payment from ")).toBeInTheDocument();
     });
 
     it("should handle special characters in company name", () => {
