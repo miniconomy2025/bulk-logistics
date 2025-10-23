@@ -13,7 +13,7 @@ class ShipmentStatusModel {
         if (res.rowCount === 0) {
             return null;
         }
-        return res.rows[0];
+        return res.rows[0].shipmentStatusId;
     }
 }
 
