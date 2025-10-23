@@ -4,10 +4,12 @@ export class ShipmentProcessingService {
     public processShipmentUpdate = async ({ itemsIDs, newStatusId }: { itemsIDs: number[]; newStatusId: number }) => {
         try {
             // Step 1: Get the shipment IDs
+            console.log("Shipment Items to be updated");
+            console.log("new shipment status ID  ", newStatusId);
             const shipmentIdsToUpdate = await shipmentModel.findShipmentIdsByItemIds(itemsIDs);
 
             if (shipmentIdsToUpdate.ok) {
-                console.log(`Found shipment IDs to update: ${shipmentIdsToUpdate}`);
+                console.log("Found shipment IDs to update:", shipmentIdsToUpdate.value);
 
                 // Step 2: Update their statuses
                 const updatedCount = await shipmentModel.updateShipmentStatusesByIds({ shipmentIds: shipmentIdsToUpdate.value, newStatusId });
