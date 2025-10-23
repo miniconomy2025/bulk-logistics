@@ -4,7 +4,7 @@ import { BaseApiClient } from "./baseClient";
 
 class THOHApiClient extends BaseApiClient {
     constructor() {
-        super("https://ec2-13-244-65-62.af-south-1.compute.amazonaws.com", "THOH");
+        super("https://ec2-13-244-65-62.af-south-1.compute.amazonaws.com/api", "THOH");
     }
 
     /**

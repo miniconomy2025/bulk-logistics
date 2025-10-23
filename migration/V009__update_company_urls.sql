@@ -10,5 +10,5 @@ UPDATE company SET company_url = 'https://pear-api.duckdns.org/public-api' WHERE
 UPDATE company SET company_url = 'https://www.bbd-grad-project.co.za/public-api' WHERE company_name = 'sumsang-company';
 UPDATE company SET company_url = 'https://commercial-bank-api.subspace.site/api' WHERE company_name = 'commercial-bank';
 UPDATE company SET company_url = 'https://api.miniconomyretail.za.bz' WHERE company_name = 'retail-bank';
-UPDATE company SET company_url = 'https://ec2-13-244-65-62.af-south-1.compute.amazonaws.com' WHERE company_name = 'thoh';
+UPDATE company SET company_url = 'https://ec2-13-244-65-62.af-south-1.compute.amazonaws.com/api' WHERE company_name = 'thoh';
 UPDATE company SET company_url = 'https://api.recycler.susnet.co.za' WHERE company_name = 'recycler';
