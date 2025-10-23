@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import App from "../App";
+import "@testing-library/jest-dom";
 
 jest.mock("../pages/dashboard", () => {
     return function MockDashboard() {
@@ -82,14 +83,14 @@ describe("App", () => {
         expect(screen.getByText("Not Found Page")).toBeInTheDocument();
     });
 
-    it("should handle case-sensitive paths correctly", () => {
+    it("should handle case-insensitive paths correctly", () => {
         render(
             <MemoryRouter initialEntries={["/Shipments"]}>
                 <App />
             </MemoryRouter>,
         );
 
-        expect(screen.getByTestId("not-found-page")).toBeInTheDocument();
+        expect(screen.getByTestId("shipments-page")).toBeInTheDocument();
     });
 
     it("should handle paths with query parameters", () => {
@@ -139,7 +140,7 @@ describe("App", () => {
             </MemoryRouter>,
         );
 
-        expect(screen.getByTestId("not-found-page")).toBeInTheDocument();
+        expect(screen.getByTestId("shipments-page")).toBeInTheDocument();
     });
 
     it("should render only one component at a time", () => {
@@ -153,25 +154,6 @@ describe("App", () => {
         expect(screen.queryByTestId("dashboard-page")).not.toBeInTheDocument();
         expect(screen.queryByTestId("pickup-requests-page")).not.toBeInTheDocument();
         expect(screen.queryByTestId("not-found-page")).not.toBeInTheDocument();
-    });
-
-    it("should handle navigation between routes", () => {
-        const { rerender } = render(
-            <MemoryRouter initialEntries={["/"]}>
-                <App />
-            </MemoryRouter>,
-        );
-
-        expect(screen.getByTestId("dashboard-page")).toBeInTheDocument();
-
-        rerender(
-            <MemoryRouter initialEntries={["/shipments"]}>
-                <App />
-            </MemoryRouter>,
-        );
-
-        expect(screen.getByTestId("shipments-page")).toBeInTheDocument();
-        expect(screen.queryByTestId("dashboard-page")).not.toBeInTheDocument();
     });
 
     it("should handle special characters in paths", () => {

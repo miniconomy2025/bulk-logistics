@@ -1,7 +1,7 @@
 import type { Config } from "@jest/types";
 
 const config: Config.InitialOptions = {
-    testEnvironment: "jsdom",
+    testEnvironment: "jest-fixed-jsdom",
     roots: ["<rootDir>/src"],
     testMatch: ["**/__tests__/**/*.ts", "**/__tests__/**/*.tsx", "**/?(*.)+(spec|test).ts", "**/?(*.)+(spec|test).tsx"],
     transform: {
