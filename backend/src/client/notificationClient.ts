@@ -33,7 +33,7 @@ class NotificationApiClient extends BaseApiClient {
                 console.warn("Notification has no items, but quantity is", notification.quantity);
             }
 
-            console.log("Attempting to deliver", notification);
+            console.log("Attempting to deliver or pickup", notification);
 
             // Fixed: Handle trailing slashes properly
             const baseUrl = notification.notificationURL.replace(/\/$/, '');

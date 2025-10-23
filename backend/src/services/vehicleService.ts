@@ -20,7 +20,18 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
     console.log("~~~~~~~~~~~~~~~~~~~~~~~ Checking Vehicles ~~~~~~~~~~~~~~~~~~~~~~~");
 
     const allVehicles = await getAllVehiclesWithType();
-    console.log("Vehicles Found:\n ", JSON.stringify(allVehicles, null, 2));
+    const vehicleCounts = (allVehicles || []).reduce((counts, vehicle) => {
+        const typeName = vehicle?.vehicle_type?.name || 'unknown';
+        counts[typeName] = (counts[typeName] || 0) + 1;
+        return counts;
+    }, {} as Record<string, number>);
+
+    console.log("Vehicle Fleet Summary:");
+    Object.entries(vehicleCounts).forEach(([type, count]) => {
+        console.log(`  ${type}: ${count}`);
+    });
+    
+    console.log(`  Total: ${allVehicles?.length || 0}`);
 
     console.log("~~~~~~~~~~~~~~~~~~~~~~~ Shipment Items ~~~~~~~~~~~~~~~~~~~~~~~");
     console.log(JSON.stringify(pickUpRequest.items, null, 2));

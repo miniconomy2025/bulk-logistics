@@ -15,5 +15,11 @@ export const requireSimulationRunning = (req: Request, res: Response, next: Next
             message: "Pickup requests cannot be created while the simulation is not running. Please wait for the simulation to start."
         });
     }
+    else if (!autonomyService.getBankAccountSecured()){
+        return res.status(503).json({
+            error: "Cannot fulfill request",
+            message: "Pickup requests cannot be created until we have secured a bank account"
+        });
+    }
     next();
 };
