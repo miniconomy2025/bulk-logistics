@@ -106,7 +106,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
         // Otherwise, we will partition items regularly to cater for max vehicle sizes.
         //
         else {
-            const itemMaxCapacity = 5000;
+            const itemMaxCapacity = itemMeasurementType === "KG" ? 5000 : 2000;
             if (item.quantity > itemMaxCapacity) {
                 const fullTrucks = Math.floor(item.quantity / itemMaxCapacity);
                 for (let i = 0; i < fullTrucks; i++) {
