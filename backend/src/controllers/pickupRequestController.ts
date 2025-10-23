@@ -54,7 +54,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
     //  "itemName": "screen_machine",
     //  "quantity": "20"
     // }
-    const machinesWithCount = ["screen_machine", "recyling_machine", "ephone_machine", "ephone_plus_machine", "ephone_pro_max_machine", "case_machine"];
+    const machinesWithCount = ["screen_machine", "recyling_machine"];
 
     // These are the machines that we are expecting to get in KGs but the machines are not separate items. The requests will look like this:
     // {
@@ -62,7 +62,7 @@ export const createPickupRequest = catchAsync(async (req: Request, res: Response
     //  "quantity": "7500"     for a machine that weights 2500 for example, this is 3 machines.
     // }
 
-    const machinesWithGroupedKg = [""];
+    const machinesWithGroupedKg = ["case_machine", "ephone_machine", "ephone_plus_machine", "ephone_pro_max_machine"];
 
     console.log("~~~~~~~~~~~~~~~~~~~~~~~ Pickup Request ~~~~~~~~~~~~~~~~~~~~~~~");
     console.log(JSON.stringify(pickupRequestDetails.items, null, 2));
