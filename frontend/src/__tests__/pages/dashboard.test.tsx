@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Dashboard from "../../pages/dashboard";
+import "@testing-library/jest-dom";
 
 jest.mock("../../data/transactions", () => ({
     totals: jest.fn(),
@@ -25,9 +26,70 @@ jest.mock("../../components/all-transactions", () => {
     };
 });
 
-jest.mock("../../layouts/app-layout", () => {
-    return function MockDashboardLayout({ children }: any) {
+jest.mock("../../layouts/app-layout", () => ({
+    DashboardLayout: function MockDashboardLayout({ children }: any) {
         return <div data-testid="dashboard-layout">{children}</div>;
+    },
+}));
+
+jest.mock("../../components/ui/metric-card", () => ({
+    MetricCard: function MockMetricCard({ title, value, bgColor, textColor, icon }: any) {
+        const formattedValue = value.toLocaleString();
+        const isCurrency = title !== "Active Shipments";
+        const displayValue = isCurrency ? `Ð ${formattedValue}` : formattedValue;
+        return (
+            <div className={bgColor}>
+                {icon}
+                <h3>{title}</h3>
+                <p className={textColor}>{displayValue}</p>
+            </div>
+        );
+    },
+}));
+
+jest.mock("../../components/ui/transaction-item", () => ({
+    TransactionItem: function MockTransactionItem({ label, percentage, colorClass }: any) {
+        return (
+            <div className={colorClass}>
+                {label} {percentage}
+            </div>
+        );
+    },
+}));
+
+jest.mock("../../components/recent-transactions", () => ({
+    RecentTransaction: function MockRecentTransaction({ item }: any) {
+        let displayText = "";
+        switch (item.transaction_type) {
+            case "PAYMENT_RECEIVED":
+                displayText = `Payment from ${item.company}`;
+                break;
+            case "LOAN":
+                displayText = "Loan repayment";
+                break;
+            // Add other cases if needed
+            default:
+                displayText = `${item.transaction_type} for ${item.company}`;
+        }
+        return <div>{displayText}</div>;
+    },
+}));
+
+jest.mock("../../components/ui/transactions-modal", () => {
+    return function MockModal({ isOpen, onClose, children }: any) {
+        if (!isOpen) return null;
+        return (
+            <div>
+                <h2>Transaction History</h2>
+                {children}
+                <button
+                    aria-label="Close modal"
+                    onClick={onClose}
+                >
+                    Close
+                </button>
+            </div>
+        );
     };
 });
 
@@ -89,7 +151,7 @@ describe("Dashboard", () => {
                             company: "Company B",
                             amount: "500",
                             transaction_date: "2024-01-16",
-                            transaction_type: "EXPENSE",
+                            transaction_type: "LOAN",
                             pickup_request_id: 124,
                         },
                     ],
