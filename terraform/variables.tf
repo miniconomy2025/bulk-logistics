@@ -1,6 +1,3 @@
-variable "frontend_bucket_name" {
-  default = "bulk-logistics-frontend-site-bucket"
-}
 variable "budget_notification_emails" {
   description = "List of email addresses to receive AWS Budget notifications"
   type        = list(string)
