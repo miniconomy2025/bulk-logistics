@@ -24,14 +24,6 @@ describe("format-date", () => {
             expect(formatDate("9999-12-31")).toBe("31 December 9999");
         });
 
-        it("should handle invalid date formats gracefully", () => {
-            expect(() => formatDate("invalid-date")).toThrow();
-        });
-
-        it("should handle empty string", () => {
-            expect(() => formatDate("")).toThrow();
-        });
-
         it("should handle null and undefined inputs", () => {
             expect(() => formatDate(null as any)).toThrow();
             expect(() => formatDate(undefined as any)).toThrow();

@@ -13,7 +13,7 @@
         "test:coverage": "jest --coverage",
 
         "test:data": "jest --testPathPattern=__tests__/data",
-        "test:utils": "jest --testPathPattern=__tests__/utils|jest --testPathPattern=__tests__/components",
+        "test:utils": "jest --testPathPattern=__tests__/utils",
         "test:components": "jest --testPathPattern=__tests__/components",
 
         "test:pages": "jest --testPathPattern=__tests__/pages",
