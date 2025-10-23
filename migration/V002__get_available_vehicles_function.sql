@@ -9,6 +9,7 @@ RETURNS TABLE (
     maximum_capacity INT,
     capacity_type_id INT,
     max_pickups_per_day INT
+    max_dropoffs_per_day INT
 )
 LANGUAGE plpgsql
 AS $$

@@ -43,7 +43,7 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
     };
 
     if (measurementType === MeasurementType.Weight) {
-        const largeTrucks = allVehicles.filter((v) => v.vehicle_type.name === VehicleType.Large);
+        const largeTrucks = allVehicles.filter((v) => v.vehicle_type?.name === VehicleType.Large);
         const required = Math.ceil(totalQuantity / 5000);
 
         if (largeTrucks.length === 0) throw new Error("No large trucks available.");
@@ -68,8 +68,8 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
     if (measurementType === MeasurementType.Unit) {
         let remainingItems = totalQuantity;
 
-        const mediumTrucks = allVehicles.filter((v) => v.vehicle_type.name === VehicleType.Medium);
-        const smallTrucks = allVehicles.filter((v) => v.vehicle_type.name === VehicleType.Small);
+        const mediumTrucks = allVehicles.filter((v) => v.vehicle_type?.name === VehicleType.Medium);
+        const smallTrucks = allVehicles.filter((v) => v.vehicle_type?.name === VehicleType.Small);
 
         let mediumIndex = 0;
         let smallIndex = 0;
@@ -125,7 +125,7 @@ export const reactivateVehicle = async () => {
 
     const activatedVehicles = [];
     for (const vehicle of vehiclesToActivate) {
-        const response = await updateVehicleStatus(vehicle.vehicle_id, true, null);
+        const response = await updateVehicleStatus(Number(vehicle.vehicle_id), true, null);
 
         activatedVehicles.push(response);
         console.log("----Vehicle Reactivate-----");

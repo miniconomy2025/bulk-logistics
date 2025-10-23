@@ -433,7 +433,7 @@ export default class AutonomyService {
         // Count vehicles by type
         const vehicleCounts: { [key: string]: number } = {};
         currentVehicles.forEach((vehicle) => {
-            const typeName = vehicle.vehicle_type.name;
+            const typeName = vehicle.vehicle_type?.name ?? "";
             vehicleCounts[typeName] = (vehicleCounts[typeName] || 0) + 1;
         });
 
@@ -593,7 +593,7 @@ export default class AutonomyService {
                     const response = await notificationApiClient.sendLogisticsNotification(pickupRequestNotification);
                     if (response.status >= 200 && response.status < 300) {
                         // Create shipment and assign this item to it
-                        await shipmentModel.createShipmentAndAssignitems(plan.vehicle.vehicle_id, item.pickup_request_item_id);
+                        await shipmentModel.createShipmentAndAssignitems(Number(plan.vehicle.vehicle_id), item.pickup_request_item_id);
                         const machinesWithCount = [
                             "screen_machine",
                             "recyling_machine",
