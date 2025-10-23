@@ -8,7 +8,7 @@ RETURNS TABLE (
     "vehicleType" VARCHAR, -- Or appropriate string type for your vehicle_type name
     maximum_capacity INT,
     capacity_type_id INT,
-    max_pickups_per_day INT
+    max_pickups_per_day INT,
     max_dropoffs_per_day INT
 )
 LANGUAGE plpgsql
@@ -22,7 +22,8 @@ BEGIN
         vt.name AS "vehicleType",
         vt.maximum_capacity,
         vt.capacity_type_id,
-        vt.max_pickups_per_day
+        vt.max_pickups_per_day,
+        vt.max_dropoffs_per_day
     FROM
         vehicle v
     INNER JOIN
