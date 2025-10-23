@@ -31,28 +31,28 @@ jobs:
         run: |
           npm run test
 
-      # - name: Build project
-      #   working-directory: frontend
-      #   run: |
-      #     npm run build
+      - name: Build project
+        working-directory: frontend
+        run: |
+          npm run build
           
-      # - name: Verify build output
-      #   working-directory: frontend
-      #   run: |
-      #     if [ ! -d "dist" ]; then
-      #       echo "Build directory 'dist' not found!"
-      #       exit 1
-      #     fi
+      - name: Verify build output
+        working-directory: frontend
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "Build directory 'dist' not found!"
+            exit 1
+          fi
           
-      #     # Check for essential build files
-      #     required_files=(
-      #       "dist/index.html"
-      #       "dist/assets"
-      #     )
+          # Check for essential build files
+          required_files=(
+            "dist/index.html"
+            "dist/assets"
+          )
           
-      #     for file in "${required_files[@]}"; do
-      #       if [ ! -e "$file" ]; then
-      #         echo "Required build output not found: $file"
-      #         exit 1
-      #       fi
-      #     done
+          for file in "${required_files[@]}"; do
+            if [ ! -e "$file" ]; then
+              echo "Required build output not found: $file"
+              exit 1
+            fi
+          done
