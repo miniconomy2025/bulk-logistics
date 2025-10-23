@@ -66,6 +66,10 @@ export default class AutonomyService {
         return AutonomyService.instance;
     }
 
+    public getIsRunning(): boolean {
+        return this.isRunning;
+    }
+
     /**
      * Starts the simulation's daily tick timer.
      */
