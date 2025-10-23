@@ -145,8 +145,6 @@ describe('vehicleService', () => {
                 expect(result.vehicles).toHaveLength(1);
                 // Should reuse the same truck
                 expect(result.vehicles?.[0].vehicle_id).toBe(largeTruck.vehicle_id);
-                expect(result.vehicles?.[1].vehicle_id).toBe(largeTruck.vehicle_id);
-                expect(result.vehicles?.[2].vehicle_id).toBe(largeTruck.vehicle_id);
             });
 
             it('should throw error when no large trucks available for KG items', async () => {
