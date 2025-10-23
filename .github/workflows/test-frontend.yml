@@ -26,11 +26,10 @@ jobs:
         run: |
           npm ci
 
-      # - name: Run tests
-      #   working-directory: frontend
-      #   run: |
-      #     echo "Running tests with Node $(node -v)"
-      #     NODE_OPTIONS=--experimental-vm-modules npx jest --config jest.config.js
+      - name: Run tests
+        working-directory: frontend
+        run: |
+          npm run test
 
       # - name: Build project
       #   working-directory: frontend
