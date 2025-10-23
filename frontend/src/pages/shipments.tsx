@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { MetricCard } from "../components/ui/metric-card";
 import { DashboardLayout } from "../layouts/app-layout";
 import Shipments from "../data/shipments";

@@ -1,5 +1,4 @@
 import { render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import Dashboard from "../../pages/dashboard";
 import "@testing-library/jest-dom";
 
@@ -14,17 +13,17 @@ jest.mock("../../data/shipments", () => ({
     activeShipments: jest.fn(),
 }));
 
-jest.mock("../../components/income-expense-chart", () => {
-    return function MockIncomeExpenseChart({ transaction }: any) {
+jest.mock("../../components/income-expense-chart", () => ({
+    IncomeExpenseChart: function MockIncomeExpenseChart({ transaction }: any) {
         return <div data-testid="income-expense-chart">Chart with {transaction.length} data points</div>;
-    };
-});
+    },
+}));
 
-jest.mock("../../components/all-transactions", () => {
-    return function MockAllTransactions() {
+jest.mock("../../components/all-transactions", () => ({
+    AllTransactions: function MockAllTransactions() {
         return <div data-testid="all-transactions">All Transactions Component</div>;
-    };
-});
+    },
+}));
 
 jest.mock("../../layouts/app-layout", () => ({
     DashboardLayout: function MockDashboardLayout({ children }: any) {
@@ -67,7 +66,6 @@ jest.mock("../../components/recent-transactions", () => ({
             case "LOAN":
                 displayText = "Loan repayment";
                 break;
-            // Add other cases if needed
             default:
                 displayText = `${item.transaction_type} for ${item.company}`;
         }

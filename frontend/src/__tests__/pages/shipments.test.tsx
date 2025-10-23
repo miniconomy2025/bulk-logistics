@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import ShipmentsDashboard from "../../pages/shipments";
+import "@testing-library/jest-dom";
 
 jest.mock("../../data/shipments", () => ({
     allShipments: jest.fn(),
@@ -10,8 +11,8 @@ jest.mock("../../data/shipment-status", () => ({
     allShipmentStatuses: jest.fn(),
 }));
 
-jest.mock("../../components/shipment-items", () => {
-    return function MockShipmentTable({ shipments }: any) {
+jest.mock("../../components/shipment-items", () => ({
+    ShipmentTable: function MockShipmentTable({ shipments }: any) {
         return (
             <div data-testid="shipment-table">
                 {shipments.map((shipment: any, index: number) => (
@@ -24,14 +25,14 @@ jest.mock("../../components/shipment-items", () => {
                 ))}
             </div>
         );
-    };
-});
+    },
+}));
 
-jest.mock("../../layouts/app-layout", () => {
-    return function MockDashboardLayout({ children }: any) {
+jest.mock("../../layouts/app-layout", () => ({
+    DashboardLayout: function MockDashboardLayout({ children }: any) {
         return <div data-testid="dashboard-layout">{children}</div>;
-    };
-});
+    },
+}));
 
 describe("ShipmentsDashboard", () => {
     const mockShipments = {
