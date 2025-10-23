@@ -16,7 +16,6 @@
   "devDependencies": {
     "@types/jest": "^30.0.0",
     "jest": "^30.0.4",
-    "jest-silent-reporter": "^0.6.0",
     "ts-jest": "^29.4.0"
   },
   "dependencies": {
