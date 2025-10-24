@@ -6,8 +6,7 @@ export interface NavItem {
 }
 
 export type Transaction = {
-    year: string;
-    month: string;
+    date: string;
     revenue: number | null;
     expenses: number | null;
 };

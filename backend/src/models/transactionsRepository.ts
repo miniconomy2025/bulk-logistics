@@ -74,7 +74,6 @@ export const insertIntoTransactionLedger = async (options: InsertIntoTransaction
     ($1, $2, $3, $4, $5, $6, $7, $8, $9)
   RETURNING *;
   `;
-
     try {
         const result = await db.query(query, [
             options.commercial_bank_transaction_id,
@@ -115,14 +114,13 @@ export const getTotals = async (): Promise<Result<any>> => {
 export const getMonthlyRevenueExpenses = async (): Promise<Result<any>> => {
     const query = `
     SELECT
-        EXTRACT(YEAR FROM transaction_date) AS year,
-        EXTRACT(MONTH FROM transaction_date) AS month,
+        DATE(transaction_date) AS date,
         SUM(CASE WHEN tc.name IN ('PURCHASE', 'EXPENSE', 'LOAN') THEN amount END) AS expenses,
         SUM(CASE WHEN tc.name IN ('PAYMENT_RECEIVED') THEN amount END) AS revenue
     FROM bank_transactions_ledger t
     JOIN transaction_category tc ON t.transaction_category_id = tc.transaction_category_id
-    GROUP BY year, month
-    ORDER BY year DESC, month DESC;
+    GROUP BY DATE(transaction_date)
+    ORDER BY date DESC;
   `;
 
     try {
@@ -177,7 +175,7 @@ export const getRecentTransactionRepo = async (page: number, limit: number): Pro
 
 export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
     const query = `
-    SELECT 
+    SELECT
         c.company_name AS company,
         SUM(t.amount) AS total,
         COUNT(DISTINCT t.related_pickup_request_id) AS shipments
@@ -200,14 +198,14 @@ export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
 const getCategoryId = async (direction: "in" | "out"): Promise<number> => {
     const result = await db.query(
         `
-        SELECT 1 transaction_category_id FROM transaction_category WHERE name $1`,
+        SELECT 1 transaction_category_id FROM transaction_category WHERE name = $1`,
         [direction],
     );
     return result.rows[0]?.transaction_category_id || null;
 };
 
 export const getCategoryIdByName = async (name: string): Promise<number> => {
-    const result = await db.query(`SELECT  transaction_category_id FROM transaction_category WHERE name $1`, [name]);
+    const result = await db.query(`SELECT  transaction_category_id FROM transaction_category WHERE name = $1`, [name]);
 
     return result.rows[0]?.transaction_category_id;
 };
@@ -295,14 +293,14 @@ export const updatePaymentStatusForPickupRequest = async (transaction: BankNotif
 
     const query = `
         UPDATE bank_transactions_ledger
-        SET 
+        SET
             transaction_status_id = (
-                SELECT transaction_status_id 
-                FROM transaction_status 
+                SELECT transaction_status_id
+                FROM transaction_status
                 WHERE status = 'COMPLETED'
             )
-        WHERE 
-            payment_reference_id = $1 
+        WHERE
+            payment_reference_id = $1
             OR related_pickup_request_id = $2;
     `;
 

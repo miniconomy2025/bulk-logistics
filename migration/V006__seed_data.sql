@@ -98,14 +98,14 @@ INSERT INTO shipment_status (name) VALUES
 
 -- Insert data into bank_transactions_ledger (updated with new transaction categories and company references)
 -- INSERT INTO bank_transactions_ledger (
---     commercial_bank_transaction_id, 
---     payment_reference_id, 
---     transaction_category_id, 
---     amount, 
---     transaction_date, 
---     transaction_status_id, 
---     related_pickup_request_id, 
---     loan_id, 
+--     commercial_bank_transaction_id,
+--     payment_reference_id,
+--     transaction_category_id,
+--     amount,
+--     transaction_date,
+--     transaction_status_id,
+--     related_pickup_request_id,
+--     loan_id,
 --     related_thoh_order_id
 -- ) VALUES
 -- ('BANK-TXN-001', 'a1b2c3d4-e5f6-7890-1234-567890abcdef', (SELECT transaction_category_id FROM transaction_category WHERE name = 'PAYMENT_RECEIVED'), 500.00, '2024-06-02', (SELECT transaction_status_id FROM transaction_status WHERE status = 'COMPLETED'), NULL, NULL, NULL),

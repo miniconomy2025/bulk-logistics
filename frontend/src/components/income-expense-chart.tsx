@@ -5,16 +5,13 @@ import type { IncomeExpensesChartProps } from "../types";
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
 
 const IncomeExpensesChart = ({ transaction }: IncomeExpensesChartProps) => {
-    const sortedData = [...transaction].sort((a, b) => {
-        const dateA = new Date(parseInt(a.year), parseInt(a.month) - 1);
-        const dateB = new Date(parseInt(b.year), parseInt(b.month) - 1);
-        return dateA.getTime() - dateB.getTime();
-    });
+    const sortedData = [...transaction].sort((a, b) =>
+        new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
 
-    const labels = sortedData.map((transaction) => {
-        const date = new Date(parseInt(transaction.year), parseInt(transaction.month) - 1);
-        return date.toLocaleDateString("en-ZA", { month: "short", year: "numeric" });
-    });
+    const labels = sortedData.map((t) =>
+        new Date(t.date).toLocaleDateString("en-ZA", { day: "numeric", month: "short" })
+    );
 
     const revenueData = sortedData.map((t) => t.revenue ?? 0);
     const expensesData = sortedData.map((t) => t.expenses ?? 0);
