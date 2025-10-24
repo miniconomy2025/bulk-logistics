@@ -4,21 +4,20 @@ import { check, sleep } from "k6";
 
 const API_BASE_ENDPOINT = "https://team7-todo.xyz/api";
 
-
 export const options = {
   discardResponseBodies: false,
 
   stages: [
     // === LOAD TEST ===
-    { duration: "30s", target: 200 }, // ramp-up to 200
-    { duration: "1m", target: 200 }, // stay at 200
-    { duration: "30s", target: 0 }, // ramp-down
+    { duration: "1m", target: 200 }, // ramp-up to 200
+    { duration: "1m30s", target: 200 }, // stay at 200
+    { duration: "1m", target: 0 }, // ramp-down
 
     // === STRESS TEST ===
-    { duration: "30s", target: 500 }, // ramp to 500
-    { duration: "1m", target: 1000 }, // ramp to 1000
-    { duration: "1m", target: 1200 }, // ramp to 1500
-    { duration: "1m", target: 0 }, // ramp-down
+    { duration: "1m", target: 500 }, // ramp to 500
+    { duration: "1m30s", target: 1000 }, // ramp to 1000
+    { duration: "1m30s", target: 1200 }, // ramp to 1500
+    { duration: "1m30s", target: 0 }, // ramp-down
 
     // === SPIKE TEST
     { duration: "20s", target: 50 }, // normal
@@ -36,11 +35,28 @@ export const options = {
 
 export function handleSummary(data) {
   return {
-    "summary.html":  htmlReport(data),
+    "summary.html": htmlReport(data),
   };
 }
 
+function getRandomItem(arr) {
+  const randomNumber = Math.random();
+  const scaledNumber = randomNumber * arr.length;
+  const randomIndex = Math.floor(scaledNumber);
+  return arr[randomIndex];
+}
+
 export default function () {
-  http.get(API_BASE_ENDPOINT + "/transactions/monthly");
-  sleep(1);
+  const endpoints = [
+    "/transactions",
+    "/transactions/totals",
+    "/transactions/monthly",
+    "/transactions/top-sources",
+    "/transactions/breakdown",
+  ];
+
+  http.get(API_BASE_ENDPOINT + getRandomItem(endpoints));
+  check(true, { "status was 200": (r) => r.status === 200 });
+  check(true, { "status was 429": (r) => r.status === 429 });
+  sleep(Math.floor(Math.random() * 3) + 1);
 }
