@@ -41,8 +41,8 @@ describe('Notification Queue', () => {
         type: 'DELIVERY',
         quantity: 10,
         items: [
-          { name: 'Widget', quantity: 5 },
-          { name: 'Gadget', quantity: 5 },
+          { itemID: 1,name: 'Widget', quantity: 5 },
+          { itemID: 2, name: 'Gadget', quantity: 5 },
         ],
       };
 
@@ -62,12 +62,16 @@ describe('Notification Queue', () => {
     it('should call db.query with the correct DELETE statement', async () => {
       const pickupRequestId = 456;
 
+      mockedQuery.mockResolvedValueOnce({ rows: [{ payload: {} }] });
+
       await removeSuccessfulNotification(pickupRequestId);
 
-      expect(mockedQuery).toHaveBeenCalledWith(
-        `DELETE FROM delivery_notification_queue WHERE related_pickup_request_id = $1;`,
-        [pickupRequestId]
-      );
+      const expectedQuery = `
+        DELETE FROM delivery_notification_queue 
+        WHERE related_pickup_request_id = $1
+        RETURNING payload;
+    `;
+      expect(mockedQuery).toHaveBeenCalledWith(expectedQuery, [pickupRequestId]);
     });
   });
 });
