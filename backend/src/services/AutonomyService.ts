@@ -70,6 +70,10 @@ export default class AutonomyService {
         return this.isRunning;
     }
 
+    public getBankAccountSecured(): boolean {
+        return this.bankAccountSecured;
+    }
+
     /**
      * Starts the simulation's daily tick timer.
      */

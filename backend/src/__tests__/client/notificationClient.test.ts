@@ -326,7 +326,7 @@ describe('NotificationClient', () => {
 
             await notificationApiClient.sendLogisticsNotification(validNotification);
 
-            expect(consoleSpy).toHaveBeenCalledWith('Attempting to deliver', validNotification);
+            expect(consoleSpy).toHaveBeenCalledWith('Attempting to deliver or pickup', validNotification);
 
             consoleSpy.mockRestore();
         });

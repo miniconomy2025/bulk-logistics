@@ -175,7 +175,7 @@ export const getRecentTransactionRepo = async (page: number, limit: number): Pro
 
 export const getTopRevenueSourcesRepo = async (): Promise<Result<any>> => {
     const query = `
-    SELECT 
+    SELECT
         c.company_name AS company,
         SUM(t.amount) AS total,
         COUNT(DISTINCT t.related_pickup_request_id) AS shipments
@@ -293,14 +293,14 @@ export const updatePaymentStatusForPickupRequest = async (transaction: BankNotif
 
     const query = `
         UPDATE bank_transactions_ledger
-        SET 
+        SET
             transaction_status_id = (
-                SELECT transaction_status_id 
-                FROM transaction_status 
+                SELECT transaction_status_id
+                FROM transaction_status
                 WHERE status = 'COMPLETED'
             )
-        WHERE 
-            payment_reference_id = $1 
+        WHERE
+            payment_reference_id = $1
             OR related_pickup_request_id = $2;
     `;
 
