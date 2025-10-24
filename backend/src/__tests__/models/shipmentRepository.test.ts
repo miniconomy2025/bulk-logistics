@@ -113,7 +113,7 @@ describe('shipmentRepository', () => {
       jest.spyOn(shipmentModel, 'assignItemToShipmentWithPickupRequestItemId').mockResolvedValue();
       jest.spyOn(pickupRepo, 'updateCompletionDate').mockResolvedValue(undefined);
 
-      await shipmentModel.createShipmentAndAssignitems(1, 10, [101, 102]);
+      await shipmentModel.createShipmentAndAssignitems(1, 10);
 
       expect(client.query).toHaveBeenCalledWith('BEGIN');
       expect(client.query).toHaveBeenCalledWith('COMMIT');
@@ -130,7 +130,7 @@ describe('shipmentRepository', () => {
       jest.spyOn(shipmentModel, 'createShipment').mockRejectedValue(new Error('DB error'));
 
       await expect(
-        shipmentModel.createShipmentAndAssignitems(1, 10, [101])
+        shipmentModel.createShipmentAndAssignitems(1, 10)
       ).rejects.toThrow('DB error');
 
       expect(client.query).toHaveBeenCalledWith('ROLLBACK');

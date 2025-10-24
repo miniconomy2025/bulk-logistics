@@ -94,7 +94,7 @@ describe("vehicleRepository", () => {
 
       expect(result).toHaveLength(1);
       expect(result[0].daily_operational_cost).toBeCloseTo(123.45);
-      expect(result[0].vehicle_type.name).toBe("Truck");
+      expect(result[0]?.vehicle_type?.name).toBe("Truck");
       expect(result[0].is_in_active_shipment).toBe(true);
     });
   });
