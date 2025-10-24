@@ -268,7 +268,7 @@ describe('AutonomyService', () => {
             expect(mockBankClient.applyForLoan).not.toHaveBeenCalled();
         });
 
-        it('should purchase initial trucks (4 large, 4 medium)', async () => {
+        it('should purchase initial trucks (20 large, 4 medium)', async () => {
             const startTime = Date.now();
             autonomyService.start(startTime);
 
@@ -277,7 +277,7 @@ describe('AutonomyService', () => {
 
             expect(mockThohClient.purchaseTruck).toHaveBeenCalledWith({
                 truckName: 'large_truck',
-                quantity: 4,
+                quantity: 20,
             });
             expect(mockThohClient.purchaseTruck).toHaveBeenCalledWith({
                 truckName: 'medium_truck',
@@ -489,7 +489,7 @@ describe('AutonomyService', () => {
             await jest.advanceTimersByTimeAsync(15000);
             await Promise.resolve();
 
-            // We only send/resend delivery notifications 
+            // We only send/resend delivery notifications
             expect(mockNotificationClient.sendLogisticsNotification).toHaveBeenCalledWith(
                 expect.objectContaining({
                     "id": "EXT-123",
@@ -921,10 +921,10 @@ describe('AutonomyService', () => {
             expect(mockNotificationClient.sendLogisticsNotification).toHaveBeenCalledWith(
                 expect.objectContaining({
                     "id": "EXT-123",
-                    "items": [{ "itemID": 1, "name": "screen_machine", "quantity": 2000 }], 
-                    "notificationURL": "http://origin.com/notify", 
-                    "quantity": 2000, 
-                    "type": "PICKUP" 
+                    "items": [{ "itemID": 1, "name": "screen_machine", "quantity": 2000 }],
+                    "notificationURL": "http://origin.com/notify",
+                    "quantity": 2000,
+                    "type": "PICKUP"
                 })
             );
         });
@@ -966,9 +966,9 @@ describe('AutonomyService', () => {
             // Check delivery notification has actual quantity for regular items
             expect(mockNotificationClient.sendLogisticsNotification).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    "id": "EXT-123", 
-                    "items": [{"itemID": 1, "name": "copper", "quantity": 1000}], 
-                    "notificationURL": "http://origin.com/notify", 
+                    "id": "EXT-123",
+                    "items": [{"itemID": 1, "name": "copper", "quantity": 1000}],
+                    "notificationURL": "http://origin.com/notify",
                     "quantity": 1000, "type": "PICKUP"
                 })
             );
