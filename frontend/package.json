@@ -9,13 +9,19 @@
         "lint": "eslint .",
         "preview": "vite preview",
         "test": "jest",
-        "test:watch": "jest --watch",
-        "test:coverage": "jest --coverage"
+        "test:data": "jest --testPathPattern=__tests__/data",
+        "test:utils": "jest --testPathPattern=__tests__/utils",
+        "test:components": "jest --testPathPattern=__tests__/components",
+        "test:pages": "jest --testPathPattern=__tests__/pages",
+        "test:ui": "jest --testPathPattern=__tests__/App",
+        "test:layouts": "jest --testPathPattern=__tests__/layouts",
+        "test:ci": "jest --coverage --watchAll=false --passWithNoTests"
     },
     "dependencies": {
         "@tailwindcss/vite": "^4.1.11",
         "chart.js": "^4.5.0",
-        "dotenv": "^17.0.0",
+        "dotenv": "^17.2.3",
+        "jest-fixed-jsdom": "^0.0.10",
         "morgan": "^1.10.0",
         "react": "^19.1.0",
         "react-chartjs-2": "^5.3.0",
@@ -26,7 +32,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^9.29.0",
-        "@testing-library/jest-dom": "^6.4.2",
+        "@testing-library/jest-dom": "^6.9.1",
         "@testing-library/react": "^16.3.0",
         "@testing-library/user-event": "^14.5.2",
         "@types/express": "^5.0.3",
@@ -49,6 +55,7 @@
         "prettier": "^3.4.2",
         "prettier-plugin-tailwindcss": "^0.6.11",
         "ts-jest": "^29.4.5",
+        "ts-node": "^10.9.2",
         "typescript": "~5.8.3",
         "typescript-eslint": "^8.34.1",
         "vite": "^7.0.0"

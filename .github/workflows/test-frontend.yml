@@ -24,14 +24,12 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: |
-          npm install
-          npm install --save-dev ts-jest @types/jest jest-environment-jsdom identity-obj-proxy jest-transform-stub
+          npm ci
 
       - name: Run tests
         working-directory: frontend
         run: |
-          echo "Running tests with Node $(node -v)"
-          NODE_OPTIONS=--experimental-vm-modules npx jest --config jest.config.js
+          npm run test
 
       - name: Build project
         working-directory: frontend

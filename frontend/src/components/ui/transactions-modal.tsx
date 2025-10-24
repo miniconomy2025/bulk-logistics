@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import * as React from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { TransactionsResponse } from "../../types";
 import Transactions from "../../data/transactions";
 import { formatDate } from "../../utils/format-date";
@@ -129,6 +130,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
                             onClick={exportToCSV}
                             className="mx-5 flex items-center justify-center rounded border-2 border-gray-300 px-3 py-1 text-gray-800 transition-colors duration-200 hover:bg-gray-100 hover:text-gray-700"
                             aria-label="Close modal"
+                            title="export csv"
                         >
                             <span className="material-symbols-outlined mr-2">download</span> Export
                         </button>
@@ -137,6 +139,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
                         onClick={onClose}
                         className="flex cursor-pointer items-center justify-center text-gray-800 transition-colors duration-200 hover:text-gray-700"
                         aria-label="Close modal"
+                        title="close modal"
                     >
                         <span className="material-symbols-outlined mr-2">close</span>
                     </button>

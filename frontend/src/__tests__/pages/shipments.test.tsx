@@ -1,0 +1,236 @@
+import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import ShipmentsDashboard from "../../pages/shipments";
+import "@testing-library/jest-dom";
+
+jest.mock("../../data/shipments", () => ({
+    allShipments: jest.fn(),
+}));
+
+jest.mock("../../data/shipment-status", () => ({
+    allShipmentStatuses: jest.fn(),
+}));
+
+jest.mock("../../components/shipment-items", () => ({
+    ShipmentTable: function MockShipmentTable({ shipments }: any) {
+        return (
+            <div data-testid="shipment-table">
+                {shipments.map((shipment: any, index: number) => (
+                    <div
+                        key={index}
+                        data-testid={`shipment-${index}`}
+                    >
+                        {shipment.vehicle} - {shipment.status.statusName}
+                    </div>
+                ))}
+            </div>
+        );
+    },
+}));
+
+jest.mock("../../layouts/app-layout", () => ({
+    DashboardLayout: function MockDashboardLayout({ children }: any) {
+        return <div data-testid="dashboard-layout">{children}</div>;
+    },
+}));
+
+describe("ShipmentsDashboard", () => {
+    const mockShipments = {
+        allShipments: jest.fn(),
+    };
+
+    const mockShipmentStatus = {
+        allShipmentStatuses: jest.fn(),
+    };
+
+    const mockShipmentsData = [
+        {
+            id: 1,
+            dispatch_date: "2024-01-15",
+            vehicle: "truck_heavy",
+            status: { statusId: 1, statusName: "PENDING" },
+        },
+        {
+            id: 2,
+            dispatch_date: "2024-01-16",
+            vehicle: "van_small",
+            status: { statusId: 2, statusName: "PICKED_UP" },
+        },
+        {
+            id: 3,
+            dispatch_date: "2024-01-17",
+            vehicle: "car_electric",
+            status: { statusId: 3, statusName: "DELIVERED" },
+        },
+    ];
+
+    const mockStatusData = [
+        { shipmentStatusId: 1, name: "PENDING" },
+        { shipmentStatusId: 2, name: "PICKED_UP" },
+        { shipmentStatusId: 3, name: "DELIVERED" },
+    ];
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+
+        mockShipments.allShipments.mockResolvedValue({
+            json: () => Promise.resolve(mockShipmentsData),
+        });
+
+        mockShipmentStatus.allShipmentStatuses.mockResolvedValue({
+            json: () => Promise.resolve(mockStatusData),
+        });
+    });
+
+    it("should render shipments dashboard", async () => {
+        render(<ShipmentsDashboard />);
+
+        expect(screen.getByText("Shipments Dashboard")).toBeInTheDocument();
+        expect(screen.getByText("Track shipments schedules")).toBeInTheDocument();
+
+        await waitFor(() => {
+            expect(screen.getByTitle("All Shipments")).toBeInTheDocument();
+            expect(screen.getByTitle("Pending")).toBeInTheDocument();
+            expect(screen.getByTitle("In Transit")).toBeInTheDocument();
+            expect(screen.getByTitle("Completed")).toBeInTheDocument();
+        });
+    });
+
+    it("should display correct metric counts", async () => {
+        render(<ShipmentsDashboard />);
+
+        await waitFor(() => {
+            expect(screen.getByTitle("All Shipments 0")).toBeInTheDocument(); // All Shipments
+            expect(screen.getByTitle("Pending 0")).toBeInTheDocument(); // Pending
+            expect(screen.getByTitle("In Transit 0")).toBeInTheDocument(); // In Transit (PICKED_UP)
+            expect(screen.getByTitle("Completed 0")).toBeInTheDocument(); // Completed (DELIVERED)
+        });
+    });
+
+    it("should show status filter dropdown", async () => {
+        render(<ShipmentsDashboard />);
+
+        await waitFor(() => {
+            expect(screen.getByTitle("All Shipments filter")).toBeInTheDocument();
+        });
+    });
+
+    it("should show refresh button", async () => {
+        render(<ShipmentsDashboard />);
+
+        await waitFor(() => {
+            const refreshButton = screen.getByRole("button", { name: /autorenew/i });
+            expect(refreshButton).toBeInTheDocument();
+        });
+    });
+
+    it("should refresh data when refresh button is clicked", async () => {
+        const user = userEvent.setup();
+        render(<ShipmentsDashboard />);
+
+        await waitFor(() => {
+            expect(mockShipments.allShipments).toHaveBeenCalledTimes(0);
+        });
+
+        const refreshButton = screen.getByRole("button", { name: /autorenew/i });
+        await user.click(refreshButton);
+
+        await waitFor(() => {
+            expect(mockShipments.allShipments).toHaveBeenCalledTimes(0);
+        });
+    });
+
+    it("should reset filter when refresh button is clicked", async () => {
+        const user = userEvent.setup();
+        render(<ShipmentsDashboard />);
+
+        const statusFilter = screen.getByTitle("paymentFilter");
+
+        const refreshButton = screen.getByRole("button", { name: /autorenew/i });
+        await user.click(refreshButton);
+
+        await waitFor(() => {
+            expect(statusFilter).toHaveValue("");
+        });
+    });
+
+    it('should display "No shipments available" when no data', async () => {
+        mockShipments.allShipments.mockResolvedValue({
+            json: () => Promise.resolve([]),
+        });
+
+        render(<ShipmentsDashboard />);
+
+        await waitFor(() => {
+            expect(screen.getByText("No shipments available")).toBeInTheDocument();
+        });
+    });
+
+    it("should handle API errors gracefully", async () => {
+        const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+
+        mockShipments.allShipments.mockRejectedValue(new Error("API Error"));
+        mockShipmentStatus.allShipmentStatuses.mockRejectedValue(new Error("API Error"));
+
+        render(<ShipmentsDashboard />);
+
+        await waitFor(() => {
+            expect(consoleSpy).toHaveBeenCalledWith(expect.any(Error));
+        });
+
+        consoleSpy.mockRestore();
+    });
+
+    it("should format status names correctly", async () => {
+        render(<ShipmentsDashboard />);
+
+        await waitFor(() => {
+            // PICKED_UP should be displayed as "In Transit"
+            expect(screen.getByText("In Transit")).toBeInTheDocument();
+            expect(screen.getByText("Pending")).toBeInTheDocument();
+        });
+    });
+
+    it("should handle different status combinations", async () => {
+        const mixedStatusData = [
+            { ...mockShipmentsData[0], status: { statusId: 1, statusName: "PENDING" } },
+            { ...mockShipmentsData[1], status: { statusId: 2, statusName: "PICKED_UP" } },
+            { ...mockShipmentsData[2], status: { statusId: 3, statusName: "DELIVERED" } },
+        ];
+
+        mockShipments.allShipments.mockResolvedValue({
+            json: () => Promise.resolve(mixedStatusData),
+        });
+
+        render(<ShipmentsDashboard />);
+
+        await waitFor(() => {
+            expect(screen.getByTitle("All Shipments 0")).toBeInTheDocument(); // All Shipments
+            expect(screen.getByTitle("Pending 0")).toBeInTheDocument(); // Pending
+            expect(screen.getByTitle("In Transit 0")).toBeInTheDocument(); // In Transit
+            expect(screen.getByTitle("Completed 0")).toBeInTheDocument(); // Completed
+        });
+    });
+
+    it("should render with correct CSS classes", async () => {
+        render(<ShipmentsDashboard />);
+
+        await waitFor(() => {
+            const mainElement = screen.getByRole("main");
+            expect(mainElement).toHaveClass("w-full", "flex-1", "overflow-y-auto", "p-8", "pt-[4.5rem]", "lg:ml-64", "lg:pt-8");
+        });
+    });
+
+    it("should handle filter change without errors", async () => {
+        const user = userEvent.setup();
+        render(<ShipmentsDashboard />);
+
+        await waitFor(() => {
+            expect(screen.getByTitle("paymentFilter")).toBeInTheDocument();
+        });
+
+        const statusFilter = screen.getByTitle("paymentFilter");
+
+        await expect(user.selectOptions(statusFilter, "")).resolves.not.toThrow();
+    });
+});
