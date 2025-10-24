@@ -4,7 +4,7 @@ import { BaseApiClient } from "./baseClient";
 
 class THOHApiClient extends BaseApiClient {
     constructor() {
-        super("https://thoh-api.projects.bbdgrad.com", "THOH");
+        super("https://ec2-13-244-65-62.af-south-1.compute.amazonaws.com/api", "THOH");
     }
 
     /**
@@ -14,20 +14,39 @@ class THOHApiClient extends BaseApiClient {
      */
 
     public async purchaseTruck(truckInfo: TruckPurchaseRequest): Promise<TruckPurchaseResponse> {
-        console.log("------PURCHASING TRUCKS-------\nTRUCK REQUEST: ", truckInfo);
-        const response = await this.client.post("/trucks", truckInfo);
-        console.log("------PURCHASING COMPLETE-------\nTRUCK RESPONSE: ", response.data);
-        return response.data;
+        try {
+            // Validate truck purchase request
+            if (!truckInfo.truckName || truckInfo.truckName.trim() === '') {
+                throw new Error("Truck name is required");
+            }
+
+            if (truckInfo.quantity <= 0) {
+                throw new Error("Truck quantity must be greater than 0");
+            }
+
+            // Validate truck name is one of the allowed types
+            const validTruckNames = ['large_truck', 'medium_truck', 'small_truck'];
+            if (!validTruckNames.includes(truckInfo.truckName)) {
+                console.warn(`Unknown truck name: ${truckInfo.truckName}. Valid types: ${validTruckNames.join(', ')}`);
+            }
+
+            console.log("------PURCHASING TRUCKS-------\nTRUCK REQUEST: ", truckInfo);
+            const response = await this.client.post("/trucks", truckInfo);
+            console.log("------PURCHASING COMPLETE-------\nTRUCK RESPONSE: ", response.data);
+            return response.data;
+        } catch (error: any) {
+            // Fixed: Now wraps all errors in AppError for consistency
+            throw new AppError(error, 500);
+        }
     }
 
     public async getTime(): Promise<TimeResponse> {
         try {
             const response = await this.client.get("/time");
             return response.data;
-        } catch {
-            return {
-                error: "No current time",
-            };
+        } catch (error: any) {
+            // Fixed: Now throws AppError for consistency with other methods
+            throw new AppError(error, 503);
         }
     }
 
@@ -40,7 +59,8 @@ class THOHApiClient extends BaseApiClient {
             const response = await this.client.get("/trucks");
             return response.data;
         } catch (error: any) {
-            throw new AppError(error.error, 500);
+            // Fixed: Use error.message instead of error.error
+            throw new AppError(error.message || error, 500);
         }
     }
 
@@ -49,7 +69,8 @@ class THOHApiClient extends BaseApiClient {
             const response = await this.client.get("/machines");
             return response.data;
         } catch (error: any) {
-            throw new AppError(error.error, 500);
+            // Fixed: Use error.message instead of error.error
+            throw new AppError(error.message || error, 500);
         }
     }
 }

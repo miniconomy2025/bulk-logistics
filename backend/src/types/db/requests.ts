@@ -24,7 +24,7 @@ export interface PickupRequestWithDetails {
     originalExternalOrderId: string | number;
     cost: number;
     requestDate: Date;
-    completionDate: Date;
+    completionDate: Date | null;
     paymentStatus: String;
     paymentDate: Date;
     items: PickupToShipmentItemDetails[];
@@ -36,7 +36,7 @@ export interface PickupToShipmentItemDetails {
     itemName: string;
     quantity: number;
     capacity_type_id: number;
-    shipment_id: number;
+    shipment_id?: number;
     destinationCompanyUrl: string;
     originCompanyUrl: string;
     originalExternalOrderId: string;

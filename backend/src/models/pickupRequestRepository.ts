@@ -171,6 +171,7 @@ export const updatePickupRequestStatuses = async (completionDate: Date): Promise
             );
     `;
 
+    
     const result = await database.query(query, [completionDate]);
 
     // Return the number of rows that were updated.

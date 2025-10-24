@@ -17,6 +17,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Use Node.js 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          
       - name: Set up SSH key
         uses: webfactory/ssh-agent@v0.9.0
         with:
@@ -31,9 +36,10 @@ jobs:
 
           cd /home/ubuntu/bulk-logistics
           git config --global --add safe.directory /home/ubuntu/bulk-logistics
-          git reset --hard HEAD
+          git fetch --all
+          git reset --hard origin/main
           git clean -fd
-          git pull origin main
+
           cd backend
           npm install
           npm run build

@@ -81,9 +81,9 @@ const Dashboard: React.FC = () => {
     });
     const [incomeBreakdown, setIncomeBreakdown] = useState<IncomeExpensesChartProps>({
         transaction: [
-            { year: "2025", month: "6", revenue: 0, expenses: 0 },
-            { year: "2025", month: "5", revenue: 0, expenses: 0 },
-            { year: "2025", month: "4", revenue: 0, expenses: 0 },
+            { date: "2025-06-01", revenue: 0, expenses: 0 },
+            { date: "2025-05-01", revenue: 0, expenses: 0 },
+            { date: "2025-04-01", revenue: 0, expenses: 0 },
         ],
     });
 
