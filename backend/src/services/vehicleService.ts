@@ -55,7 +55,7 @@ export const getVehicleForPickupRequest = async (pickUpRequest: PickupRequestReq
 
     if (measurementType === MeasurementType.Weight) {
         const largeTrucks = allVehicles.filter((v) => v.vehicle_type?.name === VehicleType.Large);
-        const requiredVehicles = Math.ceil(totalQuantity / 5000);
+        const requiredVehicles = Math.ceil(totalQuantity / 9999999);
 
         const required = !!requiredVehicles && requiredVehicles || 1;
 

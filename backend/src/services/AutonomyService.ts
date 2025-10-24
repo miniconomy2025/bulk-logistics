@@ -21,7 +21,7 @@ const TICK_CHECK_INTERVAL_MS = 15000;
 
 // Configuration constants
 const REQUIRED_INITIAL_TRUCKS: TruckPurchaseRequest[] = [
-    { truckName: "large_truck", quantity: 20 },
+    { truckName: "large_truck", quantity: 4 },
     { truckName: "medium_truck", quantity: 4 },
 ];
 const BANK_NOTIFICATION_URL = "https://team7-todo.xyz/api/bank";
