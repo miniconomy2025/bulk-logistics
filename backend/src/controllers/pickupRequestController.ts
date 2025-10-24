@@ -19,7 +19,8 @@ import { thohApiClient } from "../client/thohClient";
 import { getMachines, updateMachineWeights } from "../models/itemDefinitionRepository";
 
 export const createPickupRequest = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const pickupRequestDetails: PickupRequestRequest = req.body;
+  console.log('------CLIENT ID: ', req.header('Client-Id'));
+  const pickupRequestDetails: PickupRequestRequest = req.body;
     // Check if we already have the weights in the database.
     let machineWeightsInDb = await getMachines();
     // If we don't have the weights, we need to get them from the hand and update our DB.
