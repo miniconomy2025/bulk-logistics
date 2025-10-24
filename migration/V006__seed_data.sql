@@ -55,9 +55,9 @@ INSERT INTO item_definitions (item_name, capacity_type_id) VALUES
 
 -- Insert data into vehicle_type
 INSERT INTO vehicle_type (name, capacity_type_id, maximum_capacity, max_pickups_per_day, max_dropoffs_per_day) VALUES
-('large_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG'), 5000, 1, 1),
-('medium_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'), 2000, 5, 100 ),
-('small_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'), 500, 250, 500);
+('large_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'KG'), 9999999, 1, 1),
+('medium_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'), 9999999, 5, 100 ),
+('small_truck', (SELECT capacity_type_id FROM capacity_type WHERE name = 'UNIT'), 9999999, 250, 500);
 
 -- Insert data into vehicle
 -- INSERT INTO vehicle (is_active, daily_operational_cost, vehicle_type_id, purchase_date) VALUES
