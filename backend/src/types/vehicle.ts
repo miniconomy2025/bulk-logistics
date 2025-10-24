@@ -17,3 +17,14 @@ export interface VehicleCreate {
 export interface VehicleOperationalCost {
     operationalCost: number;
 }
+
+export interface AvailableVehicle {
+    vehicle_id: number,
+    vehicle_type_id: number,
+    is_active: boolean,
+    vehicleType: string,
+    maximum_capacity: number,
+    capacity_type_id: number,
+    max_pickups_per_day: number
+    max_dropoffs_per_day: number
+}

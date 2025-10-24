@@ -12,15 +12,15 @@ export abstract class BaseApiClient {
         this.serviceName = serviceName;
 
         // const customCa = fs.readFileSync(process.env.MTLS_CA_CERT_PATH!);
-        const customCa = fs.readFileSync("/etc/ssl/bulk-logistics/root-ca.crt");
+        // const customCa = fs.readFileSync("/etc/ssl/bulk-logistics/root-ca.crt");
 
-        const allCAs = [...tls.rootCertificates, customCa];
+        // const allCAs = [...tls.rootCertificates, customCa];
 
         const httpsAgent = new https.Agent({
-            key: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.key"),
-            cert: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.crt"),
-            ca: allCAs,
-            rejectUnauthorized: true,
+            // key: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.key"),
+            // cert: fs.readFileSync("/etc/ssl/bulk-logistics/bulk-logistics-client.crt"),
+            // ca: allCAs,
+            rejectUnauthorized: false,
         });
         // const httpsAgent = new https.Agent({
         //     key: fs.readFileSync(process.env.MTLS_PRIVATE_KEY_PATH!),
@@ -32,12 +32,18 @@ export abstract class BaseApiClient {
         this.client = axios.create({
             baseURL: baseURL,
             httpsAgent: httpsAgent,
+            headers: {
+                "Client-Id": "bulk-logistics",
+            },
         });
 
         this.client.interceptors.response.use(
             (response) => response,
             (error: AxiosError) => {
                 if (error.response) {
+                    if (error.response.status === 404) {
+                        return error.response;
+                    }
                     console.error(`Error from ${this.serviceName} API:`, error.response.data);
                     throw new AppError(`Request to ${this.serviceName} failed with status ${error.response.status}`, 502);
                 } else if (error.request) {
